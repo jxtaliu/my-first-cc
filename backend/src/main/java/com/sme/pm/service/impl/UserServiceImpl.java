@@ -9,6 +9,7 @@ import com.sme.pm.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -56,5 +57,24 @@ public class UserServiceImpl implements UserService {
             user.setPassword(null);  // Don't return password
         }
         return user;
+    }
+
+    @Override
+    @Transactional
+    public void assignRoles(Long userId, List<Long> roleIds) {
+        userMapper.deleteUserRolesByUserId(userId);
+        for (Long roleId : roleIds) {
+            userMapper.insertUserRole(userId, roleId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void assignDepartment(Long userId, Long departmentId) {
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            user.setDepartmentId(departmentId);
+            userMapper.updateById(user);
+        }
     }
 }
