@@ -2,7 +2,9 @@ package com.sme.pm.controller;
 
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Department;
+import com.sme.pm.entity.User;
 import com.sme.pm.mapper.DepartmentMapper;
+import com.sme.pm.mapper.UserMapper;
 import com.sme.pm.service.DepartmentService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,10 +16,12 @@ public class DepartmentController {
 
     private final DepartmentService departmentService;
     private final DepartmentMapper departmentMapper;
+    private final UserMapper userMapper;
 
-    public DepartmentController(DepartmentService departmentService, DepartmentMapper departmentMapper) {
+    public DepartmentController(DepartmentService departmentService, DepartmentMapper departmentMapper, UserMapper userMapper) {
         this.departmentService = departmentService;
         this.departmentMapper = departmentMapper;
+        this.userMapper = userMapper;
     }
 
     @GetMapping
@@ -53,6 +57,36 @@ public class DepartmentController {
             return Result.error("Cannot delete: department has users or children");
         }
         departmentMapper.physicalDeleteById(id);
+        return Result.success();
+    }
+
+    @GetMapping("/{id}/users")
+    public Result<List<User>> getDepartmentUsers(@PathVariable Long id) {
+        return Result.success(departmentMapper.findUsersByDepartmentId(id));
+    }
+
+    @GetMapping("/users/available")
+    public Result<List<User>> getAvailableUsers() {
+        return Result.success(departmentMapper.findUsersWithoutDepartment());
+    }
+
+    @PostMapping("/{id}/users/{userId}")
+    public Result<Void> addUserToDepartment(@PathVariable Long id, @PathVariable Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            user.setDepartmentId(id);
+            userMapper.updateById(user);
+        }
+        return Result.success();
+    }
+
+    @DeleteMapping("/{id}/users/{userId}")
+    public Result<Void> removeUserFromDepartment(@PathVariable Long id, @PathVariable Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            user.setDepartmentId(null);
+            userMapper.updateById(user);
+        }
         return Result.success();
     }
 }

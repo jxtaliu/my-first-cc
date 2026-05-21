@@ -308,22 +308,18 @@ const handleSubmit = async () => {
       })
       const result = await res.json()
       if (result.code === 200) {
-        // Update department if changed
-        if (userForm.departmentId) {
-          await fetch(`/api/users/${userForm.id}/department`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ departmentId: userForm.departmentId })
-          })
-        }
-        // Assign roles
-        if (userForm.roleIds && userForm.roleIds.length > 0) {
-          await fetch(`/api/users/${userForm.id}/roles`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ roleIds: userForm.roleIds })
-          })
-        }
+        // Update department (always call, even if null to clear department)
+        await fetch(`/api/users/${userForm.id}/department`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ departmentId: userForm.departmentId })
+        })
+        // Assign roles (always call, even if empty to clear roles)
+        await fetch(`/api/users/${userForm.id}/roles`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roleIds: userForm.roleIds || [] })
+        })
         ElMessage.success(t('admin.userUpdated'))
       } else {
         ElMessage.error(result.message || t('common.failed'))

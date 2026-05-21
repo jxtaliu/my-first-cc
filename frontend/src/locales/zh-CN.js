@@ -153,6 +153,13 @@ export default {
     superAdminDesc: '完全系统访问权限',
     deptAdminDesc: '部门管理权限',
     projectAdminDesc: '项目管理权限',
-    memberDesc: '基本成员权限'
+    memberDesc: '基本成员权限',
+    members: '成员',
+    memberManagement: '成员管理',
+    selectUser: '选择用户',
+    addMember: '添加成员',
+    memberAdded: '成员已添加',
+    memberRemoved: '成员已移除',
+    confirmRemoveMember: '确定要移除该成员吗？'
   }
 }

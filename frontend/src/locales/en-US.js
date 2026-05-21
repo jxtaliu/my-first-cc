@@ -153,6 +153,13 @@ export default {
     superAdminDesc: 'Full system access',
     deptAdminDesc: 'Department management',
     projectAdminDesc: 'Project management',
-    memberDesc: 'Basic member access'
+    memberDesc: 'Basic member access',
+    members: 'Members',
+    memberManagement: 'Member Management',
+    selectUser: 'Select user',
+    addMember: 'Add Member',
+    memberAdded: 'Member added',
+    memberRemoved: 'Member removed',
+    confirmRemoveMember: 'Are you sure to remove this member?'
   }
 }

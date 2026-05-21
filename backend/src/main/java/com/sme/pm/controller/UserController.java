@@ -2,6 +2,7 @@ package com.sme.pm.controller;
 
 import com.sme.pm.common.CurrentUser;
 import com.sme.pm.common.Result;
+import com.sme.pm.dto.DepartmentAssignRequest;
 import com.sme.pm.entity.User;
 import com.sme.pm.mapper.UserMapper;
 import com.sme.pm.service.UserService;
@@ -9,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -68,16 +68,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}/roles")
-    public Result<Void> assignRoles(@PathVariable Long id, @RequestBody Map<String, List<Long>> body) {
-        List<Long> roleIds = body.get("roleIds");
-        userService.assignRoles(id, roleIds);
+    public Result<Void> assignRoles(@PathVariable Long id, @RequestBody RoleAssignRequest body) {
+        userService.assignRoles(id, body.getRoleIds());
         return Result.success();
     }
 
     @PutMapping("/{id}/department")
-    public Result<Void> assignDepartment(@PathVariable Long id, @RequestBody Map<String, Long> body) {
-        Long departmentId = body.get("departmentId");
-        userService.assignDepartment(id, departmentId);
+    public Result<Void> assignDepartment(@PathVariable Long id, @RequestBody DepartmentAssignRequest body) {
+        userService.assignDepartment(id, body.getDepartmentId());
         return Result.success();
     }
 

@@ -10,7 +10,14 @@
     <el-card>
       <el-table :data="departments" v-loading="loading" style="width: 100%">
         <el-table-column prop="departmentId" :label="$t('admin.departmentId')" width="120" />
-        <el-table-column prop="name" :label="$t('admin.departmentName')" min-width="200" />
+        <el-table-column prop="name" :label="$t('admin.departmentName')" min-width="200">
+          <template #default="{ row }">
+            <div class="dept-cell">
+              <span class="avatar-small">{{ (row.name || '?').charAt(0).toUpperCase() }}</span>
+              <span>{{ row.name }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="parentId" :label="$t('admin.parentDepartment')" width="150">
           <template #default="{ row }">
             {{ getParentName(row.parentId) }}
@@ -24,8 +31,9 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('admin.actions')" width="150" fixed="right">
+        <el-table-column :label="$t('admin.actions')" width="280" fixed="right">
           <template #default="{ row }">
+            <el-button text size="small" @click="openMemberDialog(row)">{{ $t('admin.members') }}</el-button>
             <el-button text size="small" @click="openDialog(row)">{{ $t('common.edit') }}</el-button>
             <el-button text size="small" type="danger" @click="handleDelete(row)">{{ $t('common.delete') }}</el-button>
           </template>
@@ -58,6 +66,30 @@
         <el-button type="primary" @click="handleSubmit">{{ $t('common.save') }}</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="showMemberDialog" :title="$t('admin.memberManagement')" width="600px">
+      <div class="member-dialog-content">
+        <div class="member-header">
+          <span class="dept-name">{{ currentDept?.name }}</span>
+        </div>
+        <el-table :data="departmentUsers" v-loading="memberLoading" size="small">
+          <el-table-column prop="username" :label="$t('admin.username')" />
+          <el-table-column prop="email" :label="$t('admin.email')" />
+          <el-table-column prop="realName" :label="$t('admin.realName')" />
+          <el-table-column :label="$t('admin.actions')" width="100">
+            <template #default="{ row }">
+              <el-button text size="small" type="danger" @click="handleRemoveUser(row)">{{ $t('common.delete') }}</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="add-member-form">
+          <el-select v-model="selectedUserId" :placeholder="$t('admin.selectUser')" size="default" clearable style="width: 300px">
+            <el-option v-for="user in availableUsers" :key="user.id" :label="user.username" :value="user.id" />
+          </el-select>
+          <el-button type="primary" size="default" @click="handleAddUser">{{ $t('admin.addMember') }}</el-button>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -76,6 +108,12 @@ const showDialog = ref(false)
 const isEdit = ref(false)
 const departmentForm = ref({})
 const formRef = ref()
+const showMemberDialog = ref(false)
+const currentDept = ref(null)
+const departmentUsers = ref([])
+const availableUsers = ref([])
+const selectedUserId = ref(null)
+const memberLoading = ref(false)
 
 const flatDepartments = computed(() => {
   const flatten = (nodes, result = []) => {
@@ -165,6 +203,75 @@ const handleDelete = async (dept) => {
   } catch (e) {}
 }
 
+const openMemberDialog = async (dept) => {
+  currentDept.value = dept
+  showMemberDialog.value = true
+  selectedUserId.value = null
+  await Promise.all([loadDepartmentUsers(dept.id), loadAvailableUsers()])
+}
+
+const loadDepartmentUsers = async (deptId) => {
+  memberLoading.value = true
+  try {
+    const res = await fetch(`/api/departments/${deptId}/users`)
+    const result = await res.json()
+    if (result.code === 200) {
+      departmentUsers.value = result.data || []
+    }
+  } catch (e) {
+    // Handle error
+  } finally {
+    memberLoading.value = false
+  }
+}
+
+const loadAvailableUsers = async () => {
+  try {
+    const res = await fetch('/api/departments/users/available')
+    const result = await res.json()
+    if (result.code === 200) {
+      availableUsers.value = result.data || []
+    }
+  } catch (e) {
+    // Handle error
+  }
+}
+
+const handleAddUser = async () => {
+  if (!selectedUserId.value) return
+  try {
+    const res = await fetch(`/api/departments/${currentDept.value.id}/users/${selectedUserId.value}`, {
+      method: 'POST'
+    })
+    const result = await res.json()
+    if (result.code === 200) {
+      ElMessage.success(t('admin.memberAdded'))
+      selectedUserId.value = null
+      await Promise.all([loadDepartmentUsers(currentDept.value.id), loadAvailableUsers()])
+    } else {
+      ElMessage.error(result.message || t('common.failed'))
+    }
+  } catch (e) {
+    ElMessage.error(t('common.failed'))
+  }
+}
+
+const handleRemoveUser = async (user) => {
+  try {
+    await ElMessageBox.confirm(t('admin.confirmRemoveMember'), t('common.warning'), { type: 'warning' })
+    const res = await fetch(`/api/departments/${currentDept.value.id}/users/${user.id}`, {
+      method: 'DELETE'
+    })
+    const result = await res.json()
+    if (result.code === 200) {
+      ElMessage.success(t('admin.memberRemoved'))
+      await Promise.all([loadDepartmentUsers(currentDept.value.id), loadAvailableUsers()])
+    } else {
+      ElMessage.error(result.message || t('common.failed'))
+    }
+  } catch (e) {}
+}
+
 onMounted(loadDepartments)
 </script>
 
@@ -182,5 +289,50 @@ onMounted(loadDepartments)
 
 .page-header h2 {
   margin: 0;
+}
+
+.dept-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.member-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.member-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.dept-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.add-member-form {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
 }
 </style>

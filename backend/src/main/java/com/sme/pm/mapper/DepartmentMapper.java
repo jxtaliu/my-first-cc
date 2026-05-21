@@ -2,6 +2,7 @@ package com.sme.pm.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sme.pm.entity.Department;
+import com.sme.pm.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -17,6 +18,12 @@ public interface DepartmentMapper extends BaseMapper<Department> {
 
     @Select("SELECT * FROM sys_department WHERE parent_id = #{parentId} AND deleted = 0 ORDER BY sort_order")
     List<Department> findByParentId(@Param("parentId") Long parentId);
+
+    @Select("SELECT * FROM sys_user WHERE department_id = #{departmentId} AND deleted = 0")
+    List<User> findUsersByDepartmentId(@Param("departmentId") Long departmentId);
+
+    @Select("SELECT * FROM sys_user WHERE department_id IS NULL AND deleted = 0")
+    List<User> findUsersWithoutDepartment();
 
     @Select("SELECT COUNT(*) FROM sys_user WHERE department_id = #{departmentId} AND deleted = 0")
     int countUsersByDepartmentId(@Param("departmentId") Long departmentId);
