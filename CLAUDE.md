@@ -31,6 +31,8 @@ npm run dev                   # Development server (port 3000)
 npm run build                 # Production build
 npm run lint                  # ESLint check
 npm run preview                # Preview production build
+npm test                      # Run unit tests
+npm run test:watch            # Run tests in watch mode
 ```
 
 ### Docker (Full Stack)
@@ -99,3 +101,112 @@ GitHub Actions (`.github/workflows/`):
 - `deploy.yml` - Builds and pushes Docker images on push to main/develop
 
 Dockerfiles: `backend/Dockerfile` (multi-stage), `frontend/Dockerfile` (Node + Nginx)
+
+## Testing Requirements
+
+### Mandatory Rule
+**Every new feature must include complete test cases before being considered done.** No feature is complete without tests.
+
+### Test Structure
+
+**Frontend Tests (Vitest)**
+- Location: `frontend/src/**/*.spec.js` or `frontend/src/**/*.test.js`
+- Components: `frontend/src/components/__tests__/`
+- Run: `npm test` or `npm run test:watch`
+
+**Backend Tests (JUnit 5)**
+- Location: `backend/src/test/java/com/sme/pm/**/*.java`
+- Run: `mvn test`
+
+### Test Principles (FIRST)
+
+| Principle | Description |
+|-----------|-------------|
+| **Fast** | Unit tests should run in milliseconds |
+| **Independent** | Tests have no dependencies on each other |
+| **Repeatable** | Same results every run, no random data |
+| **Self-Validating** | Automated assertions, no manual checking |
+| **Timely** | Write tests alongside code (TDD approach) |
+
+### What to Test
+
+**✅ Always test:**
+- Core business logic in services
+- Component rendering and user interactions
+- API endpoints (controller tests)
+- Edge cases: empty inputs, null values, boundary values
+- Error handling paths
+
+**❌ Don't test:**
+- Third-party libraries
+- Framework internals
+- Trivial getters/setters (unless they contain logic)
+
+### Test Naming Convention
+
+```javascript
+// Frontend: descriptive name explaining the scenario
+describe('ProjectList', () => {
+  it('should display empty state when no projects exist')
+  it('should filter projects by active status')
+})
+
+// Backend: methodName_should_expectedBehavior
+@Test
+void createProject_should_returnCreatedProject_whenValidInput()
+```
+
+### Test Code Style
+
+Use **AAA pattern** (Arrange-Act-Assert):
+
+```javascript
+// Frontend example
+it('should create project successfully', async () => {
+  // Arrange
+  const projectData = { name: 'Test Project', type: 'SCRUM' }
+
+  // Act
+  const result = await createProject(projectData)
+
+  // Assert
+  expect(result.id).toBeDefined()
+  expect(result.name).toBe('Test Project')
+})
+```
+
+```java
+// Backend example
+@Test
+void createProject_should_returnCreatedProject_whenValidInput() {
+    // Arrange
+    ProjectRequest request = new ProjectRequest();
+    request.setName("Test Project");
+
+    // Act
+    Project result = projectService.createProject(request);
+
+    // Assert
+    assertNotNull(result.getId());
+    assertEquals("Test Project", result.getName());
+}
+```
+
+### Coverage Guidelines
+
+- Target **70-80%** code coverage for core modules
+- 100% coverage is not the goal—meaningful tests are
+- Focus on **business-critical paths** and **edge cases**
+- Coverage reports are indicators, not targets
+
+### Mocking Guidelines
+
+- Mock external dependencies (API calls, database in unit tests)
+- Use real instances for integration tests
+- Avoid over-mocking (test the actual behavior, not mocks)
+
+### When to Run Tests
+
+1. **Before commit** - All tests must pass
+2. **In CI pipeline** - Automatic on every PR
+3. **During code review** - Review test quality alongside code
