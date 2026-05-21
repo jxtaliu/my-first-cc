@@ -12,7 +12,6 @@ import com.sme.pm.service.DictService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -80,14 +79,97 @@ public class DictServiceImpl implements DictService {
     public void refreshCache() {
         List<DictType> types = getAllTypes();
         for (DictType type : types) {
-            String cacheKey = CACHE_PREFIX + type.getCode();
-            List<DictCode> codes = dictCodeMapper.findByTypeCode(type.getCode());
-            List<DictCodeDTO> dtos = codes.stream().map(this::toDTO).toList();
-            try {
-                redisTemplate.opsForValue().set(cacheKey, objectMapper.writeValueAsString(dtos), CACHE_TTL, TimeUnit.SECONDS);
-            } catch (JsonProcessingException e) {
-                // Ignore
-            }
+            clearTypeCache(type.getCode());
+        }
+    }
+
+    // DictType CRUD
+
+    @Override
+    public DictType getTypeById(Long id) {
+        return dictTypeMapper.selectById(id);
+    }
+
+    @Override
+    public DictType createType(DictType dictType) {
+        dictTypeMapper.insert(dictType);
+        return dictType;
+    }
+
+    @Override
+    public DictType updateType(DictType dictType) {
+        dictTypeMapper.updateDictType(dictType);
+        clearTypeCache(dictTypeMapper.selectById(dictType.getId()).getCode());
+        return dictType;
+    }
+
+    @Override
+    public void deleteType(Long id) {
+        DictType type = dictTypeMapper.selectById(id);
+        if (type == null) {
+            throw new IllegalArgumentException("Dictionary type not found");
+        }
+        int itemCount = dictTypeMapper.countItemsByTypeId(id);
+        if (itemCount > 0) {
+            throw new IllegalArgumentException("Cannot delete type with associated items");
+        }
+        dictTypeMapper.deleteById(id);
+        clearTypeCache(type.getCode());
+    }
+
+    // DictCode CRUD
+
+    @Override
+    public List<DictCode> getItemsByTypeId(Long dictTypeId) {
+        return dictCodeMapper.findByDictTypeId(dictTypeId);
+    }
+
+    @Override
+    public List<DictCode> getAllItems() {
+        return dictCodeMapper.selectList(null);
+    }
+
+    @Override
+    public DictCode getItemById(Long id) {
+        return dictCodeMapper.selectById(id);
+    }
+
+    @Override
+    public DictCode createItem(DictCode dictCode) {
+        dictCodeMapper.insertDictCode(dictCode);
+        refreshTypeCache(dictCode.getDictTypeId());
+        return dictCode;
+    }
+
+    @Override
+    public DictCode updateItem(DictCode dictCode) {
+        dictCodeMapper.updateDictCode(dictCode);
+        refreshTypeCache(dictCode.getDictTypeId());
+        return dictCode;
+    }
+
+    @Override
+    public void deleteItem(Long id) {
+        DictCode item = dictCodeMapper.selectById(id);
+        if (item == null) {
+            throw new IllegalArgumentException("Dictionary item not found");
+        }
+        dictCodeMapper.deleteById(id);
+        refreshTypeCache(item.getDictTypeId());
+    }
+
+    private void clearTypeCache(String typeCode) {
+        try {
+            redisTemplate.delete(CACHE_PREFIX + typeCode);
+        } catch (Exception e) {
+            // Ignore cache clear error
+        }
+    }
+
+    private void refreshTypeCache(Long dictTypeId) {
+        DictType type = dictTypeMapper.selectById(dictTypeId);
+        if (type != null) {
+            clearTypeCache(type.getCode());
         }
     }
 

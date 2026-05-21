@@ -51,6 +51,11 @@ const routes = [
         path: 'admin/departments',
         name: 'AdminDepartments',
         component: () => import('@/views/admin/Departments.vue')
+      },
+      {
+        path: 'admin/dicts',
+        name: 'AdminDicts',
+        component: () => import('@/views/admin/Dict.vue')
       }
     ]
   }

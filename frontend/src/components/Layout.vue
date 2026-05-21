@@ -32,6 +32,10 @@
             <el-icon><OfficeBuilding /></el-icon>
             <span>{{ $t('nav.departmentManagement') }}</span>
           </el-menu-item>
+          <el-menu-item index="/admin/dicts">
+            <el-icon><Document /></el-icon>
+            <span>{{ $t('nav.dictManagement') }}</span>
+          </el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>
@@ -67,7 +71,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
-import { User, Setting, Key, OfficeBuilding } from '@element-plus/icons-vue'
+import { User, Setting, Key, OfficeBuilding, Document } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
