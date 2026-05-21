@@ -113,6 +113,16 @@ export default {
     usernameRequired: 'Username is required',
     emailRequired: 'Email is required',
     invalidEmail: 'Invalid email format',
-    passwordRequired: 'Password is required'
+    passwordRequired: 'Password is required',
+    departments: 'Departments',
+    addDepartment: 'Add Department',
+    editDepartment: 'Edit Department',
+    departmentId: 'Department ID',
+    departmentName: 'Department Name',
+    parentDepartment: 'Parent Department',
+    sortOrder: 'Sort Order',
+    departmentCreated: 'Department created',
+    departmentUpdated: 'Department updated',
+    departmentDeleted: 'Department deleted'
   }
 }

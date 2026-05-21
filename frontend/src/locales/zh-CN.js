@@ -113,6 +113,16 @@ export default {
     usernameRequired: '请输入用户名',
     emailRequired: '请输入邮箱',
     invalidEmail: '邮箱格式不正确',
-    passwordRequired: '请输入密码'
+    passwordRequired: '请输入密码',
+    departments: '部门管理',
+    addDepartment: '添加部门',
+    editDepartment: '编辑部门',
+    departmentId: '部门编号',
+    departmentName: '部门名称',
+    parentDepartment: '上级部门',
+    sortOrder: '排序',
+    departmentCreated: '部门创建成功',
+    departmentUpdated: '部门更新成功',
+    departmentDeleted: '部门删除成功'
   }
 }
