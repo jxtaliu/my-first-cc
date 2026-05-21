@@ -47,7 +47,7 @@ public class DepartmentController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         if (!departmentService.canDelete(id)) {
-            return Result.fail("Cannot delete: department has users or children");
+            return Result.error("Cannot delete: department has users or children");
         }
         departmentService.delete(id);
         return Result.success();
