@@ -1,0 +1,208 @@
+<template>
+  <div class="roles-page">
+    <div class="page-header">
+      <h2>{{ $t('admin.roles') }}</h2>
+      <el-button type="primary" @click="openDialog()">
+        <el-icon><Plus /></el-icon> {{ $t('admin.addRole') }}
+      </el-button>
+    </div>
+
+    <el-card>
+      <el-table :data="roles" v-loading="loading" style="width: 100%">
+        <el-table-column prop="roleId" :label="$t('admin.roleId')" width="120" />
+        <el-table-column prop="name" :label="$t('admin.roleName')" width="150" />
+        <el-table-column prop="description" :label="$t('admin.description')" />
+        <el-table-column prop="status" :label="$t('admin.status')" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">
+              {{ row.status === 1 ? 'Active' : 'Inactive' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('admin.actions')" width="250">
+          <template #default="{ row }">
+            <el-button text size="small" @click="openPermissionDialog(row)">{{ $t('admin.assignPermissions') }}</el-button>
+            <el-button text size="small" @click="openDialog(row)">{{ $t('common.edit') }}</el-button>
+            <el-button text size="small" type="danger" @click="handleDelete(row)">{{ $t('common.delete') }}</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
+    <el-dialog v-model="showDialog" :title="isEdit ? $t('admin.editRole') : $t('admin.addRole')" width="500px">
+      <el-form :model="roleForm" ref="formRef" label-width="100px">
+        <el-form-item :label="$t('admin.roleId')" prop="roleId">
+          <el-input v-model="roleForm.roleId" :disabled="isEdit" />
+        </el-form-item>
+        <el-form-item :label="$t('admin.roleName')" prop="name">
+          <el-input v-model="roleForm.name" />
+        </el-form-item>
+        <el-form-item :label="$t('admin.description')">
+          <el-input v-model="roleForm.description" type="textarea" />
+        </el-form-item>
+        <el-form-item :label="$t('admin.status')">
+          <el-switch v-model="roleForm.status" :active-value="1" :inactive-value="0" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showDialog = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSubmit">{{ $t('common.save') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="showPermissionDialog" :title="$t('admin.assignPermissions')" width="600px">
+      <el-checkbox-group v-model="selectedPermissions">
+        <div v-for="module in permissionModules" :key="module.module" class="permission-group">
+          <h4>{{ module.module }}</h4>
+          <el-checkbox v-for="p in module.permissions" :key="p.id" :label="p.id">{{ p.name }}</el-checkbox>
+        </div>
+      </el-checkbox-group>
+      <template #footer>
+        <el-button @click="showPermissionDialog = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSavePermissions">{{ $t('common.save') }}</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
+
+const roles = ref([])
+const loading = ref(false)
+const showDialog = ref(false)
+const isEdit = ref(false)
+const roleForm = ref({})
+const formRef = ref()
+const showPermissionDialog = ref(false)
+const selectedPermissions = ref([])
+const permissionModules = ref([])
+const currentRoleId = ref(null)
+
+const loadRoles = async () => {
+  loading.value = true
+  try {
+    // Simulated data
+    roles.value = [
+      { id: 1, roleId: 'ADMIN', name: 'Super Admin', description: 'Full system access', status: 1 },
+      { id: 2, roleId: 'DEPT_ADMIN', name: 'Department Admin', description: 'Department management', status: 1 },
+      { id: 3, roleId: 'PROJECT_ADMIN', name: 'Project Admin', description: 'Project management', status: 1 },
+      { id: 4, roleId: 'MEMBER', name: 'Member', description: 'Basic member access', status: 1 }
+    ]
+  } catch (e) {
+    // Handle error
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadPermissions = async () => {
+  // Simulated grouped permissions
+  permissionModules.value = [
+    {
+      module: 'User Management',
+      permissions: [
+        { id: 'user:read', name: 'View Users' },
+        { id: 'user:create', name: 'Create Users' },
+        { id: 'user:update', name: 'Update Users' },
+        { id: 'user:delete', name: 'Delete Users' }
+      ]
+    },
+    {
+      module: 'Project Management',
+      permissions: [
+        { id: 'project:read', name: 'View Projects' },
+        { id: 'project:create', name: 'Create Projects' },
+        { id: 'project:update', name: 'Update Projects' },
+        { id: 'project:delete', name: 'Delete Projects' }
+      ]
+    },
+    {
+      module: 'Task Management',
+      permissions: [
+        { id: 'task:read', name: 'View Tasks' },
+        { id: 'task:create', name: 'Create Tasks' },
+        { id: 'task:update', name: 'Update Tasks' },
+        { id: 'task:delete', name: 'Delete Tasks' }
+      ]
+    },
+    {
+      module: 'Timesheet',
+      permissions: [
+        { id: 'timesheet:read', name: 'View Timesheets' },
+        { id: 'timesheet:approve', name: 'Approve Timesheets' }
+      ]
+    }
+  ]
+}
+
+const openDialog = (role = null) => {
+  if (role) {
+    isEdit.value = true
+    roleForm.value = { ...role }
+  } else {
+    isEdit.value = false
+    roleForm.value = { status: 1 }
+  }
+  showDialog.value = true
+}
+
+const openPermissionDialog = async (role) => {
+  currentRoleId.value = role.id
+  // Simulated - would fetch from API
+  selectedPermissions.value = ['user:read', 'project:read', 'task:read']
+  showPermissionDialog.value = true
+}
+
+const handleSubmit = async () => {
+  ElMessage.success(isEdit.value ? 'Role updated' : 'Role created')
+  showDialog.value = false
+  loadRoles()
+}
+
+const handleSavePermissions = async () => {
+  ElMessage.success('Permissions updated')
+  showPermissionDialog.value = false
+}
+
+const handleDelete = async (role) => {
+  try {
+    await ElMessageBox.confirm('Are you sure you want to delete this role?', 'Warning', { type: 'warning' })
+    ElMessage.success('Role deleted')
+    loadRoles()
+  } catch (e) {}
+}
+
+onMounted(() => {
+  loadRoles()
+  loadPermissions()
+})
+</script>
+
+<style scoped>
+.roles-page {
+  padding: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h2 {
+  margin: 0;
+}
+
+.permission-group {
+  margin-bottom: 15px;
+}
+
+.permission-group h4 {
+  margin-bottom: 8px;
+  text-transform: capitalize;
+}
+</style>
