@@ -99,6 +99,7 @@ export default {
     addUser: 'Add User',
     editUser: 'Edit User',
     username: 'Username',
+    realName: 'Real Name',
     email: 'Email',
     password: 'Password',
     department: 'Department',
@@ -126,12 +127,20 @@ export default {
     departmentId: 'Department ID',
     roleId: 'Role ID',
     userId: 'User ID',
+    roleName: 'Role Name',
     departmentName: 'Department Name',
     parentDepartment: 'Parent Department',
     sortOrder: 'Sort Order',
     assignPermissions: 'Assign Permissions',
     departmentCreated: 'Department created',
     departmentUpdated: 'Department updated',
-    departmentDeleted: 'Department deleted'
+    departmentDeleted: 'Department deleted',
+    roleCreated: 'Role created',
+    roleUpdated: 'Role updated',
+    roleDeleted: 'Role deleted',
+    confirmDeleteRole: 'Are you sure to delete this role?',
+    confirmDeleteDepartment: 'Are you sure to delete this department?',
+    canNotDeleteDepartment: 'Cannot delete: department has users or children',
+    canNotDeleteRole: 'Cannot delete: role has assigned users'
   }
 }

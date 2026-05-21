@@ -99,6 +99,7 @@ export default {
     addUser: '添加用户',
     editUser: '编辑用户',
     username: '用户名',
+    realName: '真实姓名',
     email: '邮箱',
     password: '密码',
     department: '部门',
@@ -126,12 +127,20 @@ export default {
     departmentId: '部门编号',
     roleId: '角色编号',
     userId: '用户编号',
+    roleName: '角色名称',
     departmentName: '部门名称',
     parentDepartment: '上级部门',
     sortOrder: '排序',
     assignPermissions: '分配权限',
     departmentCreated: '部门创建成功',
     departmentUpdated: '部门更新成功',
-    departmentDeleted: '部门删除成功'
+    departmentDeleted: '部门删除成功',
+    roleCreated: '角色创建成功',
+    roleUpdated: '角色更新成功',
+    roleDeleted: '角色删除成功',
+    confirmDeleteRole: '确定要删除此角色吗？',
+    confirmDeleteDepartment: '确定要删除此部门吗？',
+    canNotDeleteDepartment: '无法删除：部门下有用户或子部门',
+    canNotDeleteRole: '无法删除：角色下有用户'
   }
 }
