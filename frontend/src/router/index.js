@@ -38,26 +38,19 @@ const routes = [
         component: () => import('@/views/timesheet/Index.vue')
       },
       {
-        path: 'admin',
-        component: () => import('@/components/Layout.vue'),
-        meta: { requiresAuth: true },
-        children: [
-          {
-            path: 'users',
-            name: 'AdminUsers',
-            component: () => import('@/views/admin/Users.vue')
-          },
-          {
-            path: 'roles',
-            name: 'AdminRoles',
-            component: () => import('@/views/admin/Roles.vue')
-          },
-          {
-            path: 'departments',
-            name: 'AdminDepartments',
-            component: () => import('@/views/admin/Departments.vue')
-          }
-        ]
+        path: 'admin/users',
+        name: 'AdminUsers',
+        component: () => import('@/views/admin/Users.vue')
+      },
+      {
+        path: 'admin/roles',
+        name: 'AdminRoles',
+        component: () => import('@/views/admin/Roles.vue')
+      },
+      {
+        path: 'admin/departments',
+        name: 'AdminDepartments',
+        component: () => import('@/views/admin/Departments.vue')
       }
     ]
   }
