@@ -15,10 +15,24 @@
           <el-icon><Clock /></el-icon>
           <span>{{ $t('nav.timesheet') }}</span>
         </el-menu-item>
-        <el-menu-item index="/admin/users">
-          <el-icon><User /></el-icon>
-          <span>{{ $t('nav.admin') }}</span>
-        </el-menu-item>
+        <el-sub-menu index="/admin">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>{{ $t('nav.admin') }}</span>
+          </template>
+          <el-menu-item index="/admin/users">
+            <el-icon><User /></el-icon>
+            <span>{{ $t('nav.userManagement') }}</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/roles">
+            <el-icon><Key /></el-icon>
+            <span>{{ $t('nav.roleManagement') }}</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/departments">
+            <el-icon><Office /></el-icon>
+            <span>{{ $t('nav.departmentManagement') }}</span>
+          </el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
     <el-container>
@@ -53,6 +67,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import { User, Setting, Key, Office } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
