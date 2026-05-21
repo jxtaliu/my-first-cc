@@ -2320,14 +2320,19 @@ app.use(i18n)
 app.mount('#app')
 ```
 
-- [ ] **Step 6: Create App.vue**
+- [ ] **Step 6: Create App.vue with theme support**
 
 ```vue
 <template>
-  <router-view />
+  <div :class="['app-root', `theme-${themeStore.currentTheme}`]">
+    <router-view />
+  </div>
 </template>
 
 <script setup>
+import { useThemeStore } from '@/stores/theme'
+
+const themeStore = useThemeStore()
 </script>
 
 <style>
@@ -2339,18 +2344,233 @@ app.mount('#app')
 
 html, body, #app {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.app-root {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
 }
 </style>
 ```
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Create theme store with 4 switchable themes**
+
+```javascript
+// frontend/src/stores/theme.js
+import { defineStore } from 'pinia'
+
+export const useThemeStore = defineStore('theme', {
+  state: () => ({
+    currentTheme: localStorage.getItem('theme') || 'minimal', // minimal | tech | vibrant | dark
+    themes: {
+      minimal: {
+        name: 'Professional Minimal',
+        colors: {
+          primary: '#1a1a2e',
+          accent: '#4f46e5',
+          bg: '#ffffff',
+          text: '#1f2937',
+          textLight: '#6b7280',
+          border: '#e5e7eb',
+          cardBg: '#f9fafb'
+        }
+      },
+      tech: {
+        name: 'Modern Tech',
+        colors: {
+          primary: '#161b22',
+          accent: '#00d9ff',
+          bg: '#0d1117',
+          text: '#e6edf3',
+          textLight: '#8b949e',
+          border: '#30363d',
+          cardBg: '#161b22'
+        }
+      },
+      vibrant: {
+        name: 'Vibrant & Playful',
+        colors: {
+          primary: '#1c1917',
+          accent: '#f97316',
+          bg: '#fefce8',
+          text: '#1c1917',
+          textLight: '#78716c',
+          border: '#f5f5f4',
+          cardBg: '#ffffff'
+        }
+      },
+      dark: {
+        name: 'Dark Luxe',
+        colors: {
+          primary: '#141414',
+          accent: '#a855f7',
+          bg: '#0f0f0f',
+          text: '#fafafa',
+          textLight: '#737373',
+          border: '#262626',
+          cardBg: '#1f1f1f'
+        }
+      }
+    }
+  }),
+
+  getters: {
+    colors: (state) => state.themes[state.currentTheme].colors,
+    themeName: (state) => state.themes[state.currentTheme].name
+  },
+
+  actions: {
+    setTheme(theme) {
+      if (this.themes[theme]) {
+        this.currentTheme = theme
+        localStorage.setItem('theme', theme)
+        this.applyTheme()
+      }
+    },
+
+    applyTheme() {
+      const colors = this.colors
+      const root = document.documentElement
+      root.style.setProperty('--theme-primary', colors.primary)
+      root.style.setProperty('--theme-accent', colors.accent)
+      root.style.setProperty('--theme-bg', colors.bg)
+      root.style.setProperty('--theme-text', colors.text)
+      root.style.setProperty('--theme-text-light', colors.textLight)
+      root.style.setProperty('--theme-border', colors.border)
+      root.style.setProperty('--theme-card-bg', colors.cardBg)
+    }
+  }
+})
+```
+
+- [ ] **Step 8: Create ThemeSwitcher component**
+
+```vue
+<!-- frontend/src/components/ThemeSwitcher.vue -->
+<template>
+  <el-dropdown @command="handleCommand" trigger="click">
+    <span class="theme-switcher">
+      <span class="theme-dot" :style="{ background: currentAccent }"></span>
+      <span class="theme-name">{{ themeStore.themeName }}</span>
+    </span>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item
+          v-for="(config, key) in themeStore.themes"
+          :key="key"
+          :command="key"
+        >
+          <span class="theme-option">
+            <span class="theme-dot small" :style="{ background: config.colors.accent }"></span>
+            {{ config.name }}
+          </span>
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </el-dropdown>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+import { useThemeStore } from '@/stores/theme'
+
+const themeStore = useThemeStore()
+
+const currentAccent = computed(() => themeStore.colors.accent)
+
+const handleCommand = (theme) => {
+  themeStore.setTheme(theme)
+}
+</script>
+
+<style scoped>
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--theme-card-bg);
+  border: 1px solid var(--theme-border);
+  transition: all 0.2s;
+}
+
+.theme-switcher:hover {
+  border-color: var(--theme-accent);
+}
+
+.theme-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--theme-accent);
+}
+
+.theme-dot.small {
+  width: 8px;
+  height: 8px;
+}
+
+.theme-name {
+  font-size: 13px;
+  color: var(--theme-text);
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+</style>
+```
+
+- [ ] **Step 9: Update main.js to apply theme on mount**
+
+```javascript
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import router from './router'
+import i18n from './locales'
+import App from './App.vue'
+import { useThemeStore } from '@/stores/theme'
+
+const app = createApp(App)
+
+// Register all icons
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
+
+const pinia = createPinia()
+app.use(pinia)
+
+// Apply theme before mounting
+const themeStore = useThemeStore()
+themeStore.applyTheme()
+
+app.use(pinia)
+app.use(router)
+app.use(ElementPlus)
+app.use(i18n)
+
+app.mount('#app')
+```
+
+- [ ] **Step 10: Commit**
 
 ```bash
 git add frontend/package.json frontend/vite.config.js frontend/index.html
 git add frontend/src/main.js frontend/src/App.vue
-git commit -m "feat: add Vue3 frontend project structure"
-```
+git add frontend/src/stores/theme.js
+git add frontend/src/components/ThemeSwitcher.vue
+git commit -m "feat: add Vue3 frontend with 4-switchable themes
+
+Themes: Professional Minimal, Modern Tech, Vibrant, Dark Luxe
+ThemeSwitcher component in header for runtime switching"</parameter>
 
 ---
 
@@ -2723,6 +2943,9 @@ const handleLogin = async () => {
     </el-aside>
     <el-container>
       <el-header class="header">
+        <div class="header-left">
+          <ThemeSwitcher />
+        </div>
         <div class="header-right">
           <el-dropdown @command="handleCommand">
             <span class="user-info">
@@ -2747,6 +2970,7 @@ const handleLogin = async () => {
 <script setup>
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -2765,8 +2989,8 @@ const handleCommand = (command) => {
 }
 
 .sidebar {
-  background: #304156;
-  color: #fff;
+  background: var(--theme-primary);
+  color: var(--theme-text);
 }
 
 .logo {
@@ -2775,16 +2999,25 @@ const handleCommand = (command) => {
   text-align: center;
   font-size: 20px;
   font-weight: bold;
-  color: #fff;
-  background: #2b3a4a;
+  color: var(--theme-text);
+  background: var(--theme-primary);
+  border-bottom: 1px solid var(--theme-border);
 }
 
 .header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  background: #fff;
+  background: var(--theme-card-bg);
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .user-info {
@@ -2795,7 +3028,8 @@ const handleCommand = (command) => {
 }
 
 .main-content {
-  background: #f0f2f5;
+  background: var(--theme-bg);
+  color: var(--theme-text);
   padding: 20px;
 }
 </style>
@@ -3444,7 +3678,10 @@ git commit -m "feat: add Docker Compose and GitHub Actions CI/CD"
 | multi-tenancy | Tasks 8, 9 |
 | project archive | Tasks 6, 11 |
 | report export | (Deferred for future implementation) |
+| UI themes | Tasks 8, 10 |
 
 ---
 
-**Plan complete.** This plan provides 13 bite-sized tasks covering backend and frontend implementation, with each step producing verifiable, commit-ready changes.
+**Plan complete.** This plan provides 14 bite-sized tasks covering backend and frontend implementation, with each step producing verifiable, commit-ready changes.
+
+**Theming:** 4 switchable themes (Professional Minimal, Modern Tech, Vibrant, Dark Luxe) via ThemeSwitcher component.

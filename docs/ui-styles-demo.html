@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SME PM - UI Style Demos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/element-plus@2.7.0/dist/index.full.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.7.0/dist/index.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0a0a0f;
+      color: #fff;
+      min-height: 100vh;
+      padding: 40px;
+    }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .page-title h1 {
+      font-size: 48px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+
+    .page-title p {
+      color: #888;
+      font-size: 18px;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .demo-card {
+      background: #111;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid #222;
+    }
+
+    .demo-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid #222;
+    }
+
+    .demo-label {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .demo-title {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .demo-preview {
+      padding: 32px;
+      min-height: 400px;
+    }
+
+    /* ==================== STYLE A: Professional Minimal ==================== */
+    .style-a {
+      --primary: #1a1a2e;
+      --accent: #4f46e5;
+      --bg: #ffffff;
+      --text: #1f2937;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
+      --card-bg: #f9fafb;
+    }
+
+    .style-a .demo-label {
+      background: #e0e7ff;
+      color: #4f46e5;
+    }
+
+    .style-a .demo-preview {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .style-a .sidebar {
+      width: 220px;
+      height: 360px;
+      background: var(--primary);
+      border-radius: 16px;
+      padding: 24px 16px;
+      float: left;
+      margin-right: 24px;
+    }
+
+    .style-a .sidebar-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 32px;
+      padding-left: 12px;
+    }
+
+    .style-a .nav-item {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .style-a .nav-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .style-a .main-content {
+      overflow: hidden;
+    }
+
+    .style-a .page-header {
+      margin-bottom: 24px;
+    }
+
+    .style-a .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .style-a .page-subtitle {
+      color: var(--text-light);
+      font-size: 14px;
+    }
+
+    .style-a .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .style-a .stat-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .style-a .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .style-a .stat-label {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    .style-a .stat-change {
+      font-size: 12px;
+      color: #10b981;
+      margin-top: 8px;
+    }
+
+    .style-a .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .style-a .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ==================== STYLE B: Modern Tech ==================== */
+    .style-b .demo-label {
+      background: linear-gradient(135deg, #00d9ff 0%, #0077ff 100%);
+      color: #fff;
+    }
+
+    .style-b .demo-preview {
+      background: #0d1117;
+      color: #e6edf3;
+    }
+
+    .style-b .layout {
+      display: flex;
+      height: 360px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #30363d;
+    }
+
+    .style-b .sidebar {
+      width: 64px;
+      background: #161b22;
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .style-b .sidebar-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .style-b .sidebar-icon.active {
+      background: linear-gradient(135deg, #00d9ff 0%, #0077ff 100%);
+      box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+    }
+
+    .style-b .main-area {
+      flex: 1;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    .style-b .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .style-b .greeting {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .style-b .greeting span {
+      background: linear-gradient(135deg, #00d9ff 0%, #0077ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .style-b .task-list {
+      background: #161b22;
+      border-radius: 12px;
+      border: 1px solid #30363d;
+      overflow: hidden;
+    }
+
+    .style-b .task-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .style-b .task-item:last-child {
+      border-bottom: none;
+    }
+
+    .style-b .task-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid #30363d;
+    }
+
+    .style-b .task-info {
+      flex: 1;
+    }
+
+    .style-b .task-title {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .style-b .task-meta {
+      font-size: 12px;
+      color: #8b949e;
+    }
+
+    .style-b .task-tag {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .style-b .tag-cyan {
+      background: rgba(0, 217, 255, 0.1);
+      color: #00d9ff;
+    }
+
+    .style-b .tag-purple {
+      background: rgba(139, 92, 246, 0.1);
+      color: #a78bfa;
+    }
+
+    /* ==================== STYLE C: Vibrant ==================== */
+    .style-c .demo-label {
+      background: linear-gradient(135deg, #f97316 0%, #eab308 100%);
+      color: #fff;
+    }
+
+    .style-c .demo-preview {
+      background: #fefce8;
+      color: #1c1917;
+    }
+
+    .style-c .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .style-c .logo {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f97316 0%, #eab308 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .style-c .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f97316 0%, #eab308 100%);
+    }
+
+    .style-c .hero-section {
+      text-align: center;
+      padding: 40px 0;
+      margin-bottom: 32px;
+    }
+
+    .style-c .hero-title {
+      font-size: 36px;
+      font-weight: 800;
+      color: #1c1917;
+      margin-bottom: 12px;
+    }
+
+    .style-c .hero-title span {
+      background: linear-gradient(135deg, #f97316 0%, #eab308 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .style-c .hero-sub {
+      color: #78716c;
+      font-size: 16px;
+    }
+
+    .style-c .project-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .style-c .project-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px;
+      border: 2px solid #f5f5f4;
+      transition: all 0.3s ease;
+    }
+
+    .style-c .project-card:hover {
+      border-color: #f97316;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(249, 115, 22, 0.15);
+    }
+
+    .style-c .project-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    .style-c .icon-orange { background: #fff7ed; }
+    .style-c .icon-amber { background: #fffbeb; }
+    .style-c .icon-lime { background: #f7fee7; }
+
+    .style-c .project-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .style-c .project-meta {
+      font-size: 13px;
+      color: #a8a29e;
+    }
+
+    .style-c .progress-bar {
+      height: 6px;
+      background: #f5f5f4;
+      border-radius: 3px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .style-c .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #f97316 0%, #eab308 100%);
+    }
+
+    /* ==================== STYLE D: Dark Theme ==================== */
+    .style-d .demo-label {
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+      color: #fff;
+    }
+
+    .style-d .demo-preview {
+      background: #0f0f0f;
+      color: #fafafa;
+    }
+
+    .style-d .layout {
+      display: flex;
+      height: 360px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #1a1a1a;
+    }
+
+    .style-d .sidebar {
+      width: 240px;
+      background: #141414;
+      padding: 24px;
+      border-right: 1px solid #262626;
+    }
+
+    .style-d .sidebar-logo {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .style-d .logo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+    }
+
+    .style-d .nav-item {
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 4px;
+      color: #737373;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.2s;
+    }
+
+    .style-d .nav-item:hover {
+      background: #262626;
+      color: #fafafa;
+    }
+
+    .style-d .nav-item.active {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
+      color: #fafafa;
+    }
+
+    .style-d .nav-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .style-d .main-content {
+      flex: 1;
+      padding: 32px;
+      overflow: hidden;
+    }
+
+    .style-d .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .style-d .welcome {
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .style-d .welcome span {
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .style-d .action-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .style-d .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .style-d .metric-card {
+      background: #1f1f1f;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid #262626;
+    }
+
+    .style-d .metric-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .style-d .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .style-d .metric-label {
+      font-size: 12px;
+      color: #737373;
+    }
+
+    .style-d .recent-section h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #a1a1aa;
+    }
+
+    .style-d .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .style-d .recent-item {
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid #262626;
+    }
+
+    .style-d .recent-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+    }
+
+    .style-d .recent-info {
+      flex: 1;
+    }
+
+    .style-d .recent-name {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .style-d .recent-time {
+      font-size: 12px;
+      color: #737373;
+    }
+
+    .style-d .recent-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .style-d .badge-purple {
+      background: rgba(168, 85, 247, 0.15);
+      color: #a855f7;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .demo-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="page-title">
+      <h1>SME Project Management - UI Style Guide</h1>
+      <p>Choose your preferred visual style for the project management system</p>
+    </div>
+
+    <div class="demo-grid">
+      <!-- Style A: Professional Minimal -->
+      <div class="demo-card style-a">
+        <div class="demo-header">
+          <span class="demo-label">Option A</span>
+          <h2 class="demo-title">Professional Minimal</h2>
+        </div>
+        <div class="demo-preview">
+          <div class="sidebar">
+            <div class="sidebar-logo">SME PM</div>
+            <div class="nav-item active">
+              <span>📊</span> Dashboard
+            </div>
+            <div class="nav-item">
+              <span>📁</span> Projects
+            </div>
+            <div class="nav-item">
+              <span>⏱️</span> Timesheet
+            </div>
+            <div class="nav-item">
+              <span>⚙️</span> Settings
+            </div>
+          </div>
+          <div class="main-content">
+            <div class="page-header">
+              <div class="page-title">Dashboard</div>
+              <div class="page-subtitle">Welcome back, John</div>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Active Projects</div>
+                <div class="stat-change">↑ 3 this month</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">48</div>
+                <div class="stat-label">Tasks Due</div>
+                <div class="stat-change">↑ 12 today</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">156h</div>
+                <div class="stat-label">Hours Logged</div>
+                <div class="stat-change">This month</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Style B: Modern Tech -->
+      <div class="demo-card style-b">
+        <div class="demo-header">
+          <span class="demo-label">Option B</span>
+          <h2 class="demo-title">Modern Tech</h2>
+        </div>
+        <div class="demo-preview">
+          <div class="layout">
+            <div class="sidebar">
+              <div class="sidebar-icon active">📊</div>
+              <div class="sidebar-icon">📁</div>
+              <div class="sidebar-icon">⏱️</div>
+              <div class="sidebar-icon">👤</div>
+            </div>
+            <div class="main-area">
+              <div class="header">
+                <div class="greeting">Good morning, <span>John</span> 👋</div>
+              </div>
+              <div class="task-list">
+                <div class="task-item">
+                  <div class="task-checkbox"></div>
+                  <div class="task-info">
+                    <div class="task-title">Complete API documentation</div>
+                    <div class="task-meta">Due today • Backend</div>
+                  </div>
+                  <div class="task-tag tag-cyan">In Progress</div>
+                </div>
+                <div class="task-item">
+                  <div class="task-checkbox"></div>
+                  <div class="task-info">
+                    <div class="task-title">Review pull request #234</div>
+                    <div class="task-meta">Due tomorrow • Code Review</div>
+                  </div>
+                  <div class="task-tag tag-purple">Review</div>
+                </div>
+                <div class="task-item">
+                  <div class="task-checkbox"></div>
+                  <div class="task-info">
+                    <div class="task-title">Update user dashboard UI</div>
+                    <div class="task-meta">Due this week • Frontend</div>
+                  </div>
+                  <div class="task-tag tag-cyan">In Progress</div>
+                </div>
+                <div class="task-item">
+                  <div class="task-checkbox"></div>
+                  <div class="task-info">
+                    <div class="task-title">Database migration script</div>
+                    <div class="task-meta">Completed • Backend</div>
+                  </div>
+                  <div class="task-tag tag-purple">Done</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Style C: Vibrant -->
+      <div class="demo-card style-c">
+        <div class="demo-header">
+          <span class="demo-label">Option C</span>
+          <h2 class="demo-title">Vibrant & Playful</h2>
+        </div>
+        <div class="demo-preview">
+          <div class="topbar">
+            <div class="logo">SME PM</div>
+            <div class="user-avatar"></div>
+          </div>
+          <div class="hero-section">
+            <div class="hero-title">Good morning, <span>John</span>!</div>
+            <div class="hero-sub">You have 5 projects and 12 tasks pending</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-card">
+              <div class="project-icon icon-orange">🚀</div>
+              <div class="project-name">E-Commerce Redesign</div>
+              <div class="project-meta">8 tasks • 65%</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 65%"></div>
+              </div>
+            </div>
+            <div class="project-card">
+              <div class="project-icon icon-amber">📱</div>
+              <div class="project-name">Mobile App v2.0</div>
+              <div class="project-meta">12 tasks • 40%</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 40%"></div>
+              </div>
+            </div>
+            <div class="project-card">
+              <div class="project-icon icon-lime">⚡</div>
+              <div class="project-name">API Integration</div>
+              <div class="project-meta">5 tasks • 80%</div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 80%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Style D: Dark Theme -->
+      <div class="demo-card style-d">
+        <div class="demo-header">
+          <span class="demo-label">Option D</span>
+          <h2 class="demo-title">Dark Luxe</h2>
+        </div>
+        <div class="demo-preview">
+          <div class="layout">
+            <div class="sidebar">
+              <div class="sidebar-logo">
+                <div class="logo-dot"></div>
+                SME PM
+              </div>
+              <div class="nav-item active">
+                <span class="nav-icon">📊</span>
+                Dashboard
+              </div>
+              <div class="nav-item">
+                <span class="nav-icon">📁</span>
+                Projects
+              </div>
+              <div class="nav-item">
+                <span class="nav-icon">⏱️</span>
+                Timesheet
+              </div>
+              <div class="nav-item">
+                <span class="nav-icon">👥</span>
+                Team
+              </div>
+              <div class="nav-item">
+                <span class="nav-icon">📈</span>
+                Reports
+              </div>
+            </div>
+            <div class="main-content">
+              <div class="page-header">
+                <div class="welcome">Welcome back, <span>John</span></div>
+                <button class="action-btn">+ New Project</button>
+              </div>
+              <div class="metrics">
+                <div class="metric-card">
+                  <div class="metric-icon" style="background: rgba(168, 85, 247, 0.15);">📁</div>
+                  <div class="metric-value">12</div>
+                  <div class="metric-label">Projects</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-icon" style="background: rgba(236, 72, 153, 0.15);">✅</div>
+                  <div class="metric-value">48</div>
+                  <div class="metric-label">Tasks Done</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-icon" style="background: rgba(34, 197, 94, 0.15);">⏱️</div>
+                  <div class="metric-value">156h</div>
+                  <div class="metric-label">Hours</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-icon" style="background: rgba(59, 130, 246, 0.15);">👥</div>
+                  <div class="metric-value">8</div>
+                  <div class="metric-label">Team</div>
+                </div>
+              </div>
+              <div class="recent-section">
+                <h3>Recent Activity</h3>
+                <div class="recent-list">
+                  <div class="recent-item">
+                    <div class="recent-avatar"></div>
+                    <div class="recent-info">
+                      <div class="recent-name">Sarah completed API task</div>
+                      <div class="recent-time">2 hours ago</div>
+                    </div>
+                    <div class="recent-badge badge-purple">Completed</div>
+                  </div>
+                  <div class="recent-item">
+                    <div class="recent-avatar" style="background: linear-gradient(135deg, #3b82f6 0%, #22d3ee 100%);"></div>
+                    <div class="recent-info">
+                      <div class="recent-name">Mike commented on design</div>
+                      <div class="recent-time">5 hours ago</div>
+                    </div>
+                    <div class="recent-badge badge-purple">Comment</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+    createApp({
+      data() {
+        return {}
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
