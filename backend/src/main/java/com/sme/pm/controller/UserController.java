@@ -31,6 +31,11 @@ public class UserController {
         return Result.success(user);
     }
 
+    @GetMapping
+    public Result<List<User>> getAllUsers() {
+        return Result.success(userMapper.selectList(null));
+    }
+
     @GetMapping("/{id}")
     public Result<User> getUser(@PathVariable Long id) {
         return Result.success(userMapper.selectById(id));
