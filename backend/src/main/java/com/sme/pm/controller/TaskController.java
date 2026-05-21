@@ -1,5 +1,6 @@
 package com.sme.pm.controller;
 
+import com.sme.pm.common.CurrentUser;
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Task;
 import com.sme.pm.service.TaskService;
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/sprints/{sprintId}/tasks")
+@RequestMapping("/api/tasks")
 public class TaskController {
 
     private final TaskService taskService;
@@ -18,14 +19,18 @@ public class TaskController {
     }
 
     @PostMapping
-    public Result<Task> create(@PathVariable Long sprintId, @RequestBody Task task) {
-        task.setSprintId(sprintId);
+    public Result<Task> create(@RequestBody Task task, @CurrentUser Long userId) {
+        task.setAssigneeId(userId);
         return Result.success(taskService.create(task));
     }
 
     @GetMapping
-    public Result<List<Task>> list(@PathVariable Long sprintId) {
-        return Result.success(taskService.listBySprint(sprintId));
+    public Result<List<Task>> list(@RequestParam(required = false) Long sprintId,
+                                   @RequestParam(required = false) Long projectId) {
+        if (sprintId != null) {
+            return Result.success(taskService.listBySprint(sprintId));
+        }
+        return Result.success(taskService.listByProject(projectId));
     }
 
     @GetMapping("/{id}")
@@ -42,6 +47,29 @@ public class TaskController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         taskService.delete(id);
+        return Result.success();
+    }
+
+    @PutMapping("/{id}/move")
+    public Result<Task> move(@PathVariable Long id, @RequestBody Task task) {
+        task.setId(id);
+        return Result.success(taskService.move(task));
+    }
+
+    @PutMapping("/{id}/assign")
+    public Result<Void> assign(@PathVariable Long id, @RequestParam Long userId) {
+        taskService.assign(id, userId);
+        return Result.success();
+    }
+
+    @GetMapping("/{taskId}/comments")
+    public Result<List<Object>> getComments(@PathVariable Long taskId) {
+        return Result.success(taskService.getComments(taskId));
+    }
+
+    @PostMapping("/{taskId}/comments")
+    public Result<Void> addComment(@PathVariable Long taskId, @RequestBody Object comment) {
+        taskService.addComment(taskId, comment);
         return Result.success();
     }
 }

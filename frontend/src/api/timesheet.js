@@ -1,7 +1,10 @@
 import request from './request'
 
 export function getTimesheets(params) {
-  return request.get('/timesheets', { params })
+  if (params.month && params.year) {
+    return request.get('/timesheets/monthly', { params })
+  }
+  return request.get('/timesheets/weekly', { params })
 }
 
 export function getTimesheet(id) {

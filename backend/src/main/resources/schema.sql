@@ -146,3 +146,10 @@ INSERT INTO sys_role (code, name, description) VALUES
 ('DEPT_ADMIN', 'Department Admin', 'Department level access'),
 ('PROJECT_ADMIN', 'Project Admin', 'Project level access'),
 ('MEMBER', 'Member', 'Basic member access');
+
+-- Insert default admin user (password: admin123)
+INSERT INTO sys_user (username, password, email, real_name) VALUES
+('admin', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'admin@example.com', 'Admin');
+
+-- Assign SUPER_ADMIN role to admin user
+INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);

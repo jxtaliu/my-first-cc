@@ -24,6 +24,23 @@ public class TimesheetController {
         return Result.success(timesheetService.create(timesheet));
     }
 
+    @GetMapping("/{id}")
+    public Result<Timesheet> getById(@PathVariable Long id) {
+        return Result.success(timesheetService.getById(id));
+    }
+
+    @PutMapping("/{id}")
+    public Result<Timesheet> update(@PathVariable Long id, @RequestBody Timesheet timesheet) {
+        timesheet.setId(id);
+        return Result.success(timesheetService.update(timesheet));
+    }
+
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
+        timesheetService.delete(id);
+        return Result.success();
+    }
+
     @GetMapping("/weekly")
     public Result<List<Timesheet>> weekly(@CurrentUser Long userId,
                                           @RequestParam String startDate,
@@ -43,6 +60,23 @@ public class TimesheetController {
                                                       @RequestParam String startDate,
                                                       @RequestParam String endDate) {
         return Result.success(timesheetService.listProjectTimesheets(projectId, startDate, endDate));
+    }
+
+    @GetMapping("/my")
+    public Result<List<Timesheet>> myTimesheets(@CurrentUser Long userId,
+                                                @RequestParam(required = false) String startDate,
+                                                @RequestParam(required = false) String endDate) {
+        if (startDate != null && endDate != null) {
+            return Result.success(timesheetService.listWeekly(userId, startDate, endDate));
+        }
+        return Result.success(timesheetService.listByUser(userId));
+    }
+
+    @GetMapping("/stats")
+    public Result<Object> stats(@CurrentUser Long userId,
+                                 @RequestParam(required = false) String startDate,
+                                 @RequestParam(required = false) String endDate) {
+        return Result.success(timesheetService.getStats(userId, startDate, endDate));
     }
 
     @PostMapping("/{id}/approve")

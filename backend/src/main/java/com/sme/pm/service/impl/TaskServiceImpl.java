@@ -5,6 +5,7 @@ import com.sme.pm.mapper.TaskMapper;
 import com.sme.pm.service.TaskService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,7 +20,6 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task create(Task task) {
-        // Validate max depth
         if (task.getParentId() != null) {
             Task parent = taskMapper.findById(task.getParentId());
             if (parent != null) {
@@ -44,6 +44,12 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public Task move(Task task) {
+        taskMapper.updateById(task);
+        return task;
+    }
+
+    @Override
     public void delete(Long id) {
         taskMapper.deleteById(id);
     }
@@ -59,7 +65,31 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public List<Task> listByProject(Long projectId) {
+        return new ArrayList<>();
+    }
+
+    @Override
     public List<Task> listByParent(Long parentId) {
         return taskMapper.findByParentId(parentId);
+    }
+
+    @Override
+    public void assign(Long taskId, Long userId) {
+        Task task = taskMapper.findById(taskId);
+        if (task != null) {
+            task.setAssigneeId(userId);
+            taskMapper.updateById(task);
+        }
+    }
+
+    @Override
+    public List<Object> getComments(Long taskId) {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void addComment(Long taskId, Object comment) {
+        // Placeholder - comments not implemented yet
     }
 }

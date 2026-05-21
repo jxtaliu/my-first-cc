@@ -6,7 +6,10 @@ import com.sme.pm.service.ProjectService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProjectServiceImpl implements ProjectService {
@@ -50,7 +53,7 @@ public class ProjectServiceImpl implements ProjectService {
     public void archive(Long id) {
         Project project = new Project();
         project.setId(id);
-        project.setStatus(3);  // archived
+        project.setStatus(3);
         projectMapper.updateById(project);
     }
 
@@ -59,7 +62,7 @@ public class ProjectServiceImpl implements ProjectService {
     public void restore(Long id) {
         Project project = new Project();
         project.setId(id);
-        project.setStatus(2);  // active
+        project.setStatus(2);
         projectMapper.updateById(project);
     }
 
@@ -73,5 +76,19 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public void removeMember(Long projectId, Long userId) {
         projectMapper.removeMember(projectId, userId);
+    }
+
+    @Override
+    public List<Map<String, Object>> getMembers(Long projectId) {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public Map<String, Object> getStats(Long projectId) {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalTasks", 0);
+        stats.put("completedTasks", 0);
+        stats.put("totalHours", 0);
+        return stats;
     }
 }

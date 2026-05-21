@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TimesheetServiceImpl implements TimesheetService {
@@ -25,12 +27,11 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     @Transactional
     public Timesheet create(Timesheet timesheet) {
-        // Auto-approve for internal projects
         Project project = projectMapper.findById(timesheet.getProjectId());
         if (project != null && project.getProjectType() == 1) {
-            timesheet.setApprovalStatus(2);  // auto-approved
+            timesheet.setApprovalStatus(2);
         } else {
-            timesheet.setApprovalStatus(1);  // pending
+            timesheet.setApprovalStatus(1);
         }
 
         timesheetMapper.insert(timesheet);
@@ -49,6 +50,11 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    public Timesheet getById(Long id) {
+        return timesheetMapper.selectById(id);
+    }
+
+    @Override
     public List<Timesheet> listWeekly(Long userId, String startDate, String endDate) {
         return timesheetMapper.findByUserAndDateRange(userId, startDate, endDate);
     }
@@ -59,8 +65,23 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    public List<Timesheet> listByUser(Long userId) {
+        return timesheetMapper.selectList(null);
+    }
+
+    @Override
     public List<Timesheet> listProjectTimesheets(Long projectId, String startDate, String endDate) {
         return timesheetMapper.findByProjectAndDateRange(projectId, startDate, endDate);
+    }
+
+    @Override
+    public Map<String, Object> getStats(Long userId, String startDate, String endDate) {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalHours", 0);
+        stats.put("approvedHours", 0);
+        stats.put("pendingHours", 0);
+        stats.put("weekHours", 0);
+        return stats;
     }
 
     @Override
@@ -90,7 +111,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     public void resubmit(Long timesheetId) {
         Timesheet timesheet = new Timesheet();
         timesheet.setId(timesheetId);
-        timesheet.setApprovalStatus(1);  // back to pending
+        timesheet.setApprovalStatus(1);
         timesheetMapper.updateById(timesheet);
     }
 }

@@ -7,6 +7,7 @@ import com.sme.pm.service.ProjectService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -58,15 +59,25 @@ public class ProjectController {
         return Result.success();
     }
 
-    @PostMapping("/{id}/members/{userId}")
-    public Result<Void> addMember(@PathVariable Long id, @PathVariable Long userId) {
-        projectService.addMember(id, userId);
+    @GetMapping("/{projectId}/members")
+    public Result<?> getMembers(@PathVariable Long projectId) {
+        return Result.success(projectService.getMembers(projectId));
+    }
+
+    @PostMapping("/{projectId}/members")
+    public Result<Void> addMember(@PathVariable Long projectId, @RequestBody Object member) {
+        projectService.addMember(projectId, (Long) ((Map<?, ?>) member).get("userId"));
         return Result.success();
     }
 
-    @DeleteMapping("/{id}/members/{userId}")
-    public Result<Void> removeMember(@PathVariable Long id, @PathVariable Long userId) {
-        projectService.removeMember(id, userId);
+    @DeleteMapping("/{projectId}/members/{userId}")
+    public Result<Void> removeMember(@PathVariable Long projectId, @PathVariable Long userId) {
+        projectService.removeMember(projectId, userId);
         return Result.success();
+    }
+
+    @GetMapping("/{projectId}/stats")
+    public Result<Object> getStats(@PathVariable Long projectId) {
+        return Result.success(projectService.getStats(projectId));
     }
 }
