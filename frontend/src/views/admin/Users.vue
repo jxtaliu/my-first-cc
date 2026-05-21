@@ -9,6 +9,7 @@
 
     <el-card>
       <el-table :data="users" v-loading="loading" style="width: 100%">
+        <el-table-column prop="userId" :label="$t('admin.userId')" width="100" />
         <el-table-column prop="username" :label="$t('admin.username')" width="150" />
         <el-table-column prop="email" :label="$t('admin.email')" width="200" />
         <el-table-column prop="department" :label="$t('admin.department')" width="150" />
@@ -48,6 +49,9 @@
 
     <el-dialog v-model="showUserDialog" :title="isEdit ? $t('admin.editUser') : $t('admin.addUser')" width="500px">
       <el-form :model="userForm" :rules="userRules" ref="userFormRef" label-width="100px">
+        <el-form-item :label="$t('admin.userId')" prop="userId">
+          <el-input v-model="userForm.userId" :disabled="isEdit" />
+        </el-form-item>
         <el-form-item :label="$t('admin.username')" prop="username">
           <el-input v-model="userForm.username" :disabled="isEdit" />
         </el-form-item>
@@ -69,6 +73,14 @@
             <el-option :label="$t('admin.projectAdmin')" value="PROJECT_ADMIN" />
             <el-option :label="$t('admin.member')" value="MEMBER" />
           </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('admin.roles')">
+          <el-select v-model="userForm.roleIds" multiple style="width: 100%">
+            <el-option v-for="r in allRoles" :key="r.id" :label="r.name" :value="r.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('admin.department')">
+          <el-tree-select v-model="userForm.departmentId" :data="departmentTree" :props="{ label: 'name', value: 'id' }" clearable />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -97,11 +109,14 @@ const userFormRef = ref()
 
 const userForm = reactive({
   id: null,
+  userId: '',
   username: '',
   email: '',
   password: '',
   department: '',
-  systemRole: 'MEMBER'
+  departmentId: null,
+  systemRole: 'MEMBER',
+  roleIds: []
 })
 
 const userRules = {
@@ -115,6 +130,24 @@ const userRules = {
 }
 
 const departments = ['Engineering', 'Product', 'Design', 'QA', 'DevOps']
+
+const allRoles = ref([
+  { id: 1, name: 'Super Admin' },
+  { id: 2, name: 'Department Admin' },
+  { id: 3, name: 'Project Admin' },
+  { id: 4, name: 'Member' }
+])
+
+const departmentTree = ref([
+  { id: 1, name: 'Engineering', children: [
+    { id: 11, name: 'Backend' },
+    { id: 12, name: 'Frontend' }
+  ] },
+  { id: 2, name: 'Product' },
+  { id: 3, name: 'Design' },
+  { id: 4, name: 'QA' },
+  { id: 5, name: 'DevOps' }
+])
 
 const getRoleTagType = (role) => {
   const types = {
@@ -161,6 +194,20 @@ const handleDelete = async (user) => {
 const handleSubmit = async () => {
   const valid = await userFormRef.value.validate().catch(() => false)
   if (!valid) return
+  const submitData = {
+    userId: userForm.userId,
+    username: userForm.username,
+    email: userForm.email,
+    department: userForm.department,
+    departmentId: userForm.departmentId,
+    systemRole: userForm.systemRole,
+    roleIds: userForm.roleIds
+  }
+  if (!isEdit.value) {
+    submitData.password = userForm.password
+  }
+  // API call would be made here with submitData
+  console.log('Submitting user data:', submitData)
   ElMessage.success(isEdit.value ? t('admin.userUpdated') : t('admin.userCreated'))
   showUserDialog.value = false
   fetchUsers()
