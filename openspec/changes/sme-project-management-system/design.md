@@ -122,11 +122,11 @@ Task (1)──(N) Timesheet
 | sys_permission | 权限定义 |
 | sys_user_role | 用户角色关联 |
 | sys_role_permission | 角色权限关联 |
-| project | 项目信息 |
+| project | 项目信息（含类型：internal/external） |
 | project_member | 项目成员关联 |
 | sprint | Sprint/迭代信息 |
-| task | 任务信息（含层级） |
-| timesheet | 工时记录 |
+| task | 任务信息（含层级，最大4层） |
+| timesheet | 工时记录（含审批状态） |
 
 ## API Design
 
@@ -234,6 +234,13 @@ stores/
 ## Open Questions
 
 1. 任务层级最大深度是否需要限制？
+   - **Answer:** 最多 4 层（Epic → Feature → Story → Sub-task）
+
 2. 工时填报是否需要审批流程？
+   - **Answer:** 部分审批 - 客户项目需要审批，内部项目直接生效
+
 3. 项目是否需要归档功能？
+   - **Answer:** 需要，支持归档和恢复
+
 4. 报表导出格式（Excel/PDF）？
+   - **Answer:** 需要同时支持 Excel 和 PDF

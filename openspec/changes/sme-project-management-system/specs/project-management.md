@@ -36,12 +36,12 @@ The system SHALL support three Sprint modes: Fixed Sprint, Agile Iteration, and 
 - **WHEN** user switches project to Kanban mode
 - **THEN** system enables continuous flow without fixed Sprints
 
-### Requirement: Flexible task hierarchy
-The system SHALL support configurable task hierarchy levels defined by the team.
+### Requirement: Flexible task hierarchy with max 4 levels
+The system SHALL support configurable task hierarchy with a maximum of 4 levels.
 
 #### Scenario: Create custom task levels
 - **WHEN** admin configures task levels (e.g., Epic → Feature → Story → Task)
-- **THEN** system stores hierarchy configuration
+- **THEN** system stores hierarchy configuration with max 4 levels
 
 #### Scenario: Create task in hierarchy
 - **WHEN** user creates task with parent reference
@@ -50,6 +50,10 @@ The system SHALL support configurable task hierarchy levels defined by the team.
 #### Scenario: Default hierarchy
 - **WHEN** team uses default four-level hierarchy
 - **THEN** system supports Epic → Feature → Story → Sub-task
+
+#### Scenario: Exceed maximum depth
+- **WHEN** user attempts to create task at depth 5
+- **THEN** system returns error "Maximum task hierarchy depth is 4"
 
 ### Requirement: Task assignment and status tracking
 The system SHALL allow tasks to be assigned to team members and track status progression.
@@ -72,3 +76,18 @@ The system SHALL allow Project Admin to add/remove project members.
 #### Scenario: Remove project member
 - **WHEN** Project Admin removes user from project
 - **THEN** system removes membership and returns success
+
+### Requirement: Project archive
+The system SHALL allow archiving completed or inactive projects.
+
+#### Scenario: Archive project
+- **WHEN** Super Admin or Project Admin archives a project
+- **THEN** system marks project as archived and hides from active list
+
+#### Scenario: View archived projects
+- **WHEN** authorized user requests archived projects
+- **THEN** system returns list of archived projects
+
+#### Scenario: Restore archived project
+- **WHEN** Super Admin restores archived project
+- **THEN** system marks project as active and returns to active list

@@ -17,6 +17,29 @@ The system SHALL allow users to log hours worked on specific tasks/projects with
 - **WHEN** user edits their own timesheet entry
 - **THEN** system updates entry and returns success
 
+### Requirement: Timesheet approval for external projects
+The system SHALL require approval for timesheet entries on external/client projects, while internal project entries are auto-approved.
+
+#### Scenario: Internal project timesheet auto-approved
+- **WHEN** user logs hours on internal project
+- **THEN** system auto-approves entry and marks as approved
+
+#### Scenario: External project timesheet pending approval
+- **WHEN** user logs hours on external/client project
+- **THEN** system creates entry with pending status
+
+#### Scenario: Manager approves timesheet
+- **WHEN** Department Admin or Project Admin approves pending timesheet
+- **THEN** system marks entry as approved and returns success
+
+#### Scenario: Manager rejects timesheet
+- **WHEN** Department Admin or Project Admin rejects timesheet
+- **THEN** system marks entry as rejected and notifies user
+
+#### Scenario: User resubmits rejected timesheet
+- **WHEN** user resubmits rejected timesheet entry
+- **THEN** system resets status to pending for approval
+
 ### Requirement: User can view weekly timesheet
 The system SHALL display a weekly view of logged hours grouped by project and task.
 
@@ -60,3 +83,14 @@ The system SHALL generate work hour reports with configurable date ranges and fi
 #### Scenario: Generate project cost report
 - **WHEN** authorized user requests project cost report
 - **THEN** system returns total hours and cost based on hourly rates
+
+### Requirement: Report export
+The system SHALL support exporting reports in Excel and PDF formats.
+
+#### Scenario: Export report to Excel
+- **WHEN** user requests Excel export
+- **THEN** system generates .xlsx file and triggers download
+
+#### Scenario: Export report to PDF
+- **WHEN** user requests PDF export
+- **THEN** system generates .pdf file and triggers download

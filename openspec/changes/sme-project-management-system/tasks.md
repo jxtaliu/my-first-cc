@@ -33,11 +33,13 @@
 
 ## 5. Backend - Project Module
 
-- [ ] 5.1 Create project entity and mapper
+- [ ] 5.1 Create project entity and mapper (with internal/external type)
 - [ ] 5.2 Implement project CRUD APIs
 - [ ] 5.3 Create project member management APIs
 - [ ] 5.4 Implement sprint entity and mapper
 - [ ] 5.5 Implement sprint CRUD APIs with mode support (Fixed/Agile/Kanban)
+- [ ] 5.6 Implement project archive API
+- [ ] 5.7 Implement project restore API
 
 ## 6. Backend - Task Module
 
@@ -49,17 +51,22 @@
 
 ## 7. Backend - Timesheet Module
 
-- [ ] 7.1 Create timesheet entity and mapper
+- [ ] 7.1 Create timesheet entity and mapper (with approval status)
 - [ ] 7.2 Implement timesheet CRUD APIs
 - [ ] 7.3 Implement weekly timesheet view API
 - [ ] 7.4 Implement monthly timesheet view API
 - [ ] 7.5 Implement team timesheet view for managers
+- [ ] 7.6 Implement auto-approve for internal project timesheets
+- [ ] 7.7 Implement timesheet approval/rejection APIs
+- [ ] 7.8 Implement timesheet resubmit functionality
 
 ## 8. Backend - Report Module
 
 - [ ] 8.1 Implement workload report API
 - [ ] 8.2 Implement project progress API
 - [ ] 8.3 Add report aggregation queries
+- [ ] 8.4 Implement Excel export with Apache POI
+- [ ] 8.5 Implement PDF export with iText
 
 ## 9. Frontend - Project Setup & Auth
 
@@ -88,11 +95,12 @@
 
 ## 12. Frontend - Project Management
 
-- [ ] 12.1 Create project list page
+- [ ] 12.1 Create project list page (with archive filter)
 - [ ] 12.2 Create project detail page
 - [ ] 12.3 Create project settings page
 - [ ] 12.4 Create sprint management page
 - [ ] 12.5 Implement project member management UI
+- [ ] 12.6 Implement project archive/restore UI
 
 ## 13. Frontend - Task Management
 
@@ -109,7 +117,8 @@
 - [ ] 14.2 Create weekly view component
 - [ ] 14.3 Create monthly view component
 - [ ] 14.4 Implement timesheet summary widgets
-- [ ] 14.5 Create report export functionality
+- [ ] 14.5 Create timesheet approval UI for managers
+- [ ] 14.6 Create report export functionality (Excel/PDF)
 
 ## 15. Frontend - i18n & Polish
 
