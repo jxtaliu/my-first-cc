@@ -30,7 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         List<Role> roles = userMapper.findRolesByUserId(user.getId());
         List<SimpleGrantedAuthority> authorities = roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getCode()))
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleId()))
                 .collect(Collectors.toList());
 
         return new org.springframework.security.core.userdetails.User(
