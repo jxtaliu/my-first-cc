@@ -145,7 +145,7 @@
           <el-input-number v-model="entryForm.hours" :min="0" :max="24" :step="0.5" style="width: 100%" />
         </el-form-item>
         <el-form-item :label="$t('timesheet.description')" prop="description">
-          <el-input v-model="entryForm.description" type="textarea" rows="3" />
+          <el-input v-model="entryForm.description" type="textarea" :rows="3" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -160,7 +160,7 @@
         <p>{{ selectedTimesheet?.period }}</p>
         <p>{{ $t('timesheet.totalHours') }}: {{ selectedTimesheet?.totalHours }}</p>
         <el-form-item :label="$t('timesheet.description')">
-          <el-input v-model="approveComment" type="textarea" rows="3" :placeholder="$t('timesheet.optional')" />
+          <el-input v-model="approveComment" type="textarea" :rows="3" :placeholder="$t('timesheet.optional')" />
         </el-form-item>
       </div>
       <template #footer>

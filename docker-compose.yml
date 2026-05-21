@@ -77,19 +77,22 @@ services:
       retries: 3
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: node:20-alpine
     container_name: sme-pm-frontend
     restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - node-modules:/app/node_modules
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
-      - "3000:80"
+      - "3000:3000"
     depends_on:
       - backend
     networks:
       - sme-pm-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -98,6 +101,7 @@ volumes:
   mysql_data:
   redis_data:
   maven-cache:
+  node-modules:
 
 networks:
   sme-pm-network:

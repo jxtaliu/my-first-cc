@@ -19,9 +19,9 @@
           <span><el-icon><Grid /></el-icon> Board</span>
         </template>
         <div class="kanban-board">
-          <div v-for="status in taskStatuses" :key="status" class="kanban-column">
+          <div v-for="status in taskStatuses" :key="status.value" class="kanban-column">
             <div class="column-header">
-              <span class="column-title">{{ status }}</span>
+              <span class="column-title">{{ status.label }}</span>
               <el-badge :value="getTasksByStatus(status).length" type="info" />
             </div>
             <div
@@ -130,7 +130,7 @@
           <el-input v-model="taskForm.title" />
         </el-form-item>
         <el-form-item label="Description" prop="description">
-          <el-input v-model="taskForm.description" type="textarea" rows="4" />
+          <el-input v-model="taskForm.description" type="textarea" :rows="4" />
         </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
@@ -146,7 +146,7 @@
           <el-col :span="12">
             <el-form-item label="Status" prop="status">
               <el-select v-model="taskForm.status">
-                <el-option v-for="s in taskStatuses" :key="s" :label="s" :value="s" />
+                <el-option v-for="s in taskStatuses" :key="s.value" :label="s.label" :value="s.value" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -188,7 +188,7 @@
           <el-date-picker v-model="sprintForm.endDate" type="date" style="width: 100%" />
         </el-form-item>
         <el-form-item label="Goal" prop="goal">
-          <el-input v-model="sprintForm.goal" type="textarea" rows="3" />
+          <el-input v-model="sprintForm.goal" type="textarea" :rows="3" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -221,13 +221,18 @@ const showMemberDialog = ref(false)
 const editingTask = ref(null)
 const draggedTask = ref(null)
 
-const taskStatuses = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE']
+const taskStatuses = [
+  { label: 'Todo', value: 1 },
+  { label: 'In Progress', value: 2 },
+  { label: 'In Review', value: 3 },
+  { label: 'Done', value: 4 }
+]
 
 const taskForm = reactive({
   title: '',
   description: '',
   priority: 'MEDIUM',
-  status: 'TODO',
+  status: 1,
   sprintId: null,
   assigneeId: null
 })
@@ -254,7 +259,7 @@ const taskFormRef = ref()
 const sprintFormRef = ref()
 
 const getTasksByStatus = (status) => {
-  return tasks.value.filter(t => t.status === status)
+  return tasks.value.filter(t => t.status === status.value)
 }
 
 const getSprintName = (sprintId) => {
@@ -296,11 +301,11 @@ const handleDragStart = (task, event) => {
 }
 
 const handleDrop = async (newStatus) => {
-  if (!draggedTask.value || draggedTask.value.status === newStatus) return
+  if (!draggedTask.value || draggedTask.value.status === newStatus.value) return
 
   try {
-    await moveTask(draggedTask.value.id, { status: newStatus })
-    draggedTask.value.status = newStatus
+    await moveTask(draggedTask.value.id, { status: newStatus.value })
+    draggedTask.value.status = newStatus.value
   } catch (e) {
     // Handle error
   }
@@ -325,7 +330,7 @@ const handleAddTask = (status) => {
     title: '',
     description: '',
     priority: 'MEDIUM',
-    status: status,
+    status: status.value,
     sprintId: null,
     assigneeId: null
   })

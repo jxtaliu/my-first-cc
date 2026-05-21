@@ -60,7 +60,7 @@
           <el-input v-model="form.name" />
         </el-form-item>
         <el-form-item :label="$t('project.description')" prop="description">
-          <el-input v-model="form.description" type="textarea" rows="3" />
+          <el-input v-model="form.description" type="textarea" :rows="3" />
         </el-form-item>
         <el-form-item :label="$t('project.type')" prop="type">
           <el-select v-model="form.type">
@@ -109,8 +109,8 @@ const form = reactive({
 })
 
 const rules = {
-  name: [{ required: true, message: () => $t('project.projectNameRequired') }],
-  type: [{ required: true, message: () => $t('project.projectTypeRequired') }]
+  name: [{ required: true, message: () => t('project.projectNameRequired') }],
+  type: [{ required: true, message: () => t('project.projectTypeRequired') }]
 }
 
 const departments = ref([
