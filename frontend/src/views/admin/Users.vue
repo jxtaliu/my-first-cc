@@ -186,8 +186,14 @@ const handleEdit = (user) => {
 const handleDelete = async (user) => {
   try {
     await ElMessageBox.confirm(t('admin.confirmDelete'), t('common.warning'), { type: 'warning' })
-    ElMessage.success(t('admin.userDeleted'))
-    fetchUsers()
+    const res = await fetch(`/api/users/${user.id}`, { method: 'DELETE' })
+    const result = await res.json()
+    if (result.code === 200) {
+      ElMessage.success(t('admin.userDeleted'))
+      fetchUsers()
+    } else {
+      ElMessage.error(result.message || t('common.failed'))
+    }
   } catch (e) {}
 }
 
