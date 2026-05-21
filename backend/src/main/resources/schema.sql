@@ -5,6 +5,7 @@ USE sme_pm;
 -- User table
 CREATE TABLE IF NOT EXISTS sys_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL UNIQUE,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -15,19 +16,21 @@ CREATE TABLE IF NOT EXISTS sys_user (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted TINYINT DEFAULT 0,
     INDEX idx_username (username),
-    INDEX idx_email (email)
+    INDEX idx_email (email),
+    INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Role table
 CREATE TABLE IF NOT EXISTS sys_role (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(50) NOT NULL UNIQUE,
+    role_id VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),
     status TINYINT DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0
+    deleted TINYINT DEFAULT 0,
+    INDEX idx_role_id (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Permission table
@@ -55,6 +58,22 @@ CREATE TABLE IF NOT EXISTS sys_role_permission (
     role_id BIGINT NOT NULL,
     permission_id BIGINT NOT NULL,
     PRIMARY KEY (role_id, permission_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Department table
+CREATE TABLE IF NOT EXISTS sys_department (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    department_id VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    parent_id BIGINT DEFAULT NULL,
+    leader_id BIGINT DEFAULT NULL,
+    sort_order INT DEFAULT 0,
+    status TINYINT DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT DEFAULT 0,
+    INDEX idx_department_id (department_id),
+    INDEX idx_parent (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Dictionary type table
@@ -164,15 +183,15 @@ CREATE TABLE IF NOT EXISTS timesheet (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Insert default roles
-INSERT INTO sys_role (code, name, description) VALUES
-('SUPER_ADMIN', 'Super Admin', 'Full system access'),
-('DEPT_ADMIN', 'Department Admin', 'Department level access'),
-('PROJECT_ADMIN', 'Project Admin', 'Project level access'),
-('MEMBER', 'Member', 'Basic member access');
+INSERT INTO sys_role (role_id, name, description) VALUES
+('ROLE_001', 'Super Admin', 'Full system access'),
+('ROLE_002', 'Department Admin', 'Department level access'),
+('ROLE_003', 'Project Admin', 'Project level access'),
+('ROLE_004', 'Member', 'Basic member access');
 
 -- Insert default admin user (password: admin123)
-INSERT INTO sys_user (username, password, email, real_name) VALUES
-('admin', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'admin@example.com', 'Admin');
+INSERT INTO sys_user (user_id, username, password, email, real_name) VALUES
+('USR_001', 'admin', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'admin@example.com', 'Admin');
 
 -- Assign SUPER_ADMIN role to admin user
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);
