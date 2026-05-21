@@ -24,6 +24,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="sortOrder" :label="$t('admin.sortOrder')" width="80" />
+        <el-table-column prop="memberCount" :label="$t('admin.memberCount')" width="100">
+          <template #default="{ row }">
+            <el-tag type="info" size="small">{{ row.memberCount || 0 }}</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" :label="$t('admin.status')" width="80">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">
@@ -177,7 +182,13 @@ const handleSubmit = async () => {
   const res = await fetch(url, {
     method,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(departmentForm.value)
+    body: JSON.stringify({
+      departmentId: departmentForm.value.departmentId ?? null,
+      name: departmentForm.value.name,
+      parentId: departmentForm.value.parentId ?? null,
+      sortOrder: departmentForm.value.sortOrder ?? 0,
+      status: departmentForm.value.status ?? 1
+    })
   })
   const result = await res.json()
   if (result.code === 200) {
@@ -247,7 +258,7 @@ const handleAddUser = async () => {
     if (result.code === 200) {
       ElMessage.success(t('admin.memberAdded'))
       selectedUserId.value = null
-      await Promise.all([loadDepartmentUsers(currentDept.value.id), loadAvailableUsers()])
+      await Promise.all([loadDepartmentUsers(currentDept.value.id), loadAvailableUsers(), loadDepartments()])
     } else {
       ElMessage.error(result.message || t('common.failed'))
     }
@@ -265,7 +276,7 @@ const handleRemoveUser = async (user) => {
     const result = await res.json()
     if (result.code === 200) {
       ElMessage.success(t('admin.memberRemoved'))
-      await Promise.all([loadDepartmentUsers(currentDept.value.id), loadAvailableUsers()])
+      await Promise.all([loadDepartmentUsers(currentDept.value.id), loadAvailableUsers(), loadDepartments()])
     } else {
       ElMessage.error(result.message || t('common.failed'))
     }

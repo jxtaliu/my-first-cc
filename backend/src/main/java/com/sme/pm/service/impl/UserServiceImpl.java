@@ -1,5 +1,6 @@
 package com.sme.pm.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.sme.pm.dto.LoginRequest;
 import com.sme.pm.dto.LoginResponse;
 import com.sme.pm.entity.User;
@@ -71,10 +72,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void assignDepartment(Long userId, Long departmentId) {
-        User user = userMapper.selectById(userId);
-        if (user != null) {
-            user.setDepartmentId(departmentId);
-            userMapper.updateById(user);
-        }
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, userId)
+               .set(User::getDepartmentId, departmentId);
+        userMapper.update(null, wrapper);
     }
 }

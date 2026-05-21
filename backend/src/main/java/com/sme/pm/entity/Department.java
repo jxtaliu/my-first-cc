@@ -34,4 +34,7 @@ public class Department {
 
     @TableField(exist = false)
     private List<Department> children;
+
+    @TableField(exist = false)
+    private Integer memberCount;
 }

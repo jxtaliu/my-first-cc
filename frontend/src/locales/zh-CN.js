@@ -155,6 +155,7 @@ export default {
     projectAdminDesc: '项目管理权限',
     memberDesc: '基本成员权限',
     members: '成员',
+    memberCount: '成员数',
     memberManagement: '成员管理',
     selectUser: '选择用户',
     addMember: '添加成员',

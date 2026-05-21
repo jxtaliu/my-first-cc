@@ -1,5 +1,6 @@
 package com.sme.pm.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.sme.pm.entity.Permission;
 import com.sme.pm.entity.Role;
 import com.sme.pm.mapper.PermissionMapper;
@@ -39,7 +40,13 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role update(Role role) {
-        roleMapper.updateById(role);
+        LambdaUpdateWrapper<Role> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(Role::getId, role.getId())
+               .set(Role::getRoleId, role.getRoleId())
+               .set(Role::getName, role.getName())
+               .set(Role::getDescription, role.getDescription())
+               .set(Role::getStatus, role.getStatus());
+        roleMapper.update(role, wrapper);
         return role;
     }
 

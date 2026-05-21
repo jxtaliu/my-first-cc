@@ -1,5 +1,6 @@
 package com.sme.pm.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.sme.pm.entity.Department;
 import com.sme.pm.mapper.DepartmentMapper;
 import com.sme.pm.service.DepartmentService;
@@ -20,12 +21,19 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public List<Department> getAllDepartments() {
-        return departmentMapper.selectList(null);
+        List<Department> departments = departmentMapper.selectList(null);
+        for (Department dept : departments) {
+            dept.setMemberCount(departmentMapper.countUsersByDepartmentId(dept.getId()));
+        }
+        return departments;
     }
 
     @Override
     public List<Department> getDepartmentTree() {
         List<Department> all = departmentMapper.selectList(null);
+        for (Department dept : all) {
+            dept.setMemberCount(departmentMapper.countUsersByDepartmentId(dept.getId()));
+        }
         List<Department> roots = all.stream()
                 .filter(d -> d.getParentId() == null)
                 .collect(Collectors.toList());
@@ -58,7 +66,14 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public Department update(Department department) {
-        departmentMapper.updateById(department);
+        LambdaUpdateWrapper<Department> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(Department::getId, department.getId())
+               .set(Department::getDepartmentId, department.getDepartmentId())
+               .set(Department::getName, department.getName())
+               .set(Department::getParentId, department.getParentId())
+               .set(Department::getSortOrder, department.getSortOrder())
+               .set(Department::getStatus, department.getStatus());
+        departmentMapper.update(department, wrapper);
         return department;
     }
 

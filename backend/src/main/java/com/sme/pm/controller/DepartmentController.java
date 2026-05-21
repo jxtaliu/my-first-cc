@@ -1,5 +1,6 @@
 package com.sme.pm.controller;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Department;
 import com.sme.pm.entity.User;
@@ -72,21 +73,19 @@ public class DepartmentController {
 
     @PostMapping("/{id}/users/{userId}")
     public Result<Void> addUserToDepartment(@PathVariable Long id, @PathVariable Long userId) {
-        User user = userMapper.selectById(userId);
-        if (user != null) {
-            user.setDepartmentId(id);
-            userMapper.updateById(user);
-        }
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, userId)
+               .set(User::getDepartmentId, id);
+        userMapper.update(null, wrapper);
         return Result.success();
     }
 
     @DeleteMapping("/{id}/users/{userId}")
     public Result<Void> removeUserFromDepartment(@PathVariable Long id, @PathVariable Long userId) {
-        User user = userMapper.selectById(userId);
-        if (user != null) {
-            user.setDepartmentId(null);
-            userMapper.updateById(user);
-        }
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, userId)
+               .set(User::getDepartmentId, null);
+        userMapper.update(null, wrapper);
         return Result.success();
     }
 }

@@ -155,6 +155,7 @@ export default {
     projectAdminDesc: 'Project management',
     memberDesc: 'Basic member access',
     members: 'Members',
+    memberCount: 'Members',
     memberManagement: 'Member Management',
     selectUser: 'Select user',
     addMember: 'Add Member',
