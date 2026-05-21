@@ -10,7 +10,7 @@ public class Role {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String code;  // SUPER_ADMIN, DEPT_ADMIN, PROJECT_ADMIN, MEMBER
+    private String roleId;  // Business ID, e.g. ROLE_001
 
     private String name;
 
