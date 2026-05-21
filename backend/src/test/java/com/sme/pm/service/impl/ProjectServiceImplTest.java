@@ -38,7 +38,6 @@ class ProjectServiceImplTest {
         project.setOwnerId(1L);
 
         when(projectMapper.insert(any(Project.class))).thenReturn(1);
-        when(projectMapper.updateById(any(Project.class))).thenReturn(1);
 
         Project result = projectService.create(project);
 

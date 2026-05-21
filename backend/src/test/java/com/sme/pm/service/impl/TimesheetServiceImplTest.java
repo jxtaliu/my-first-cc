@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -45,7 +44,7 @@ class TimesheetServiceImplTest {
         Timesheet timesheet = new Timesheet();
         timesheet.setProjectId(1L);
         timesheet.setHours(8);
-        timesheet.setWorkDate(LocalDate.now());
+        timesheet.setWorkDate(LocalDateTime.now());
 
         when(projectMapper.findById(1L)).thenReturn(project);
         when(timesheetMapper.insert(any(Timesheet.class))).thenReturn(1);
@@ -65,7 +64,7 @@ class TimesheetServiceImplTest {
         Timesheet timesheet = new Timesheet();
         timesheet.setProjectId(1L);
         timesheet.setHours(8);
-        timesheet.setWorkDate(LocalDate.now());
+        timesheet.setWorkDate(LocalDateTime.now());
 
         when(projectMapper.findById(1L)).thenReturn(project);
         when(timesheetMapper.insert(any(Timesheet.class))).thenReturn(1);
@@ -168,13 +167,12 @@ class TimesheetServiceImplTest {
 
         timesheetService.approve(timesheetId, approverId);
 
-        verify(timesheetMapper).updateById(argThat(timesheet -> {
-            timesheet.setId(timesheetId);
-            timesheet.setApprovalStatus(2);
-            timesheet.setApproverId(approverId);
-            timesheet.setApprovedAt(any(LocalDateTime.class));
-            return true;
-        }));
+        verify(timesheetMapper).updateById(argThat(timesheet ->
+            timesheet.getId().equals(timesheetId) &&
+            timesheet.getApprovalStatus() == 2 &&
+            timesheet.getApproverId().equals(approverId) &&
+            timesheet.getApprovedAt() != null
+        ));
     }
 
     @Test

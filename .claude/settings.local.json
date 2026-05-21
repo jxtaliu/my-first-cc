@@ -52,7 +52,10 @@
       "Bash(iptables -L -n)",
       "Bash(mysql *)",
       "Bash(npm install *)",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(apt-get update *)",
+      "Bash(tar -xzf maven.tar.gz)",
+      "Bash(wget -q https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -O maven.tar.gz)"
     ]
   }
 }
