@@ -23,4 +23,7 @@ public interface RoleMapper extends BaseMapper<Role> {
 
     @Select("SELECT COUNT(*) FROM sys_user_role WHERE role_id = #{roleId}")
     int countUsersByRoleId(@Param("roleId") Long roleId);
+
+    @Delete("DELETE FROM sys_role WHERE id = #{id}")
+    void physicalDeleteById(@Param("id") Long id);
 }

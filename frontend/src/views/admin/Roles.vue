@@ -15,7 +15,7 @@
         <el-table-column prop="status" :label="$t('admin.status')" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">
-              {{ row.status === 1 ? 'Active' : 'Inactive' }}
+              {{ row.status === 1 ? $t('common.active') : $t('common.inactive') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -67,8 +67,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+
+const { t } = useI18n()
 
 const roles = ref([])
 const loading = ref(false)
@@ -84,13 +87,11 @@ const currentRoleId = ref(null)
 const loadRoles = async () => {
   loading.value = true
   try {
-    // Simulated data
-    roles.value = [
-      { id: 1, roleId: 'ADMIN', name: 'Super Admin', description: 'Full system access', status: 1 },
-      { id: 2, roleId: 'DEPT_ADMIN', name: 'Department Admin', description: 'Department management', status: 1 },
-      { id: 3, roleId: 'PROJECT_ADMIN', name: 'Project Admin', description: 'Project management', status: 1 },
-      { id: 4, roleId: 'MEMBER', name: 'Member', description: 'Basic member access', status: 1 }
-    ]
+    const res = await fetch('/api/roles')
+    const result = await res.json()
+    if (result.code === 200) {
+      roles.value = result.data
+    }
   } catch (e) {
     // Handle error
   } finally {
@@ -157,9 +158,25 @@ const openPermissionDialog = async (role) => {
 }
 
 const handleSubmit = async () => {
-  ElMessage.success(isEdit.value ? 'Role updated' : 'Role created')
-  showDialog.value = false
-  loadRoles()
+  try {
+    const url = isEdit.value ? `/api/roles/${roleForm.value.id}` : '/api/roles'
+    const method = isEdit.value ? 'PUT' : 'POST'
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(roleForm.value)
+    })
+    const result = await res.json()
+    if (result.code === 200) {
+      ElMessage.success(isEdit.value ? t('admin.roleUpdated') : t('admin.roleCreated'))
+      showDialog.value = false
+      loadRoles()
+    } else {
+      ElMessage.error(result.message || t('common.failed'))
+    }
+  } catch (e) {
+    ElMessage.error(t('common.failed'))
+  }
 }
 
 const handleSavePermissions = async () => {
@@ -169,9 +186,15 @@ const handleSavePermissions = async () => {
 
 const handleDelete = async (role) => {
   try {
-    await ElMessageBox.confirm('Are you sure you want to delete this role?', 'Warning', { type: 'warning' })
-    ElMessage.success('Role deleted')
-    loadRoles()
+    await ElMessageBox.confirm(t('admin.confirmDeleteRole'), t('common.warning'), { type: 'warning' })
+    const res = await fetch(`/api/roles/${role.id}`, { method: 'DELETE' })
+    const result = await res.json()
+    if (result.code === 200) {
+      ElMessage.success(t('admin.roleDeleted'))
+      loadRoles()
+    } else {
+      ElMessage.error(result.message || t('admin.canNotDeleteRole'))
+    }
   } catch (e) {}
 }
 

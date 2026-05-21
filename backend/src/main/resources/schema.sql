@@ -2,6 +2,19 @@
 CREATE DATABASE IF NOT EXISTS sme_pm DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE sme_pm;
 
+-- Role table (must be created before sys_user due to FK)
+CREATE TABLE IF NOT EXISTS sys_role (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    role_id VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    status TINYINT DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT DEFAULT 0,
+    INDEX idx_role_id (role_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- User table
 CREATE TABLE IF NOT EXISTS sys_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -18,19 +31,6 @@ CREATE TABLE IF NOT EXISTS sys_user (
     INDEX idx_username (username),
     INDEX idx_email (email),
     INDEX idx_user_id (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Role table
-CREATE TABLE IF NOT EXISTS sys_role (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    role_id VARCHAR(50) NOT NULL UNIQUE,
-    name VARCHAR(100) NOT NULL,
-    description VARCHAR(255),
-    status TINYINT DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    INDEX idx_role_id (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Permission table

@@ -17,7 +17,9 @@ export default {
     no: 'No',
     ok: 'OK',
     warning: 'Warning',
-    required: 'Required'
+    required: 'Required',
+    active: 'Active',
+    inactive: 'Inactive'
   },
   auth: {
     login: 'Login',
@@ -52,6 +54,7 @@ export default {
     restore: 'Restore Project',
     all: 'All',
     active: 'Active',
+    inactive: 'Inactive',
     archived: 'Archived',
     noDescription: 'No description',
     tasks: 'tasks',
@@ -95,6 +98,7 @@ export default {
     optional: 'Optional'
   },
   admin: {
+    description: 'Role Description',
     title: 'User Management',
     addUser: 'Add User',
     editUser: 'Edit User',
@@ -115,9 +119,11 @@ export default {
     userDeleted: 'User deleted',
     confirmDelete: 'Are you sure to delete this user?',
     usernameRequired: 'Username is required',
+    userIdRequired: 'User ID is required',
     emailRequired: 'Email is required',
     invalidEmail: 'Invalid email format',
     passwordRequired: 'Password is required',
+    selectDepartment: 'Select department',
     departments: 'Departments',
     roles: 'Roles',
     addDepartment: 'Add Department',
@@ -130,6 +136,7 @@ export default {
     roleName: 'Role Name',
     departmentName: 'Department Name',
     parentDepartment: 'Parent Department',
+    selectParent: '-- Root --',
     sortOrder: 'Sort Order',
     assignPermissions: 'Assign Permissions',
     departmentCreated: 'Department created',
@@ -141,6 +148,10 @@ export default {
     confirmDeleteRole: 'Are you sure to delete this role?',
     confirmDeleteDepartment: 'Are you sure to delete this department?',
     canNotDeleteDepartment: 'Cannot delete: department has users or children',
-    canNotDeleteRole: 'Cannot delete: role has assigned users'
+    canNotDeleteRole: 'Cannot delete: role has assigned users',
+    superAdminDesc: 'Full system access',
+    deptAdminDesc: 'Department management',
+    projectAdminDesc: 'Project management',
+    memberDesc: 'Basic member access'
   }
 }

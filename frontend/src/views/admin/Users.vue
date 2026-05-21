@@ -2,34 +2,32 @@
   <div class="users-page">
     <div class="page-header">
       <h2>{{ $t('admin.title') }}</h2>
-      <el-button type="primary" @click="showUserDialog = true">
+      <el-button type="primary" @click="openDialog()">
         <el-icon><Plus /></el-icon> {{ $t('admin.addUser') }}
       </el-button>
     </div>
 
     <el-card>
       <el-table :data="users" v-loading="loading" style="width: 100%">
-        <el-table-column prop="userId" :label="$t('admin.userId')" width="100" />
-        <el-table-column prop="username" :label="$t('admin.username')" width="150" />
-        <el-table-column prop="email" :label="$t('admin.email')" width="200" />
-        <el-table-column prop="department" :label="$t('admin.department')" width="150" />
-        <el-table-column prop="role" :label="$t('admin.systemRole')" width="150">
+        <el-table-column prop="userId" :label="$t('admin.userId')" width="100">
           <template #default="{ row }">
-            <el-tag :type="getRoleTagType(row.systemRole)" size="small">
-              {{ row.systemRole }}
+            <el-link type="primary" @click="openDetailDialog(row)">{{ row.userId }}</el-link>
+          </template>
+        </el-table-column>
+        <el-table-column prop="username" :label="$t('admin.username')" width="120" />
+        <el-table-column prop="email" :label="$t('admin.email')" min-width="180" />
+        <el-table-column prop="realName" :label="$t('admin.realName')" width="120" />
+        <el-table-column prop="departmentName" :label="$t('admin.department')" width="120" />
+        <el-table-column prop="status" :label="$t('admin.status')" width="80">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">
+              {{ row.status === 1 ? $t('common.active') : $t('common.inactive') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" :label="$t('admin.status')" width="100">
+        <el-table-column :label="$t('admin.actions')" width="180" fixed="right">
           <template #default="{ row }">
-            <el-tag :type="row.status === 'ACTIVE' ? 'success' : 'info'" size="small">
-              {{ row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column :label="$t('admin.actions')" width="200">
-          <template #default="{ row }">
-            <el-button text size="small" @click="handleEdit(row)">{{ $t('common.edit') }}</el-button>
+            <el-button text size="small" @click="openDialog(row)">{{ $t('common.edit') }}</el-button>
             <el-button text size="small" type="danger" @click="handleDelete(row)">{{ $t('common.delete') }}</el-button>
           </template>
         </el-table-column>
@@ -47,8 +45,8 @@
       />
     </el-card>
 
-    <el-dialog v-model="showUserDialog" :title="isEdit ? $t('admin.editUser') : $t('admin.addUser')" width="500px">
-      <el-form :model="userForm" :rules="userRules" ref="userFormRef" label-width="100px">
+    <el-dialog v-model="showDialog" :title="isEdit ? $t('admin.editUser') : $t('admin.addUser')" width="500px">
+      <el-form :model="userForm" :rules="userRules" ref="formRef" label-width="100px">
         <el-form-item :label="$t('admin.userId')" prop="userId">
           <el-input v-model="userForm.userId" :disabled="isEdit" />
         </el-form-item>
@@ -56,36 +54,59 @@
           <el-input v-model="userForm.username" :disabled="isEdit" />
         </el-form-item>
         <el-form-item :label="$t('admin.email')" prop="email">
-          <el-input v-model="userForm.email" type="email" />
+          <el-input v-model="userForm.email" />
+        </el-form-item>
+        <el-form-item :label="$t('admin.realName')">
+          <el-input v-model="userForm.realName" />
         </el-form-item>
         <el-form-item :label="$t('admin.password')" prop="password" v-if="!isEdit">
           <el-input v-model="userForm.password" type="password" />
         </el-form-item>
-        <el-form-item :label="$t('admin.department')" prop="department">
-          <el-select v-model="userForm.department" style="width: 100%">
-            <el-option v-for="d in departments" :key="d" :label="d" :value="d" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('admin.systemRole')" prop="systemRole">
-          <el-select v-model="userForm.systemRole" style="width: 100%">
-            <el-option :label="$t('admin.superAdmin')" value="SUPER_ADMIN" />
-            <el-option :label="$t('admin.deptAdmin')" value="DEPT_ADMIN" />
-            <el-option :label="$t('admin.projectAdmin')" value="PROJECT_ADMIN" />
-            <el-option :label="$t('admin.member')" value="MEMBER" />
+        <el-form-item :label="$t('admin.department')">
+          <el-select v-model="userForm.departmentId" :placeholder="$t('admin.selectDepartment')" style="width: 100%" clearable>
+            <el-option v-for="dept in departmentList" :key="dept.id" :label="dept.name" :value="dept.id" />
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('admin.roles')">
           <el-select v-model="userForm.roleIds" multiple style="width: 100%">
-            <el-option v-for="r in allRoles" :key="r.id" :label="r.name" :value="r.id" />
+            <el-option v-for="role in roleList" :key="role.id" :label="role.name" :value="role.id" />
           </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('admin.department')">
-          <el-tree-select v-model="userForm.departmentId" :data="departmentTree" :props="{ label: 'name', value: 'id' }" clearable />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showUserDialog = false">{{ $t('common.cancel') }}</el-button>
+        <el-button @click="showDialog = false">{{ $t('common.cancel') }}</el-button>
         <el-button type="primary" @click="handleSubmit">{{ $t('common.save') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="showDetailDialog" :title="$t('admin.userDetail')" width="500px">
+      <el-form label-width="100px">
+        <el-form-item :label="$t('admin.userId')">
+          <span>{{ detailUser.userId || '-' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('admin.username')">
+          <span>{{ detailUser.username || '-' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('admin.email')">
+          <span>{{ detailUser.email || '-' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('admin.realName')">
+          <span>{{ detailUser.realName || '-' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('admin.department')">
+          <span>{{ detailUser.departmentName || '-' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('admin.roles')">
+          <span>{{ detailUser.roleNames || '-' }}</span>
+        </el-form-item>
+        <el-form-item :label="$t('admin.status')">
+          <el-tag :type="detailUser.status === 1 ? 'success' : 'info'" size="small">
+            {{ detailUser.status === 1 ? $t('common.active') : $t('common.inactive') }}
+          </el-tag>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" @click="showDetailDialog = false">{{ $t('common.ok') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -97,79 +118,62 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
-const loading = ref(false)
 const { t } = useI18n()
-const showUserDialog = ref(false)
+
+const loading = ref(false)
+const showDialog = ref(false)
+const showDetailDialog = ref(false)
 const isEdit = ref(false)
+const detailUser = ref({})
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const users = ref([])
-const userFormRef = ref()
+const departmentList = ref([])
+const roleList = ref([])
+const formRef = ref()
 
 const userForm = reactive({
   id: null,
   userId: '',
   username: '',
   email: '',
+  realName: '',
   password: '',
-  department: '',
   departmentId: null,
-  systemRole: 'MEMBER',
   roleIds: []
 })
 
 const userRules = {
+  userId: [{ required: true, message: () => t('admin.userIdRequired') }],
   username: [{ required: true, message: () => t('admin.usernameRequired') }],
   email: [
     { required: true, message: () => t('admin.emailRequired') },
     { type: 'email', message: () => t('admin.invalidEmail') }
   ],
-  password: [{ required: true, message: () => t('admin.passwordRequired'), trigger: 'blur' }],
-  systemRole: [{ required: true, message: () => t('admin.systemRole') }]
-}
-
-const departments = ['Engineering', 'Product', 'Design', 'QA', 'DevOps']
-
-const allRoles = ref([
-  { id: 1, name: 'Super Admin' },
-  { id: 2, name: 'Department Admin' },
-  { id: 3, name: 'Project Admin' },
-  { id: 4, name: 'Member' }
-])
-
-const departmentTree = ref([
-  { id: 1, name: 'Engineering', children: [
-    { id: 11, name: 'Backend' },
-    { id: 12, name: 'Frontend' }
-  ] },
-  { id: 2, name: 'Product' },
-  { id: 3, name: 'Design' },
-  { id: 4, name: 'QA' },
-  { id: 5, name: 'DevOps' }
-])
-
-const getRoleTagType = (role) => {
-  const types = {
-    SUPER_ADMIN: 'danger',
-    DEPT_ADMIN: 'warning',
-    PROJECT_ADMIN: 'success',
-    MEMBER: 'info'
-  }
-  return types[role] || 'info'
+  password: [{ required: true, message: () => t('admin.passwordRequired'), trigger: 'blur' }]
 }
 
 const fetchUsers = async () => {
   loading.value = true
   try {
-    // Simulated data
-    users.value = [
-      { id: 1, username: 'admin', email: 'admin@example.com', department: 'Engineering', systemRole: 'SUPER_ADMIN', status: 'ACTIVE' },
-      { id: 2, username: 'dept_lead', email: 'dept@example.com', department: 'Product', systemRole: 'DEPT_ADMIN', status: 'ACTIVE' },
-      { id: 3, username: 'proj_lead', email: 'proj@example.com', department: 'Engineering', systemRole: 'PROJECT_ADMIN', status: 'ACTIVE' },
-      { id: 4, username: 'dev1', email: 'dev1@example.com', department: 'Engineering', systemRole: 'MEMBER', status: 'ACTIVE' }
-    ]
-    total.value = users.value.length
+    const res = await fetch('/api/users')
+    const result = await res.json()
+    if (result.code === 200) {
+      // Fetch department names for each user
+      const usersWithDepts = await Promise.all(result.data.map(async (user) => {
+        if (user.departmentId) {
+          const deptRes = await fetch(`/api/departments/${user.departmentId}`)
+          const deptResult = await deptRes.json()
+          user.departmentName = deptResult.data?.name || '-'
+        } else {
+          user.departmentName = '-'
+        }
+        return user
+      }))
+      users.value = usersWithDepts
+      total.value = users.value.length
+    }
   } catch (e) {
     // Handle error
   } finally {
@@ -177,10 +181,176 @@ const fetchUsers = async () => {
   }
 }
 
-const handleEdit = (user) => {
-  isEdit.value = true
-  Object.assign(userForm, { ...user, password: '' })
-  showUserDialog.value = true
+const fetchDepartments = async () => {
+  try {
+    const res = await fetch('/api/departments')
+    const result = await res.json()
+    if (result.code === 200) {
+      departmentList.value = result.data
+    }
+  } catch (e) {
+    // Handle error
+  }
+}
+
+const fetchRoles = async () => {
+  try {
+    const res = await fetch('/api/roles')
+    const result = await res.json()
+    if (result.code === 200) {
+      roleList.value = result.data
+    }
+  } catch (e) {
+    // Handle error
+  }
+}
+
+const openDialog = async (user = null) => {
+  if (user) {
+    isEdit.value = true
+    // Fetch user roles
+    let roleIds = []
+    try {
+      const res = await fetch(`/api/users/${user.id}/roles`)
+      const result = await res.json()
+      if (result.code === 200) {
+        roleIds = result.data || []
+      }
+    } catch (e) {
+      // Ignore error
+    }
+    Object.assign(userForm, {
+      id: user.id,
+      userId: user.userId,
+      username: user.username,
+      email: user.email,
+      realName: user.realName || '',
+      password: '',
+      departmentId: user.departmentId,
+      roleIds: roleIds
+    })
+  } else {
+    isEdit.value = false
+    Object.assign(userForm, {
+      id: null,
+      userId: '',
+      username: '',
+      email: '',
+      realName: '',
+      password: '',
+      departmentId: null,
+      roleIds: []
+    })
+  }
+  showDialog.value = true
+}
+
+const openDetailDialog = async (user) => {
+  // Fetch user roles
+  let roleNames = '-'
+  try {
+    const res = await fetch(`/api/users/${user.id}/roles`)
+    const result = await res.json()
+    if (result.code === 200 && result.data && result.data.length > 0) {
+      const roles = roleList.value.filter(r => result.data.includes(r.id))
+      roleNames = roles.map(r => r.name).join(', ')
+    }
+  } catch (e) {
+    // Ignore
+  }
+  detailUser.value = {
+    ...user,
+    departmentName: user.departmentName || '-',
+    roleNames: roleNames
+  }
+  showDetailDialog.value = true
+}
+
+const handleSubmit = async () => {
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+
+  try {
+    if (isEdit.value) {
+      // Update user
+      const res = await fetch(`/api/users/${userForm.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userForm.userId,
+          username: userForm.username,
+          email: userForm.email,
+          realName: userForm.realName,
+          status: 1
+        })
+      })
+      const result = await res.json()
+      if (result.code === 200) {
+        // Update department if changed
+        if (userForm.departmentId) {
+          await fetch(`/api/users/${userForm.id}/department`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ departmentId: userForm.departmentId })
+          })
+        }
+        // Assign roles
+        if (userForm.roleIds && userForm.roleIds.length > 0) {
+          await fetch(`/api/users/${userForm.id}/roles`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roleIds: userForm.roleIds })
+          })
+        }
+        ElMessage.success(t('admin.userUpdated'))
+      } else {
+        ElMessage.error(result.message || t('common.failed'))
+        return
+      }
+    } else {
+      // Create user
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userForm.userId,
+          username: userForm.username,
+          email: userForm.email,
+          realName: userForm.realName,
+          password: userForm.password,
+          status: 1
+        })
+      })
+      const result = await res.json()
+      if (result.code === 200) {
+        const newUserId = result.data?.id
+        // Assign department if set
+        if (userForm.departmentId && newUserId) {
+          await fetch(`/api/users/${newUserId}/department`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ departmentId: userForm.departmentId })
+          })
+        }
+        // Assign roles if set
+        if (userForm.roleIds && userForm.roleIds.length > 0 && newUserId) {
+          await fetch(`/api/users/${newUserId}/roles`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roleIds: userForm.roleIds })
+          })
+        }
+        ElMessage.success(t('admin.userCreated'))
+      } else {
+        ElMessage.error(result.message || t('common.failed'))
+        return
+      }
+    }
+    showDialog.value = false
+    fetchUsers()
+  } catch (e) {
+    ElMessage.error(t('common.failed'))
+  }
 }
 
 const handleDelete = async (user) => {
@@ -197,28 +367,6 @@ const handleDelete = async (user) => {
   } catch (e) {}
 }
 
-const handleSubmit = async () => {
-  const valid = await userFormRef.value.validate().catch(() => false)
-  if (!valid) return
-  const submitData = {
-    userId: userForm.userId,
-    username: userForm.username,
-    email: userForm.email,
-    department: userForm.department,
-    departmentId: userForm.departmentId,
-    systemRole: userForm.systemRole,
-    roleIds: userForm.roleIds
-  }
-  if (!isEdit.value) {
-    submitData.password = userForm.password
-  }
-  // API call would be made here with submitData
-  console.log('Submitting user data:', submitData)
-  ElMessage.success(isEdit.value ? t('admin.userUpdated') : t('admin.userCreated'))
-  showUserDialog.value = false
-  fetchUsers()
-}
-
 const handleSizeChange = () => {
   fetchUsers()
 }
@@ -229,6 +377,8 @@ const handlePageChange = () => {
 
 onMounted(() => {
   fetchUsers()
+  fetchDepartments()
+  fetchRoles()
 })
 </script>
 

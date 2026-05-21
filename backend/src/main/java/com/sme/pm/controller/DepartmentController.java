@@ -2,6 +2,7 @@ package com.sme.pm.controller;
 
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Department;
+import com.sme.pm.mapper.DepartmentMapper;
 import com.sme.pm.service.DepartmentService;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +13,11 @@ import java.util.List;
 public class DepartmentController {
 
     private final DepartmentService departmentService;
+    private final DepartmentMapper departmentMapper;
 
-    public DepartmentController(DepartmentService departmentService) {
+    public DepartmentController(DepartmentService departmentService, DepartmentMapper departmentMapper) {
         this.departmentService = departmentService;
+        this.departmentMapper = departmentMapper;
     }
 
     @GetMapping
@@ -49,7 +52,7 @@ public class DepartmentController {
         if (!departmentService.canDelete(id)) {
             return Result.error("Cannot delete: department has users or children");
         }
-        departmentService.delete(id);
+        departmentMapper.physicalDeleteById(id);
         return Result.success();
     }
 }

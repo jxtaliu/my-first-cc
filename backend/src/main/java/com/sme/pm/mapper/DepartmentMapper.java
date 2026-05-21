@@ -5,6 +5,7 @@ import com.sme.pm.entity.Department;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Delete;
 
 import java.util.List;
 
@@ -22,4 +23,7 @@ public interface DepartmentMapper extends BaseMapper<Department> {
 
     @Select("SELECT COUNT(*) FROM sys_department WHERE parent_id = #{departmentId} AND deleted = 0")
     int countChildrenByDepartmentId(@Param("departmentId") Long departmentId);
+
+    @Delete("DELETE FROM sys_department WHERE id = #{id}")
+    void physicalDeleteById(@Param("id") Long id);
 }

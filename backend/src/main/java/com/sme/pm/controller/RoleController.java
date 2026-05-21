@@ -3,6 +3,7 @@ package com.sme.pm.controller;
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Permission;
 import com.sme.pm.entity.Role;
+import com.sme.pm.mapper.RoleMapper;
 import com.sme.pm.service.RoleService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +15,11 @@ import java.util.Map;
 public class RoleController {
 
     private final RoleService roleService;
+    private final RoleMapper roleMapper;
 
-    public RoleController(RoleService roleService) {
+    public RoleController(RoleService roleService, RoleMapper roleMapper) {
         this.roleService = roleService;
+        this.roleMapper = roleMapper;
     }
 
     @GetMapping
@@ -46,7 +49,8 @@ public class RoleController {
         if (!roleService.canDelete(id)) {
             return Result.error("Cannot delete: role has assigned users");
         }
-        roleService.delete(id);
+        roleMapper.deleteRolePermissions(id);
+        roleMapper.physicalDeleteById(id);
         return Result.success();
     }
 

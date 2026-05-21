@@ -17,7 +17,9 @@ export default {
     no: '否',
     ok: '确定',
     warning: '警告',
-    required: '必填'
+    required: '必填',
+    active: '启用',
+    inactive: '停用'
   },
   auth: {
     login: '登录',
@@ -52,6 +54,7 @@ export default {
     restore: '恢复项目',
     all: '全部',
     active: '进行中',
+    inactive: '已停用',
     archived: '已归档',
     noDescription: '暂无描述',
     tasks: '任务',
@@ -95,6 +98,7 @@ export default {
     optional: '选填'
   },
   admin: {
+    description: '角色描述',
     title: '用户管理',
     addUser: '添加用户',
     editUser: '编辑用户',
@@ -115,21 +119,24 @@ export default {
     userDeleted: '用户删除成功',
     confirmDelete: '确定要删除此用户吗？',
     usernameRequired: '请输入用户名',
+    userIdRequired: '请输入用户ID',
     emailRequired: '请输入邮箱',
     invalidEmail: '邮箱格式不正确',
     passwordRequired: '请输入密码',
+    selectDepartment: '选择部门',
     departments: '部门管理',
     roles: '角色管理',
     addDepartment: '添加部门',
     editDepartment: '编辑部门',
     addRole: '添加角色',
     editRole: '编辑角色',
-    departmentId: '部门编号',
-    roleId: '角色编号',
-    userId: '用户编号',
+    departmentId: '部门ID',
+    roleId: '角色ID',
+    userId: '用户ID',
     roleName: '角色名称',
     departmentName: '部门名称',
     parentDepartment: '上级部门',
+    selectParent: '-- 根部门 --',
     sortOrder: '排序',
     assignPermissions: '分配权限',
     departmentCreated: '部门创建成功',
@@ -141,6 +148,10 @@ export default {
     confirmDeleteRole: '确定要删除此角色吗？',
     confirmDeleteDepartment: '确定要删除此部门吗？',
     canNotDeleteDepartment: '无法删除：部门下有用户或子部门',
-    canNotDeleteRole: '无法删除：角色下有用户'
+    canNotDeleteRole: '无法删除：角色下有用户',
+    superAdminDesc: '完全系统访问权限',
+    deptAdminDesc: '部门管理权限',
+    projectAdminDesc: '项目管理权限',
+    memberDesc: '基本成员权限'
   }
 }
