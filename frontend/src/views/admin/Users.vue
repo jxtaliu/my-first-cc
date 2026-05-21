@@ -14,7 +14,14 @@
             <el-link type="primary" @click="openDetailDialog(row)">{{ row.userId }}</el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="username" :label="$t('admin.username')" width="120" />
+        <el-table-column prop="username" :label="$t('admin.username')" width="140">
+          <template #default="{ row }">
+            <div class="user-cell">
+              <span class="avatar-small">{{ (row.username || '?').charAt(0).toUpperCase() }}</span>
+              <span>{{ row.username }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="email" :label="$t('admin.email')" min-width="180" />
         <el-table-column prop="realName" :label="$t('admin.realName')" width="120" />
         <el-table-column prop="departmentName" :label="$t('admin.department')" width="120" />
@@ -80,31 +87,46 @@
     </el-dialog>
 
     <el-dialog v-model="showDetailDialog" :title="$t('admin.userDetail')" width="500px">
-      <el-form label-width="100px">
-        <el-form-item :label="$t('admin.userId')">
-          <span>{{ detailUser.userId || '-' }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('admin.username')">
-          <span>{{ detailUser.username || '-' }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('admin.email')">
-          <span>{{ detailUser.email || '-' }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('admin.realName')">
-          <span>{{ detailUser.realName || '-' }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('admin.department')">
-          <span>{{ detailUser.departmentName || '-' }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('admin.roles')">
-          <span>{{ detailUser.roleNames || '-' }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('admin.status')">
-          <el-tag :type="detailUser.status === 1 ? 'success' : 'info'" size="small">
-            {{ detailUser.status === 1 ? $t('common.active') : $t('common.inactive') }}
-          </el-tag>
-        </el-form-item>
-      </el-form>
+      <div class="user-detail">
+        <div class="user-header">
+          <div class="avatar">
+            {{ (detailUser.username || detailUser.userId || '?').charAt(0).toUpperCase() }}
+          </div>
+          <div class="user-title">
+            <h3>{{ detailUser.realName || detailUser.username || '-' }}</h3>
+            <p>{{ detailUser.userId || '-' }}</p>
+          </div>
+          <div class="status-badge">
+            <el-tag :type="detailUser.status === 1 ? 'success' : 'info'" size="large">
+              {{ detailUser.status === 1 ? $t('common.active') : $t('common.inactive') }}
+            </el-tag>
+          </div>
+        </div>
+        <el-divider />
+        <div class="user-info-grid">
+          <div class="info-item">
+            <label>{{ $t('admin.username') }}</label>
+            <span>{{ detailUser.username || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('admin.email') }}</label>
+            <span>{{ detailUser.email || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('admin.department') }}</label>
+            <span>{{ detailUser.departmentName || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('admin.roles') }}</label>
+            <div class="role-tags">
+              <el-tag v-if="detailUser.roleNames && detailUser.roleNames !== '-'" type="info" v-for="role in detailUser.roleNames.split(', ')" :key="role" size="small">
+                {{ role }}
+              </el-tag>
+              <span v-else>-</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <template #footer>
         <el-button type="primary" @click="showDetailDialog = false">{{ $t('common.ok') }}</el-button>
       </template>
@@ -396,5 +418,97 @@ onMounted(() => {
 
 .page-header h2 {
   margin: 0;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.user-detail {
+  padding: 10px 0;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.user-title {
+  flex: 1;
+}
+
+.user-title h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  color: #303133;
+}
+
+.user-title p {
+  margin: 0;
+  color: #909399;
+  font-size: 14px;
+}
+
+.status-badge {
+  margin-left: auto;
+}
+
+.user-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item label {
+  color: #909399;
+  font-size: 12px;
+}
+
+.info-item span {
+  color: #303133;
+  font-size: 14px;
+}
+
+.role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 </style>
