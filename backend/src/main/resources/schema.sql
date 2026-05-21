@@ -57,6 +57,29 @@ CREATE TABLE IF NOT EXISTS sys_role_permission (
     PRIMARY KEY (role_id, permission_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Dictionary type table
+CREATE TABLE IF NOT EXISTS sys_dict_type (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100),
+    description VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Dictionary code table
+CREATE TABLE IF NOT EXISTS sys_dict_code (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    dict_type_id BIGINT NOT NULL,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(100),
+    name_en VARCHAR(100),
+    name_zh VARCHAR(100),
+    sort_order INT DEFAULT 0,
+    extra VARCHAR(500),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_dict_type (dict_type_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Project table
 CREATE TABLE IF NOT EXISTS project (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -153,3 +176,44 @@ INSERT INTO sys_user (username, password, email, real_name) VALUES
 
 -- Assign SUPER_ADMIN role to admin user
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);
+
+-- Insert dictionary types
+INSERT INTO sys_dict_type (code, name, description) VALUES
+('task_status', 'Task Status', 'Task status options'),
+('task_type', 'Task Type', 'Task type options'),
+('priority', 'Priority', 'Priority levels'),
+('project_type', 'Project Type', 'Project type options'),
+('project_status', 'Project Status', 'Project status options');
+
+-- Insert dictionary codes for task_status
+INSERT INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(1, 'TODO', 'Todo', 'Todo', '待办', 1, '{"color": "#909399"}'),
+(1, 'IN_PROGRESS', 'In Progress', 'In Progress', '进行中', 2, '{"color": "#E6A23C"}'),
+(1, 'IN_REVIEW', 'In Review', 'In Review', '审核中', 3, '{"color": "#409EFF"}'),
+(1, 'DONE', 'Done', 'Done', '已完成', 4, '{"color": "#67C23A"}');
+
+-- Insert dictionary codes for task_type
+INSERT INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(2, 'EPIC', 'Epic', 'Epic', '史诗', 1, '{"color": "#909399"}'),
+(2, 'FEATURE', 'Feature', 'Feature', '特性', 2, '{"color": "#409EFF"}'),
+(2, 'STORY', 'Story', 'Story', '故事', 3, '{"color": "#67C23A"}'),
+(2, 'SUBTASK', 'Sub-task', 'Sub-task', '子任务', 4, '{"color": "#E6A23C"}');
+
+-- Insert dictionary codes for priority
+INSERT INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(3, 'LOW', 'Low', 'Low', '低', 1, '{"color": "#909399"}'),
+(3, 'MEDIUM', 'Medium', 'Medium', '中', 2, '{"color": "#E6A23C"}'),
+(3, 'HIGH', 'High', 'High', '高', 3, '{"color": "#F56C6C"}'),
+(3, 'URGENT', 'Urgent', 'Urgent', '紧急', 4, '{"color": "#F56C6C"}');
+
+-- Insert dictionary codes for project_type
+INSERT INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(4, 'SCRUM', 'Scrum', 'Scrum', 'Scrum敏捷', 1, '{"color": "#409EFF"}'),
+(4, 'KANBAN', 'Kanban', 'Kanban', '看板', 2, '{"color": "#67C23A"}');
+
+-- Insert dictionary codes for project_status
+INSERT INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(5, 'PLANNING', 'Planning', 'Planning', '规划中', 1, '{"color": "#909399"}'),
+(5, 'ACTIVE', 'Active', 'Active', '进行中', 2, '{"color": "#67C23A"}'),
+(5, 'COMPLETED', 'Completed', 'Completed', '已完成', 3, '{"color": "#409EFF"}'),
+(5, 'ARCHIVED', 'Archived', 'Archived', '已归档', 4, '{"color": "#909399"}');
