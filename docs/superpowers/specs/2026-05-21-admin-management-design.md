@@ -22,11 +22,47 @@
 
 ## Database Design
 
+### Updated Tables
+
+**sys_user (update):** Add `user_id` business identifier
+```sql
+CREATE TABLE sys_user (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    real_name VARCHAR(100),
+    department_id BIGINT,
+    status TINYINT DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT DEFAULT 0,
+    INDEX idx_user_id (user_id),
+    INDEX idx_department (department_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+**sys_role (update):** Add `role_id` business identifier, remove `code` field
+```sql
+CREATE TABLE sys_role (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    role_id VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    status TINYINT DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
 ### New Table: sys_department
 
 ```sql
 CREATE TABLE sys_department (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    department_id VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     parent_id BIGINT DEFAULT NULL,
     leader_id BIGINT DEFAULT NULL,
@@ -35,6 +71,7 @@ CREATE TABLE sys_department (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted TINYINT DEFAULT 0,
+    INDEX idx_department_id (department_id),
     INDEX idx_parent (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
@@ -45,8 +82,6 @@ CREATE TABLE sys_department (
 - Department → Leader: Many-to-One (one department has one leader)
 
 **Existing Tables Used:**
-- `sys_user` - has `department_id` field, no schema change needed
-- `sys_role` - existing role table
 - `sys_permission` - existing permission table
 - `sys_user_role` - existing user-role association
 - `sys_role_permission` - existing role-permission association
@@ -64,6 +99,7 @@ CREATE TABLE sys_department (
 ### List Columns
 | Field | Description |
 |-------|-------------|
+| User ID | Business identifier, e.g. U001 |
 | Username | Unique identifier |
 | Email | Contact |
 | Real Name | Display name |
@@ -73,6 +109,7 @@ CREATE TABLE sys_department (
 | Created At | |
 
 ### Create/Edit Dialog Fields
+- User ID (required on create, immutable on edit, unique)
 - Username (required on create, immutable on edit)
 - Email
 - Real Name
@@ -93,14 +130,14 @@ CREATE TABLE sys_department (
 ### List Columns
 | Field | Description |
 |-------|-------------|
-| Role Code | Unique identifier, e.g. SUPER_ADMIN |
+| Role ID | Business identifier, e.g. ROLE_001 |
 | Role Name | Display name |
 | Description | Description |
 | Status | Active/Inactive |
 | Created At | |
 
 ### Create/Edit Dialog Fields
-- Role Code (required on create, immutable on edit, unique)
+- Role ID (required on create, immutable on edit, unique)
 - Role Name
 - Description
 - Status
@@ -125,6 +162,7 @@ CREATE TABLE sys_department (
 - Shows department name, leader, status, child count
 
 ### Create/Edit Dialog Fields
+- Department ID (required on create, immutable on edit, unique)
 - Department Name (required)
 - Parent Department (tree-select, empty for top-level)
 - Leader (select from user list)
