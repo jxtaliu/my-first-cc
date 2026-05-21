@@ -3,7 +3,9 @@ package com.sme.pm.controller;
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Permission;
 import com.sme.pm.entity.Role;
+import com.sme.pm.entity.User;
 import com.sme.pm.mapper.RoleMapper;
+import com.sme.pm.mapper.UserMapper;
 import com.sme.pm.service.RoleService;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,10 +18,12 @@ public class RoleController {
 
     private final RoleService roleService;
     private final RoleMapper roleMapper;
+    private final UserMapper userMapper;
 
-    public RoleController(RoleService roleService, RoleMapper roleMapper) {
+    public RoleController(RoleService roleService, RoleMapper roleMapper, UserMapper userMapper) {
         this.roleService = roleService;
         this.roleMapper = roleMapper;
+        this.userMapper = userMapper;
     }
 
     @GetMapping
@@ -64,5 +68,10 @@ public class RoleController {
         List<Long> permissionIds = body.get("permissionIds");
         roleService.assignPermissions(id, permissionIds);
         return Result.success();
+    }
+
+    @GetMapping("/{id}/users")
+    public Result<List<User>> getUsers(@PathVariable Long id) {
+        return Result.success(userMapper.findUsersByRoleId(id));
     }
 }

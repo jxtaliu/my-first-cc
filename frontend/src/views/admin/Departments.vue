@@ -9,7 +9,11 @@
 
     <el-card>
       <el-table :data="departments" v-loading="loading" style="width: 100%">
-        <el-table-column prop="departmentId" :label="$t('admin.departmentId')" width="120" />
+        <el-table-column prop="departmentId" :label="$t('admin.departmentId')" width="120">
+          <template #default="{ row }">
+            <el-link type="primary" @click="openDetailDialog(row)">{{ row.departmentId }}</el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="name" :label="$t('admin.departmentName')" min-width="200">
           <template #default="{ row }">
             <div class="dept-cell">
@@ -95,6 +99,57 @@
         </div>
       </div>
     </el-dialog>
+
+    <el-dialog v-model="showDetailDialog" :title="$t('admin.departmentDetail')" width="500px">
+      <div class="dept-detail">
+        <div class="dept-header">
+          <div class="avatar">
+            {{ (detailDept.name || detailDept.departmentId || '?').charAt(0).toUpperCase() }}
+          </div>
+          <div class="dept-title">
+            <h3>{{ detailDept.name || '-' }}</h3>
+            <p>{{ detailDept.departmentId || '-' }}</p>
+          </div>
+          <div class="status-badge">
+            <el-tag :type="detailDept.status === 1 ? 'success' : 'info'" size="large">
+              {{ detailDept.status === 1 ? $t('common.active') : $t('common.inactive') }}
+            </el-tag>
+          </div>
+        </div>
+        <el-divider />
+        <div class="dept-info-grid">
+          <div class="info-item">
+            <label>{{ $t('admin.departmentId') }}</label>
+            <span>{{ detailDept.departmentId || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('admin.departmentName') }}</label>
+            <span>{{ detailDept.name || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('admin.parentDepartment') }}</label>
+            <span>{{ getParentName(detailDept.parentId) }}</span>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('admin.sortOrder') }}</label>
+            <span>{{ detailDept.sortOrder ?? '-' }}</span>
+          </div>
+        </div>
+        <el-divider />
+        <div class="dept-users">
+          <h4>{{ $t('admin.deptUsers') }} ({{ deptUsers.length }})</h4>
+          <el-table :data="deptUsers" size="small" v-if="deptUsers.length > 0">
+            <el-table-column prop="username" :label="$t('admin.username')" />
+            <el-table-column prop="email" :label="$t('admin.email')" />
+            <el-table-column prop="realName" :label="$t('admin.realName')" />
+          </el-table>
+          <el-empty v-else :description="$t('admin.noDeptUsers')" :size="60" />
+        </div>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="showDetailDialog = false">{{ $t('common.ok') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -119,6 +174,9 @@ const departmentUsers = ref([])
 const availableUsers = ref([])
 const selectedUserId = ref(null)
 const memberLoading = ref(false)
+const showDetailDialog = ref(false)
+const detailDept = ref({})
+const deptUsers = ref([])
 
 const flatDepartments = computed(() => {
   const flatten = (nodes, result = []) => {
@@ -219,6 +277,21 @@ const openMemberDialog = async (dept) => {
   showMemberDialog.value = true
   selectedUserId.value = null
   await Promise.all([loadDepartmentUsers(dept.id), loadAvailableUsers()])
+}
+
+const openDetailDialog = async (dept) => {
+  detailDept.value = { ...dept }
+  showDetailDialog.value = true
+  // Fetch users for this department
+  try {
+    const res = await fetch(`/api/departments/${dept.id}/users`)
+    const result = await res.json()
+    if (result.code === 200) {
+      deptUsers.value = result.data || []
+    }
+  } catch (e) {
+    deptUsers.value = []
+  }
 }
 
 const loadDepartmentUsers = async (deptId) => {
@@ -345,5 +418,84 @@ onMounted(loadDepartments)
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #eee;
+}
+
+.dept-detail {
+  padding: 10px 0;
+}
+
+.dept-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dept-header .avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.dept-title {
+  flex: 1;
+}
+
+.dept-title h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  color: #303133;
+}
+
+.dept-title p {
+  margin: 0;
+  color: #909399;
+  font-size: 14px;
+}
+
+.status-badge {
+  margin-left: auto;
+}
+
+.dept-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item label {
+  color: #909399;
+  font-size: 12px;
+}
+
+.info-item span {
+  color: #303133;
+  font-size: 14px;
+}
+
+.dept-users {
+  margin-top: 16px;
+}
+
+.dept-users h4 {
+  margin-bottom: 12px;
+  color: #303133;
 }
 </style>

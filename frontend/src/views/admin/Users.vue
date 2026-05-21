@@ -9,12 +9,12 @@
 
     <el-card>
       <el-table :data="users" v-loading="loading" style="width: 100%">
-        <el-table-column prop="userId" :label="$t('admin.userId')" width="100">
+        <el-table-column prop="userId" :label="$t('admin.userId')" width="100" fixed>
           <template #default="{ row }">
             <el-link type="primary" @click="openDetailDialog(row)">{{ row.userId }}</el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="username" :label="$t('admin.username')" width="140">
+        <el-table-column prop="username" :label="$t('admin.username')" min-width="140">
           <template #default="{ row }">
             <div class="user-cell">
               <span class="avatar-small">{{ (row.username || '?').charAt(0).toUpperCase() }}</span>
@@ -22,17 +22,29 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column prop="realName" :label="$t('admin.realName')" min-width="120" />
         <el-table-column prop="email" :label="$t('admin.email')" min-width="180" />
-        <el-table-column prop="realName" :label="$t('admin.realName')" width="120" />
-        <el-table-column prop="departmentName" :label="$t('admin.department')" width="120" />
-        <el-table-column prop="status" :label="$t('admin.status')" width="80">
+        <el-table-column prop="departmentName" :label="$t('admin.department')" width="130">
+          <template #default="{ row }">
+            <span class="dept-tag">{{ row.departmentName || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="roleNames" :label="$t('admin.userRoles')" min-width="180">
+          <template #default="{ row }">
+            <div class="role-tags" v-if="row.roleNames && row.roleNames !== '-'">
+              <el-tag v-for="role in row.roleNames.split(', ')" :key="role" type="info" size="small">{{ role }}</el-tag>
+            </div>
+            <span v-else class="no-data">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" :label="$t('admin.status')" width="90" align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">
               {{ row.status === 1 ? $t('common.active') : $t('common.inactive') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('admin.actions')" width="180" fixed="right">
+        <el-table-column :label="$t('admin.actions')" width="150" fixed="right" align="center">
           <template #default="{ row }">
             <el-button text size="small" @click="openDialog(row)">{{ $t('common.edit') }}</el-button>
             <el-button text size="small" type="danger" @click="handleDelete(row)">{{ $t('common.delete') }}</el-button>
@@ -182,7 +194,7 @@ const fetchUsers = async () => {
     const res = await fetch('/api/users')
     const result = await res.json()
     if (result.code === 200) {
-      // Fetch department names for each user
+      // Fetch department names and roles for each user
       const usersWithDepts = await Promise.all(result.data.map(async (user) => {
         if (user.departmentId) {
           const deptRes = await fetch(`/api/departments/${user.departmentId}`)
@@ -190,6 +202,19 @@ const fetchUsers = async () => {
           user.departmentName = deptResult.data?.name || '-'
         } else {
           user.departmentName = '-'
+        }
+        // Fetch user roles
+        try {
+          const roleRes = await fetch(`/api/users/${user.id}/roles`)
+          const roleResult = await roleRes.json()
+          if (roleResult.code === 200 && roleResult.data && roleResult.data.length > 0) {
+            const roles = roleList.value.filter(r => roleResult.data.includes(r.id))
+            user.roleNames = roles.map(r => r.name).join(', ')
+          } else {
+            user.roleNames = '-'
+          }
+        } catch (e) {
+          user.roleNames = '-'
         }
         return user
       }))
@@ -312,7 +337,7 @@ const handleSubmit = async () => {
         await fetch(`/api/users/${userForm.id}/department`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ departmentId: userForm.departmentId })
+          body: JSON.stringify({ departmentId: userForm.departmentId ?? null })
         })
         // Assign roles (always call, even if empty to clear roles)
         await fetch(`/api/users/${userForm.id}/roles`, {
@@ -393,10 +418,9 @@ const handlePageChange = () => {
   fetchUsers()
 }
 
-onMounted(() => {
-  fetchUsers()
-  fetchDepartments()
-  fetchRoles()
+onMounted(async () => {
+  await fetchRoles()
+  await Promise.all([fetchUsers(), fetchDepartments()])
 })
 </script>
 
@@ -506,5 +530,13 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+
+.dept-tag {
+  color: #606266;
+}
+
+.no-data {
+  color: #909399;
 }
 </style>

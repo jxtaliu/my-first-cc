@@ -24,6 +24,11 @@ public interface UserMapper extends BaseMapper<User> {
     @Delete("DELETE FROM sys_user_role WHERE user_id = #{userId}")
     void deleteUserRolesByUserId(@Param("userId") Long userId);
 
+    @Select("SELECT u.* FROM sys_user u " +
+            "INNER JOIN sys_user_role ur ON u.id = ur.user_id " +
+            "WHERE ur.role_id = #{roleId} AND u.deleted = 0")
+    List<User> findUsersByRoleId(@Param("roleId") Long roleId);
+
     @Delete("DELETE FROM sys_user WHERE id = #{id}")
     void physicalDeleteById(@Param("id") Long id);
 }
