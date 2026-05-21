@@ -51,10 +51,8 @@
       "Bash(ip addr *)",
       "Bash(iptables -L -n)",
       "Bash(mysql *)",
-      "Bash(docker-compose ps *)",
-      "Bash(pip3 install *)",
-      "Bash(python3 -c \"import bcrypt; print\\(bcrypt.hashpw\\('admin123'.encode\\(\\), bcrypt.gensalt\\(rounds=10\\)\\).decode\\(\\)\\)\")",
-      "Bash(apt-get update *)"
+      "Bash(npm install *)",
+      "Bash(npm test *)"
     ]
   }
 }
