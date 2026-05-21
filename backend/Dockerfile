@@ -14,8 +14,6 @@ WORKDIR /app
 
 COPY --from=builder /app/target/*.jar app.jar
 
-# Development: expose debug port, enable remote debugging
-# Production: remove these lines
 EXPOSE 8080 5005
 
 ENTRYPOINT ["java", "-jar", "-Xms512m", "-Xmx1024m", \

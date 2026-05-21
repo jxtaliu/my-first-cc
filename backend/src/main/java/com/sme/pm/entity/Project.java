@@ -14,11 +14,11 @@ public class Project {
 
     private String description;
 
-    private Integer projectType;  // 1: internal, 2: external/client
+    private Integer projectType = 1;  // 1: internal, 2: external/client
 
-    private Integer status;  // 1: planning, 2: active, 3: archived
+    private Integer status = 1;  // 1: planning, 2: active, 3: archived
 
-    private Integer sprintMode;  // 1: fixed, 2: agile, 3: kanban
+    private Integer sprintMode = 1;  // 1: fixed, 2: agile, 3: kanban
 
     private Long ownerId;
 

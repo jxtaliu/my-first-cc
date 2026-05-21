@@ -1,0 +1,55 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sme-pm-mysql
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sme_pm
+      MYSQL_USER: smeuser
+      MYSQL_PASSWORD: spassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - ./mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+    command: --skip-host-cache --skip-name-resolve --default-authentication-plugin=mysql_native_password
+
+  redis:
+    image: redis:7-alpine
+    container_name: sme-pm-redis
+    restart: unless-stopped
+    network_mode: host
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sme-pm-backend
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: localhost
+      DB_PORT: 3306
+      DB_NAME: sme_pm
+      DB_USER: smeuser
+      DB_PASSWORD: spassword
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      JWT_SECRET: your-256-bit-secret-key-here-change-in-production
+      JWT_EXPIRATION: 86400000
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sme-pm-frontend
+    restart: unless-stopped
+    network_mode: host
+
+volumes:
+  mysql_data:
