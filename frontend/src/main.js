@@ -6,6 +6,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import router from './router'
 import i18n from './locales'
 import App from './App.vue'
+import { useThemeStore } from '@/stores/theme'
 
 const app = createApp(App)
 
@@ -21,12 +22,8 @@ app.use(pinia)
 const themeStore = useThemeStore()
 themeStore.applyTheme()
 
-app.use(pinia)
 app.use(router)
 app.use(ElementPlus)
 app.use(i18n)
 
 app.mount('#app')
-
-// Import theme store after pinia is created
-import { useThemeStore } from '@/stores/theme'
