@@ -117,6 +117,7 @@ export default {
     userCreated: 'User created',
     userUpdated: 'User updated',
     userDeleted: 'User deleted',
+    userDetail: 'User Detail',
     confirmDelete: 'Are you sure to delete this user?',
     usernameRequired: 'Username is required',
     userIdRequired: 'User ID is required',

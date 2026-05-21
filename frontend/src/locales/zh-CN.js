@@ -117,6 +117,7 @@ export default {
     userCreated: '用户创建成功',
     userUpdated: '用户更新成功',
     userDeleted: '用户删除成功',
+    userDetail: '用户详情',
     confirmDelete: '确定要删除此用户吗？',
     usernameRequired: '请输入用户名',
     userIdRequired: '请输入用户ID',
