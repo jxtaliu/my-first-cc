@@ -10,6 +10,8 @@ public class User {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    private String userId;  // Business ID, e.g. U001
+
     private String username;
 
     private String password;
