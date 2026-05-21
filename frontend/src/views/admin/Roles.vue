@@ -10,7 +10,14 @@
     <el-card>
       <el-table :data="roles" v-loading="loading" style="width: 100%">
         <el-table-column prop="roleId" :label="$t('admin.roleId')" width="120" />
-        <el-table-column prop="name" :label="$t('admin.roleName')" width="150" />
+        <el-table-column prop="name" :label="$t('admin.roleName')" width="180">
+          <template #default="{ row }">
+            <div class="role-cell">
+              <span class="avatar-small">{{ (row.name || '?').charAt(0).toUpperCase() }}</span>
+              <span>{{ row.name }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="description" :label="$t('admin.description')" />
         <el-table-column prop="status" :label="$t('admin.status')" width="100">
           <template #default="{ row }">
@@ -218,6 +225,26 @@ onMounted(() => {
 
 .page-header h2 {
   margin: 0;
+}
+
+.role-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
 }
 
 .permission-group {
