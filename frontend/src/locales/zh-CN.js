@@ -33,7 +33,10 @@ export default {
     dashboard: '仪表盘',
     projects: '项目管理',
     timesheet: '工时管理',
-    admin: '管理'
+    admin: '管理',
+    userManagement: '用户管理',
+    roleManagement: '角色管理',
+    departmentManagement: '部门管理'
   },
   dashboard: {
     projects: '项目数',
@@ -115,12 +118,18 @@ export default {
     invalidEmail: '邮箱格式不正确',
     passwordRequired: '请输入密码',
     departments: '部门管理',
+    roles: '角色管理',
     addDepartment: '添加部门',
     editDepartment: '编辑部门',
+    addRole: '添加角色',
+    editRole: '编辑角色',
     departmentId: '部门编号',
+    roleId: '角色编号',
+    userId: '用户编号',
     departmentName: '部门名称',
     parentDepartment: '上级部门',
     sortOrder: '排序',
+    assignPermissions: '分配权限',
     departmentCreated: '部门创建成功',
     departmentUpdated: '部门更新成功',
     departmentDeleted: '部门删除成功'

@@ -33,7 +33,10 @@ export default {
     dashboard: 'Dashboard',
     projects: 'Projects',
     timesheet: 'Timesheet',
-    admin: 'Admin'
+    admin: 'Admin',
+    userManagement: 'User Management',
+    roleManagement: 'Role Management',
+    departmentManagement: 'Department Management'
   },
   dashboard: {
     projects: 'Projects',
@@ -115,12 +118,18 @@ export default {
     invalidEmail: 'Invalid email format',
     passwordRequired: 'Password is required',
     departments: 'Departments',
+    roles: 'Roles',
     addDepartment: 'Add Department',
     editDepartment: 'Edit Department',
+    addRole: 'Add Role',
+    editRole: 'Edit Role',
     departmentId: 'Department ID',
+    roleId: 'Role ID',
+    userId: 'User ID',
     departmentName: 'Department Name',
     parentDepartment: 'Parent Department',
     sortOrder: 'Sort Order',
+    assignPermissions: 'Assign Permissions',
     departmentCreated: 'Department created',
     departmentUpdated: 'Department updated',
     departmentDeleted: 'Department deleted'
