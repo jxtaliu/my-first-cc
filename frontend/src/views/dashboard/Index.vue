@@ -3,19 +3,19 @@
     <el-row :gutter="20">
       <el-col :span="8">
         <el-card>
-          <template #header>Projects</template>
+          <template #header>{{ $t('dashboard.projects') }}</template>
           <div class="stat-value">{{ stats.projects }}</div>
         </el-card>
       </el-col>
       <el-col :span="8">
         <el-card>
-          <template #header>Tasks</template>
+          <template #header>{{ $t('dashboard.tasks') }}</template>
           <div class="stat-value">{{ stats.tasks }}</div>
         </el-card>
       </el-col>
       <el-col :span="8">
         <el-card>
-          <template #header>Hours This Week</template>
+          <template #header>{{ $t('dashboard.hoursThisWeek') }}</template>
           <div class="stat-value">{{ stats.hours }}</div>
         </el-card>
       </el-col>

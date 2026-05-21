@@ -25,6 +25,7 @@
       <el-header class="header">
         <div class="header-left">
           <ThemeSwitcher />
+          <LanguageSwitcher />
         </div>
         <div class="header-right">
           <el-dropdown @command="handleCommand">
@@ -51,6 +52,7 @@
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()

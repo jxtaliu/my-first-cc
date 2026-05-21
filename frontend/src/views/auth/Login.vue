@@ -23,12 +23,14 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const formRef = ref()
 const loading = ref(false)
@@ -39,8 +41,8 @@ const form = reactive({
 })
 
 const rules = {
-  username: [{ required: true, message: 'Username is required' }],
-  password: [{ required: true, message: 'Password is required' }]
+  username: [{ required: true, message: () => t('auth.usernameRequired') }],
+  password: [{ required: true, message: () => t('auth.passwordRequired') }]
 }
 
 const handleLogin = async () => {
@@ -50,7 +52,7 @@ const handleLogin = async () => {
   loading.value = true
   try {
     await authStore.login(form.username, form.password)
-    ElMessage.success('Login successful')
+    ElMessage.success(t('auth.loginSuccess'))
     router.push('/')
   } catch (error) {
     // Error handled by interceptor

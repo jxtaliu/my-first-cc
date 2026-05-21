@@ -4,8 +4,8 @@
       <h2>{{ $t('nav.timesheet') }}</h2>
       <div class="header-actions">
         <el-radio-group v-model="viewMode" size="default">
-          <el-radio-button value="weekly">Weekly</el-radio-button>
-          <el-radio-button value="monthly">Monthly</el-radio-button>
+          <el-radio-button value="weekly">{{ $t('timesheet.weekly') }}</el-radio-button>
+          <el-radio-button value="monthly">{{ $t('timesheet.monthly') }}</el-radio-button>
         </el-radio-group>
       </div>
     </div>
@@ -14,25 +14,25 @@
       <el-row :gutter="20">
         <el-col :span="6">
           <div class="stat-item">
-            <div class="stat-label">Total Hours</div>
+            <div class="stat-label">{{ $t('timesheet.totalHours') }}</div>
             <div class="stat-value">{{ stats.totalHours }}</div>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="stat-item">
-            <div class="stat-label">Approved</div>
+            <div class="stat-label">{{ $t('timesheet.approved') }}</div>
             <div class="stat-value approved">{{ stats.approvedHours }}</div>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="stat-item">
-            <div class="stat-label">Pending</div>
+            <div class="stat-label">{{ $t('timesheet.pending') }}</div>
             <div class="stat-value pending">{{ stats.pendingHours }}</div>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="stat-item">
-            <div class="stat-label">This Week</div>
+            <div class="stat-label">{{ $t('timesheet.thisWeek') }}</div>
             <div class="stat-value">{{ stats.weekHours }}</div>
           </div>
         </el-col>
@@ -48,17 +48,17 @@
         <el-button text @click="navigateNext">
           <el-icon><ArrowRight /></el-icon>
         </el-button>
-        <el-button type="primary" @click="goToToday">Today</el-button>
+        <el-button type="primary" @click="goToToday">{{ $t('timesheet.today') }}</el-button>
       </div>
 
       <div class="calendar-grid" v-if="viewMode === 'weekly'">
         <div class="grid-header">
-          <div class="header-cell project-col">Project / Task</div>
+          <div class="header-cell project-col">{{ $t('timesheet.projectTask') }}</div>
           <div v-for="day in weekDays" :key="day.date" class="header-cell day-col">
             <div class="day-name">{{ day.name }}</div>
             <div class="day-date" :class="{ today: day.isToday }">{{ day.dateNum }}</div>
           </div>
-          <div class="header-cell total-col">Total</div>
+          <div class="header-cell total-col">{{ $t('timesheet.total') }}</div>
         </div>
 
         <div v-for="row in timesheetRows" :key="row.id" class="grid-row">
@@ -85,11 +85,11 @@
         </div>
 
         <div class="add-row-btn" @click="showAddDialog = true">
-          <el-icon><Plus /></el-icon> Add Entry
+          <el-icon><Plus /></el-icon> {{ $t('timesheet.addEntry') }}
         </div>
 
         <div class="grid-footer">
-          <div class="footer-label">Daily Total</div>
+          <div class="footer-label">{{ $t('timesheet.dailyTotal') }}</div>
           <div v-for="day in weekDays" :key="day.date" class="footer-cell day-col">
             <span :class="{ 'today': day.isToday }">{{ dayTotals[day.date] || 0 }}h</span>
           </div>
@@ -126,25 +126,25 @@
       </div>
     </div>
 
-    <el-dialog v-model="showAddDialog" title="Add Timesheet Entry" width="500px">
+    <el-dialog v-model="showAddDialog" :title="$t('timesheet.addEntry')" width="500px">
       <el-form :model="entryForm" :rules="entryRules" ref="entryFormRef" label-width="120px">
-        <el-form-item label="Project" prop="projectId">
-          <el-select v-model="entryForm.projectId" placeholder="Select project" @change="handleProjectChange">
+        <el-form-item :label="$t('timesheet.selectProject')" prop="projectId">
+          <el-select v-model="entryForm.projectId" :placeholder="$t('timesheet.selectProject')" @change="handleProjectChange">
             <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Task" prop="taskId">
-          <el-select v-model="entryForm.taskId" placeholder="Select task">
+        <el-form-item :label="$t('timesheet.selectTask')" prop="taskId">
+          <el-select v-model="entryForm.taskId" :placeholder="$t('timesheet.selectTask')">
             <el-option v-for="t in tasks" :key="t.id" :label="t.title" :value="t.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Date" prop="date">
+        <el-form-item :label="$t('timesheet.date')" prop="date">
           <el-date-picker v-model="entryForm.date" type="date" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="Hours" prop="hours">
+        <el-form-item :label="$t('timesheet.hours')" prop="hours">
           <el-input-number v-model="entryForm.hours" :min="0" :max="24" :step="0.5" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="Description" prop="description">
+        <el-form-item :label="$t('timesheet.description')" prop="description">
           <el-input v-model="entryForm.description" type="textarea" rows="3" />
         </el-form-item>
       </el-form>
@@ -154,19 +154,19 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="showApproveDialog" title="Approve Timesheet" width="500px">
+    <el-dialog v-model="showApproveDialog" :title="$t('timesheet.approveTimesheet')" width="500px">
       <div class="approve-content">
-        <p>Approve timesheet for <strong>{{ selectedTimesheet?.userName }}</strong></p>
-        <p>Period: {{ selectedTimesheet?.period }}</p>
-        <p>Total Hours: {{ selectedTimesheet?.totalHours }}</p>
-        <el-form-item label="Comment">
-          <el-input v-model="approveComment" type="textarea" rows="3" placeholder="Optional comment" />
+        <p>{{ $t('timesheet.approveTimesheet') }}: <strong>{{ selectedTimesheet?.userName }}</strong></p>
+        <p>{{ selectedTimesheet?.period }}</p>
+        <p>{{ $t('timesheet.totalHours') }}: {{ selectedTimesheet?.totalHours }}</p>
+        <el-form-item :label="$t('timesheet.description')">
+          <el-input v-model="approveComment" type="textarea" rows="3" :placeholder="$t('timesheet.optional')" />
         </el-form-item>
       </div>
       <template #footer>
         <el-button @click="showApproveDialog = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="danger" @click="handleReject">Reject</el-button>
-        <el-button type="success" @click="handleApprove">Approve</el-button>
+        <el-button type="danger" @click="handleReject">{{ $t('timesheet.reject') }}</el-button>
+        <el-button type="success" @click="handleApprove">{{ $t('timesheet.approve') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -174,6 +174,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, ArrowRight, Plus } from '@element-plus/icons-vue'
 import { getTimesheets, createTimesheet, updateTimesheet, approveTimesheet, rejectTimesheet } from '@/api/timesheet'
@@ -181,6 +182,7 @@ import { getProjects } from '@/api/project'
 import { getTasks } from '@/api/task'
 
 const viewMode = ref('weekly')
+const { t } = useI18n()
 const showAddDialog = ref(false)
 const showApproveDialog = ref(false)
 const selectedTimesheet = ref(null)
@@ -200,10 +202,10 @@ const entryForm = reactive({
 })
 
 const entryRules = {
-  projectId: [{ required: true, message: 'Project is required' }],
-  taskId: [{ required: true, message: 'Task is required' }],
-  date: [{ required: true, message: 'Date is required' }],
-  hours: [{ required: true, message: 'Hours is required' }]
+  projectId: [{ required: true, message: () => t('timesheet.selectProject') }],
+  taskId: [{ required: true, message: () => t('timesheet.selectTask') }],
+  date: [{ required: true, message: () => t('timesheet.date') }],
+  hours: [{ required: true, message: () => t('timesheet.hours') }]
 }
 
 const entryFormRef = ref()
@@ -385,7 +387,7 @@ const handleAddEntry = async () => {
       description: entryForm.description
     }
     await createTimesheet(data)
-    ElMessage.success('Entry added')
+    ElMessage.success(t('timesheet.entryAdded'))
     showAddDialog.value = false
     fetchTimesheets()
   } catch (e) {}
@@ -400,7 +402,7 @@ const handleDayClick = (day) => {
 const handleApprove = async () => {
   try {
     await approveTimesheet(selectedTimesheet.value.id)
-    ElMessage.success('Timesheet approved')
+    ElMessage.success(t('timesheet.approvedSuccess'))
     showApproveDialog.value = false
   } catch (e) {}
 }
@@ -408,7 +410,7 @@ const handleApprove = async () => {
 const handleReject = async () => {
   try {
     await rejectTimesheet(selectedTimesheet.value.id)
-    ElMessage.success('Timesheet rejected')
+    ElMessage.success(t('timesheet.rejectedSuccess'))
     showApproveDialog.value = false
   } catch (e) {}
 }

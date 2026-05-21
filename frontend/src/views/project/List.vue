@@ -9,9 +9,9 @@
     </div>
 
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-      <el-tab-pane label="All" name="all" />
-      <el-tab-pane label="Active" name="active" />
-      <el-tab-pane label="Archived" name="archived" />
+      <el-tab-pane :label="$t('project.all')" name="all" />
+      <el-tab-pane :label="$t('project.active')" name="active" />
+      <el-tab-pane :label="$t('project.archived')" name="archived" />
     </el-tabs>
 
     <el-row :gutter="20">
@@ -23,13 +23,13 @@
               {{ project.type }}
             </el-tag>
           </div>
-          <p class="project-desc">{{ project.description || 'No description' }}</p>
+          <p class="project-desc">{{ project.description || $t('project.noDescription') }}</p>
           <div class="project-stats">
-            <span><el-icon><Document /></el-icon> {{ project.taskCount || 0 }} tasks</span>
-            <span><el-icon><User /></el-icon> {{ project.memberCount || 0 }} members</span>
+            <span><el-icon><Document /></el-icon> {{ project.taskCount || 0 }} {{ $t('project.tasks') }}</span>
+            <span><el-icon><User /></el-icon> {{ project.memberCount || 0 }} {{ $t('project.members') }}</span>
           </div>
           <div class="project-footer">
-            <span class="project-date">Created {{ formatDate(project.createdAt) }}</span>
+            <span class="project-date">{{ $t('project.created') }} {{ formatDate(project.createdAt) }}</span>
             <el-dropdown @click.stop @command="handleCommand($event, project)">
               <el-button text size="small">
                 <el-icon><More /></el-icon>
@@ -64,12 +64,12 @@
         </el-form-item>
         <el-form-item :label="$t('project.type')" prop="type">
           <el-select v-model="form.type">
-            <el-option label="Scrum" value="SCRUM" />
-            <el-option label="Kanban" value="KANBAN" />
+            <el-option :label="$t('project.scrum')" value="SCRUM" />
+            <el-option :label="$t('project.kanban')" value="KANBAN" />
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('project.department')" prop="departmentId">
-          <el-select v-model="form.departmentId" placeholder="Select department">
+          <el-select v-model="form.departmentId" :placeholder="$t('timesheet.selectProject')">
             <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
           </el-select>
         </el-form-item>
@@ -84,12 +84,14 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Document, User, More } from '@element-plus/icons-vue'
 import { getProjects, createProject, updateProject, deleteProject, archiveProject, restoreProject } from '@/api/project'
 
 const router = useRouter()
+const { t } = useI18n()
 const activeTab = ref('all')
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -107,8 +109,8 @@ const form = reactive({
 })
 
 const rules = {
-  name: [{ required: true, message: 'Project name is required' }],
-  type: [{ required: true, message: 'Project type is required' }]
+  name: [{ required: true, message: () => $t('project.projectNameRequired') }],
+  type: [{ required: true, message: () => $t('project.projectTypeRequired') }]
 }
 
 const departments = ref([
@@ -154,10 +156,10 @@ const handleSubmit = async () => {
   try {
     if (isEdit.value) {
       await updateProject(form.id, form)
-      ElMessage.success('Project updated')
+      ElMessage.success(t('project.projectUpdated'))
     } else {
       await createProject(form)
-      ElMessage.success('Project created')
+      ElMessage.success(t('project.projectCreated'))
     }
     dialogVisible.value = false
     fetchProjects()
@@ -176,22 +178,22 @@ const handleCommand = async (command, project) => {
     case 'archive':
       try {
         await archiveProject(project.id)
-        ElMessage.success('Project archived')
+        ElMessage.success(t('project.projectArchived'))
         fetchProjects()
       } catch (e) {}
       break
     case 'restore':
       try {
         await restoreProject(project.id)
-        ElMessage.success('Project restored')
+        ElMessage.success(t('project.projectRestored'))
         fetchProjects()
       } catch (e) {}
       break
     case 'delete':
       try {
-        await ElMessageBox.confirm('Are you sure to delete this project?', 'Warning', { type: 'warning' })
+        await ElMessageBox.confirm(t('project.confirmDelete'), t('common.warning'), { type: 'warning' })
         await deleteProject(project.id)
-        ElMessage.success('Project deleted')
+        ElMessage.success(t('project.projectDeleted'))
         fetchProjects()
       } catch (e) {}
       break

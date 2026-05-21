@@ -1,32 +1,32 @@
 <template>
   <div class="users-page">
     <div class="page-header">
-      <h2>User Management</h2>
+      <h2>{{ $t('admin.title') }}</h2>
       <el-button type="primary" @click="showUserDialog = true">
-        <el-icon><Plus /></el-icon> Add User
+        <el-icon><Plus /></el-icon> {{ $t('admin.addUser') }}
       </el-button>
     </div>
 
     <el-card>
       <el-table :data="users" v-loading="loading" style="width: 100%">
-        <el-table-column prop="username" label="Username" width="150" />
-        <el-table-column prop="email" label="Email" width="200" />
-        <el-table-column prop="department" label="Department" width="150" />
-        <el-table-column prop="role" label="System Role" width="150">
+        <el-table-column prop="username" :label="$t('admin.username')" width="150" />
+        <el-table-column prop="email" :label="$t('admin.email')" width="200" />
+        <el-table-column prop="department" :label="$t('admin.department')" width="150" />
+        <el-table-column prop="role" :label="$t('admin.systemRole')" width="150">
           <template #default="{ row }">
             <el-tag :type="getRoleTagType(row.systemRole)" size="small">
               {{ row.systemRole }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="Status" width="100">
+        <el-table-column prop="status" :label="$t('admin.status')" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 'ACTIVE' ? 'success' : 'info'" size="small">
               {{ row.status }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Actions" width="200">
+        <el-table-column :label="$t('admin.actions')" width="200">
           <template #default="{ row }">
             <el-button text size="small" @click="handleEdit(row)">{{ $t('common.edit') }}</el-button>
             <el-button text size="small" type="danger" @click="handleDelete(row)">{{ $t('common.delete') }}</el-button>
@@ -46,28 +46,28 @@
       />
     </el-card>
 
-    <el-dialog v-model="showUserDialog" :title="isEdit ? 'Edit User' : 'Add User'" width="500px">
+    <el-dialog v-model="showUserDialog" :title="isEdit ? $t('admin.editUser') : $t('admin.addUser')" width="500px">
       <el-form :model="userForm" :rules="userRules" ref="userFormRef" label-width="100px">
-        <el-form-item label="Username" prop="username">
+        <el-form-item :label="$t('admin.username')" prop="username">
           <el-input v-model="userForm.username" :disabled="isEdit" />
         </el-form-item>
-        <el-form-item label="Email" prop="email">
+        <el-form-item :label="$t('admin.email')" prop="email">
           <el-input v-model="userForm.email" type="email" />
         </el-form-item>
-        <el-form-item label="Password" prop="password" v-if="!isEdit">
+        <el-form-item :label="$t('admin.password')" prop="password" v-if="!isEdit">
           <el-input v-model="userForm.password" type="password" />
         </el-form-item>
-        <el-form-item label="Department" prop="department">
+        <el-form-item :label="$t('admin.department')" prop="department">
           <el-select v-model="userForm.department" style="width: 100%">
             <el-option v-for="d in departments" :key="d" :label="d" :value="d" />
           </el-select>
         </el-form-item>
-        <el-form-item label="System Role" prop="systemRole">
+        <el-form-item :label="$t('admin.systemRole')" prop="systemRole">
           <el-select v-model="userForm.systemRole" style="width: 100%">
-            <el-option label="Super Admin" value="SUPER_ADMIN" />
-            <el-option label="Department Admin" value="DEPT_ADMIN" />
-            <el-option label="Project Admin" value="PROJECT_ADMIN" />
-            <el-option label="Member" value="MEMBER" />
+            <el-option :label="$t('admin.superAdmin')" value="SUPER_ADMIN" />
+            <el-option :label="$t('admin.deptAdmin')" value="DEPT_ADMIN" />
+            <el-option :label="$t('admin.projectAdmin')" value="PROJECT_ADMIN" />
+            <el-option :label="$t('admin.member')" value="MEMBER" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -81,10 +81,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
 const loading = ref(false)
+const { t } = useI18n()
 const showUserDialog = ref(false)
 const isEdit = ref(false)
 const currentPage = ref(1)
@@ -103,13 +105,13 @@ const userForm = reactive({
 })
 
 const userRules = {
-  username: [{ required: true, message: 'Username is required' }],
+  username: [{ required: true, message: () => t('admin.usernameRequired') }],
   email: [
-    { required: true, message: 'Email is required' },
-    { type: 'email', message: 'Invalid email format' }
+    { required: true, message: () => t('admin.emailRequired') },
+    { type: 'email', message: () => t('admin.invalidEmail') }
   ],
-  password: [{ required: true, message: 'Password is required', trigger: 'blur' }],
-  systemRole: [{ required: true, message: 'Role is required' }]
+  password: [{ required: true, message: () => t('admin.passwordRequired'), trigger: 'blur' }],
+  systemRole: [{ required: true, message: () => t('admin.systemRole') }]
 }
 
 const departments = ['Engineering', 'Product', 'Design', 'QA', 'DevOps']
@@ -150,8 +152,8 @@ const handleEdit = (user) => {
 
 const handleDelete = async (user) => {
   try {
-    await ElMessageBox.confirm(`Delete user ${user.username}?`, 'Warning', { type: 'warning' })
-    ElMessage.success('User deleted')
+    await ElMessageBox.confirm(t('admin.confirmDelete'), t('common.warning'), { type: 'warning' })
+    ElMessage.success(t('admin.userDeleted'))
     fetchUsers()
   } catch (e) {}
 }
@@ -159,7 +161,7 @@ const handleDelete = async (user) => {
 const handleSubmit = async () => {
   const valid = await userFormRef.value.validate().catch(() => false)
   if (!valid) return
-  ElMessage.success(isEdit.value ? 'User updated' : 'User created')
+  ElMessage.success(isEdit.value ? t('admin.userUpdated') : t('admin.userCreated'))
   showUserDialog.value = false
   fetchUsers()
 }
