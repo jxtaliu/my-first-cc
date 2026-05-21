@@ -38,7 +38,8 @@ export default {
     admin: 'Admin',
     userManagement: 'User Management',
     roleManagement: 'Role Management',
-    departmentManagement: 'Department Management'
+    departmentManagement: 'Department Management',
+    dictManagement: 'Business Dict'
   },
   dashboard: {
     projects: 'Projects',
@@ -176,6 +177,35 @@ export default {
     addMember: 'Add Member',
     memberAdded: 'Member added',
     memberRemoved: 'Member removed',
-    confirmRemoveMember: 'Are you sure to remove this member?'
+    confirmRemoveMember: 'Are you sure to remove this member?',
+    dictManagement: 'Business Dict',
+    dictTypes: 'Dict Types',
+    dictItems: 'Dict Items',
+    noDictTypes: 'No dictionary types',
+    selectTypeFirst: 'Select a type to view items',
+    addDictType: 'Add Dict Type',
+    editDictType: 'Edit Dict Type',
+    addDictItem: 'Add Dict Item',
+    editDictItem: 'Edit Dict Item',
+    dictTypeCode: 'Type Code',
+    dictTypeName: 'Type Name',
+    dictCode: 'Code',
+    dictName: 'Name',
+    dictNameEn: 'English Name',
+    dictNameZh: 'Chinese Name',
+    description: 'Description',
+    extra: 'Extra (JSON)',
+    dictTypeCodeRequired: 'Type code is required',
+    dictTypeNameRequired: 'Type name is required',
+    dictCodeRequired: 'Code is required',
+    dictNameRequired: 'Name is required',
+    confirmDeleteType: 'Are you sure to delete this dictionary type?',
+    confirmDeleteItem: 'Are you sure to delete this dictionary item?',
+    createSuccess: 'Created successfully',
+    updateSuccess: 'Updated successfully',
+    deleteSuccess: 'Deleted successfully',
+    operationFailed: 'Operation failed',
+    fetchFailed: 'Fetch failed',
+    deleteFailed: 'Delete failed'
   }
 }

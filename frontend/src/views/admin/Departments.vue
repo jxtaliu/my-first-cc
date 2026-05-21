@@ -33,6 +33,14 @@
             <el-tag type="info" size="small">{{ row.memberCount || 0 }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="memberNames" :label="$t('admin.members')" min-width="200">
+          <template #default="{ row }">
+            <div class="user-names-cell" v-if="row.memberNames">
+              <el-tag v-for="name in row.memberNames.split(', ')" :key="name" size="small" type="info">{{ name }}</el-tag>
+            </div>
+            <span v-else class="no-data">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" :label="$t('admin.status')" width="80">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">
@@ -214,7 +222,22 @@ const loadDepartments = async () => {
         }
         return result
       }
-      departments.value = flatten(result.data)
+      const flatDepts = flatten(result.data)
+      // Fetch member names for each department
+      const deptsWithMembers = await Promise.all(flatDepts.map(async (dept) => {
+        try {
+          const userRes = await fetch(`/api/departments/${dept.id}/users`)
+          const userResult = await userRes.json()
+          const users = userResult.data || []
+          dept.memberCount = users.length
+          dept.memberNames = users.map(u => u.username).join(', ')
+        } catch (e) {
+          dept.memberCount = 0
+          dept.memberNames = ''
+        }
+        return dept
+      }))
+      departments.value = deptsWithMembers
     }
   } catch (e) {
     // Handle error
@@ -276,7 +299,8 @@ const openMemberDialog = async (dept) => {
   currentDept.value = dept
   showMemberDialog.value = true
   selectedUserId.value = null
-  await Promise.all([loadDepartmentUsers(dept.id), loadAvailableUsers()])
+  await loadDepartmentUsers(dept.id)
+  await loadAvailableUsers()
 }
 
 const openDetailDialog = async (dept) => {
@@ -331,7 +355,9 @@ const handleAddUser = async () => {
     if (result.code === 200) {
       ElMessage.success(t('admin.memberAdded'))
       selectedUserId.value = null
-      await Promise.all([loadDepartmentUsers(currentDept.value.id), loadAvailableUsers(), loadDepartments()])
+      await loadDepartmentUsers(currentDept.value.id)
+      await loadAvailableUsers()
+      await loadDepartments()
     } else {
       ElMessage.error(result.message || t('common.failed'))
     }
@@ -349,7 +375,9 @@ const handleRemoveUser = async (user) => {
     const result = await res.json()
     if (result.code === 200) {
       ElMessage.success(t('admin.memberRemoved'))
-      await Promise.all([loadDepartmentUsers(currentDept.value.id), loadAvailableUsers(), loadDepartments()])
+      await loadDepartmentUsers(currentDept.value.id)
+      await loadAvailableUsers()
+      await loadDepartments()
     } else {
       ElMessage.error(result.message || t('common.failed'))
     }
@@ -497,5 +525,20 @@ onMounted(loadDepartments)
 .dept-users h4 {
   margin-bottom: 12px;
   color: #303133;
+}
+
+.user-names-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.no-data {
+  color: #909399;
+}
+
+:deep(.el-table .el-table__body-wrapper .el-table__fixed),
+:deep(.el-table .el-table__body-wrapper .el-table__fixed-right) {
+  border-left: 1px solid #EBEEF5;
 }
 </style>

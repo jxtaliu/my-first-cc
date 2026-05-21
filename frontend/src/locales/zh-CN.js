@@ -38,7 +38,8 @@ export default {
     admin: '管理',
     userManagement: '用户管理',
     roleManagement: '角色管理',
-    departmentManagement: '部门管理'
+    departmentManagement: '部门管理',
+    dictManagement: '业务字典'
   },
   dashboard: {
     projects: '项目数',
@@ -176,6 +177,35 @@ export default {
     addMember: '添加成员',
     memberAdded: '成员已添加',
     memberRemoved: '成员已移除',
-    confirmRemoveMember: '确定要移除该成员吗？'
+    confirmRemoveMember: '确定要移除该成员吗？',
+    dictManagement: '业务字典',
+    dictTypes: '字典类型',
+    dictItems: '字典项',
+    noDictTypes: '暂无字典类型',
+    selectTypeFirst: '请先选择类型查看字典项',
+    addDictType: '添加字典类型',
+    editDictType: '编辑字典类型',
+    addDictItem: '添加字典项',
+    editDictItem: '编辑字典项',
+    dictTypeCode: '类型编码',
+    dictTypeName: '类型名称',
+    dictCode: '编码',
+    dictName: '名称',
+    dictNameEn: '英文名',
+    dictNameZh: '中文名',
+    description: '描述',
+    extra: '扩展(JSON)',
+    dictTypeCodeRequired: '请输入类型编码',
+    dictTypeNameRequired: '请输入类型名称',
+    dictCodeRequired: '请输入编码',
+    dictNameRequired: '请输入名称',
+    confirmDeleteType: '确定要删除此字典类型吗？',
+    confirmDeleteItem: '确定要删除此字典项吗？',
+    createSuccess: '创建成功',
+    updateSuccess: '更新成功',
+    deleteSuccess: '删除成功',
+    operationFailed: '操作失败',
+    fetchFailed: '获取数据失败',
+    deleteFailed: '删除失败'
   }
 }

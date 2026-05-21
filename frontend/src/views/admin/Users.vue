@@ -539,4 +539,9 @@ onMounted(async () => {
 .no-data {
   color: #909399;
 }
+
+:deep(.el-table .el-table__body-wrapper .el-table__fixed),
+:deep(.el-table .el-table__body-wrapper .el-table__fixed-right) {
+  border-left: 1px solid #EBEEF5;
+}
 </style>

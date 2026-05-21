@@ -43,7 +43,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('admin.actions')" width="320">
+        <el-table-column :label="$t('admin.actions')" width="320" fixed="right">
           <template #default="{ row }">
             <el-button text size="small" @click="openUserDialog(row)">{{ $t('admin.manageUsers') }}</el-button>
             <el-button text size="small" @click="openPermissionDialog(row)">{{ $t('admin.assignPermissions') }}</el-button>
@@ -596,5 +596,10 @@ onMounted(() => {
 
 .no-data {
   color: #909399;
+}
+
+:deep(.el-table .el-table__body-wrapper .el-table__fixed),
+:deep(.el-table .el-table__body-wrapper .el-table__fixed-right) {
+  border-left: 1px solid #EBEEF5;
 }
 </style>
