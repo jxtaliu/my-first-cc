@@ -88,6 +88,11 @@ const routes = [
         component: () => import('@/views/project/PortfolioBoard.vue')
       },
       {
+        path: 'requirements',
+        name: 'Requirements',
+        component: () => import('@/views/requirements/Requirements.vue')
+      },
+      {
         path: 'projects/:id/milestone/:milestoneId',
         name: 'MilestoneDetail',
         component: () => import('@/views/project/MilestoneDetail.vue')

@@ -9,5 +9,6 @@ import java.time.LocalDateTime;
 public class ProjectMember {
     private String projectId; // References project.project_id
     private Long userId;
+    private String roleId; // References sys_role.role_id
     private LocalDateTime joinedAt;
 }

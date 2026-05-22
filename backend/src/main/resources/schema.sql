@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS sys_dict_code (
     sort_order INT DEFAULT 0,
     extra VARCHAR(500),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_type_code (dict_type_id, code),
     INDEX idx_dict_type (dict_type_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -130,9 +131,11 @@ CREATE TABLE IF NOT EXISTS project (
 CREATE TABLE IF NOT EXISTS project_member (
     project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id',
     user_id BIGINT NOT NULL,
+    role_id VARCHAR(50) COMMENT 'References sys_role.role_id, defines member role in project',
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (project_id, user_id),
-    INDEX idx_user (user_id)
+    INDEX idx_user (user_id),
+    INDEX idx_role (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Sprint table (enhanced with PM fields)

@@ -61,6 +61,17 @@
             <span>{{ $t('nav.portfolio') }}</span>
           </el-menu-item>
         </el-sub-menu>
+        <!-- 需求管理 -->
+        <el-sub-menu index="/requirements">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>{{ $t('nav.requirements') }}</span>
+          </template>
+          <el-menu-item index="/requirements">
+            <el-icon><List /></el-icon>
+            <span>{{ $t('nav.requirementsList') }}</span>
+          </el-menu-item>
+        </el-sub-menu>
         <!-- 项目设置 -->
         <el-sub-menu index="/project-settings">
           <template #title>

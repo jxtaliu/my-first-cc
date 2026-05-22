@@ -65,7 +65,9 @@ export default {
     notificationSettings: '通知设置',
     gantt: '甘特图',
     compare: '项目对比',
-    portfolio: 'Portfolio'
+    portfolio: 'Portfolio',
+    requirements: '需求管理',
+    requirementsList: '需求列表'
   },
   dashboard: {
     projects: '项目数',
@@ -114,6 +116,19 @@ export default {
     enableQuietHours: '启用免打扰',
     quietHoursStart: '开始时间',
     quietHoursEnd: '结束时间'
+  },
+  requirements: {
+    title: '需求标题',
+    project: '所属项目',
+    selectProject: '选择项目',
+    status: '状态',
+    selectStatus: '选择状态',
+    priority: '优先级',
+    creator: '创建人',
+    createTime: '创建时间',
+    statusDraft: '草稿',
+    statusPublished: '已发布',
+    statusArchived: '已归档'
   },
   project: {
     name: '项目名称',

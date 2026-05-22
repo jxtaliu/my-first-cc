@@ -65,7 +65,9 @@ export default {
     notificationSettings: 'Notification Settings',
     gantt: 'Gantt',
     compare: 'Compare',
-    portfolio: 'Portfolio'
+    portfolio: 'Portfolio',
+    requirements: 'Requirements',
+    requirementsList: 'Requirements List'
   },
   dashboard: {
     projects: 'Projects',
@@ -114,6 +116,19 @@ export default {
     enableQuietHours: 'Enable Quiet Hours',
     quietHoursStart: 'Start Time',
     quietHoursEnd: 'End Time'
+  },
+  requirements: {
+    title: 'Title',
+    project: 'Project',
+    selectProject: 'Select Project',
+    status: 'Status',
+    selectStatus: 'Select Status',
+    priority: 'Priority',
+    creator: 'Creator',
+    createTime: 'Created',
+    statusDraft: 'Draft',
+    statusPublished: 'Published',
+    statusArchived: 'Archived'
   },
   project: {
     name: 'Project Name',
