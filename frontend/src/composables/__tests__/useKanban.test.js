@@ -77,6 +77,36 @@ describe('useKanban', () => {
       expect(taskStatuses.value).toEqual(mockProjectStatuses)
     })
 
+    it('testLoadTaskStatuses_shouldFallbackToSystemStatuses_whenProjectHasNoCustomStatuses', async () => {
+      // Project has no custom statuses, should fallback to system statuses
+      getTaskStatusesByProject.mockResolvedValue({ data: [] })
+      getSystemTaskStatuses.mockResolvedValue({ data: mockSystemStatuses })
+
+      const { columns, taskStatuses, loadTaskStatuses } = useKanban()
+
+      await loadTaskStatuses(999)
+
+      expect(getTaskStatusesByProject).toHaveBeenCalledWith(999)
+      expect(getSystemTaskStatuses).toHaveBeenCalled()
+      expect(columns.value).toHaveLength(3)
+      expect(columns.value[0].id).toBe('todo')
+      expect(taskStatuses.value).toEqual(mockSystemStatuses)
+    })
+
+    it('testLoadTaskStatuses_shouldFallbackToSystemStatuses_whenProjectReturnsNull', async () => {
+      // Project returns null data, should fallback to system statuses
+      getTaskStatusesByProject.mockResolvedValue({ data: null })
+      getSystemTaskStatuses.mockResolvedValue({ data: mockSystemStatuses })
+
+      const { columns, taskStatuses, loadTaskStatuses } = useKanban()
+
+      await loadTaskStatuses(123)
+
+      expect(getSystemTaskStatuses).toHaveBeenCalled()
+      expect(columns.value).toHaveLength(3)
+      expect(taskStatuses.value).toEqual(mockSystemStatuses)
+    })
+
     it('testLoadTaskStatuses_shouldSetLoadingState', async () => {
       let resolvePromise
       const promise = new Promise(resolve => { resolvePromise = resolve })

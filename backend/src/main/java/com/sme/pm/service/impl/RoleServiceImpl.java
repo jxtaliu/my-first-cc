@@ -33,6 +33,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @Transactional
     public Role create(Role role) {
         // Generate next roleId (e.g., ROLE_001, ROLE_002, ...)
         Long maxId = roleMapper.getMaxRoleIdNumber();

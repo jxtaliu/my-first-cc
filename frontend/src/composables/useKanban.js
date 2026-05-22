@@ -28,11 +28,11 @@ export function useKanban() {
         statuses = projectRes.data || projectRes
       }
       // Fallback to system statuses if project has no custom statuses
-      if (!statuses || statuses.length === 0) {
+      if (!statuses || !Array.isArray(statuses) || statuses.length === 0) {
         const systemRes = await getSystemTaskStatuses()
         statuses = systemRes.data || systemRes
       }
-      taskStatuses.value = statuses
+      taskStatuses.value = Array.isArray(statuses) ? statuses : []
       columns.value = taskStatuses.value.map(s => ({
         id: s.code,
         status: s.code,

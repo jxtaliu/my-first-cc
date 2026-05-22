@@ -5,6 +5,7 @@ import com.sme.pm.entity.Department;
 import com.sme.pm.mapper.DepartmentMapper;
 import com.sme.pm.service.DepartmentService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +60,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional
     public Department create(Department department) {
         // Generate next departmentId (e.g., DEPT001, DEPT002, ...)
         Long maxId = departmentMapper.getMaxDepartmentIdNumber();
