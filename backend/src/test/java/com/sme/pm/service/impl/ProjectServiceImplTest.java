@@ -34,7 +34,7 @@ class ProjectServiceImplTest {
         Project project = new Project();
         project.setName("Test Project");
         project.setDescription("Test Description");
-        project.setProjectType(1);
+        project.setProjectType("SCRUM");
         project.setOwnerId(1L);
 
         when(projectMapper.insert(any(Project.class))).thenReturn(1);
@@ -115,7 +115,7 @@ class ProjectServiceImplTest {
         projectService.archive(projectId);
 
         verify(projectMapper).updateById(argThat(project ->
-            project.getId().equals(projectId) && project.getStatus() == 3
+            project.getId().equals(projectId) && "ARCHIVED".equals(project.getStatus())
         ));
     }
 
@@ -128,7 +128,7 @@ class ProjectServiceImplTest {
         projectService.restore(projectId);
 
         verify(projectMapper).updateById(argThat(project ->
-            project.getId().equals(projectId) && project.getStatus() == 2
+            project.getId().equals(projectId) && "ACTIVE".equals(project.getStatus())
         ));
     }
 

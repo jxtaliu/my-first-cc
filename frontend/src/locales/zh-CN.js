@@ -139,7 +139,25 @@ export default {
     projectArchived: '项目已归档',
     projectRestored: '项目已恢复',
     projectDeleted: '项目已删除',
-    confirmDelete: '确定要删除此项目吗？'
+    confirmDelete: '确定要删除此项目吗？',
+    // New fields
+    projectType: '项目类型',
+    sprintMode: '敏捷模式',
+    status: '项目状态',
+    owner: '负责人',
+    ownerRequired: '请选择负责人',
+    selectOwner: '选择负责人',
+    selectProjectType: '选择项目类型',
+    selectSprintMode: '选择敏捷模式',
+    selectStatus: '选择项目状态',
+    // Milestones
+    milestones: '里程碑',
+    milestonesDesc: '管理项目里程碑',
+    createMilestone: '创建里程碑',
+    filterByProject: '按项目筛选',
+    crossProject: '跨项目',
+    projectMilestones: '项目里程碑',
+    noMilestones: '暂无里程碑'
   },
   admin: {
     description: '角色描述',

@@ -8,7 +8,7 @@
       <!-- Filter bar -->
       <div class="filter-bar">
         <el-select v-model="filterStatus" :placeholder="$t('task.status')" clearable>
-          <el-option label="All" :value="null" />
+          <el-option label="All" value="" />
           <el-option label="To Do" value="TODO" />
           <el-option label="In Progress" value="IN_PROGRESS" />
           <el-option label="Done" value="DONE" />

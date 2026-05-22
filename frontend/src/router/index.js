@@ -123,6 +123,11 @@ const routes = [
         component: () => import('@/views/timesheet/Index.vue')
       },
       {
+        path: 'timesheet/my',
+        name: 'TimesheetMy',
+        component: () => import('@/views/timesheet/Index.vue')
+      },
+      {
         path: 'timesheet/approval',
         name: 'TimesheetApproval',
         component: () => import('@/views/timesheet/Approval.vue')

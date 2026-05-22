@@ -53,7 +53,7 @@ public class ProjectServiceImpl implements ProjectService {
     public void archive(Long id) {
         Project project = new Project();
         project.setId(id);
-        project.setStatus(3);
+        project.setStatus("ARCHIVED");
         projectMapper.updateById(project);
     }
 
@@ -62,7 +62,7 @@ public class ProjectServiceImpl implements ProjectService {
     public void restore(Long id) {
         Project project = new Project();
         project.setId(id);
-        project.setStatus(2);
+        project.setStatus("ACTIVE");
         projectMapper.updateById(project);
     }
 

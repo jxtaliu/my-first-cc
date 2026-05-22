@@ -139,7 +139,25 @@ export default {
     projectArchived: 'Project archived',
     projectRestored: 'Project restored',
     projectDeleted: 'Project deleted',
-    confirmDelete: 'Are you sure to delete this project?'
+    confirmDelete: 'Are you sure to delete this project?',
+    // New fields
+    projectType: 'Project Type',
+    sprintMode: 'Sprint Mode',
+    status: 'Status',
+    owner: 'Owner',
+    ownerRequired: 'Please select an owner',
+    selectOwner: 'Select Owner',
+    selectProjectType: 'Select Project Type',
+    selectSprintMode: 'Select Sprint Mode',
+    selectStatus: 'Select Status',
+    // Milestones
+    milestones: 'Milestones',
+    milestonesDesc: 'Manage project milestones',
+    createMilestone: 'Create Milestone',
+    filterByProject: 'Filter by Project',
+    crossProject: 'Cross-project',
+    projectMilestones: 'Project Milestones',
+    noMilestones: 'No milestones'
   },
   admin: {
     description: 'Role Description',

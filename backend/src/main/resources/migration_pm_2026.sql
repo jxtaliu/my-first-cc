@@ -1,5 +1,5 @@
 -- =============================================================================
--- SME PM Enhanced Migration Script
+-- SME PM Migration Script - Data Only
 -- 执行顺序: 1. schema.sql  2. migration_pm_2026.sql
 -- 注意: 此脚本支持重复执行 (idempotent)
 -- =============================================================================
@@ -7,351 +7,66 @@
 USE sme_pm;
 
 -- =============================================================================
--- 第一部分: 修改已有表 (依赖 schema.sql 中创建的表)
--- 所有列添加使用 idempotent 模式
+-- 第一部分: 系统基础数据
 -- =============================================================================
 
--- ----------------------------------------
--- 1.1 修改 task 表 - 添加 PM 字段
--- ----------------------------------------
-SET @dbname = DATABASE();
-SET @tablename = 'task';
+-- Insert default roles
+INSERT IGNORE INTO sys_role (role_id, name, description) VALUES
+('ROLE_001', 'Super Admin', 'Full system access'),
+('ROLE_002', 'Department Admin', 'Department level access'),
+('ROLE_003', 'Project Admin', 'Project level access'),
+('ROLE_004', 'Member', 'Basic member access');
 
--- priority
-SET @columnname = 'priority';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN priority VARCHAR(20) DEFAULT ''P2'' COMMENT ''P0/P1/P2/P3'' AFTER status'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Insert default admin user (password: admin123)
+INSERT IGNORE INTO sys_user (user_id, username, password, email, real_name) VALUES
+('USR_001', 'admin', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'admin@example.com', 'Admin');
 
--- remaining_hours
-SET @columnname = 'remaining_hours';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN remaining_hours INT COMMENT ''Remaining work hours'' AFTER actual_hours'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Assign SUPER_ADMIN role to admin user
+INSERT IGNORE INTO sys_user_role (user_id, role_id) VALUES (1, 1);
 
--- progress
-SET @columnname = 'progress';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN progress INT DEFAULT 0 COMMENT ''Progress percentage 0-100'' AFTER remaining_hours'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Insert dictionary types (基础)
+INSERT IGNORE INTO sys_dict_type (code, name, description) VALUES
+('task_status', 'Task Status', 'Task status options'),
+('task_type', 'Task Type', 'Task type options'),
+('priority', 'Priority', 'Priority levels'),
+('project_type', 'Project Type', 'Project type options'),
+('project_status', 'Project Status', 'Project status options');
 
--- start_date
-SET @columnname = 'start_date';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN start_date DATE COMMENT ''Actual start date'' AFTER progress'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Insert dictionary codes for task_status
+INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(1, 'TODO', 'Todo', 'Todo', '待办', 1, '{"color": "#909399"}'),
+(1, 'IN_PROGRESS', 'In Progress', 'In Progress', '进行中', 2, '{"color": "#E6A23C"}'),
+(1, 'IN_REVIEW', 'In Review', 'In Review', '审核中', 3, '{"color": "#409EFF"}'),
+(1, 'DONE', 'Done', 'Done', '已完成', 4, '{"color": "#67C23A"}');
 
--- due_date
-SET @columnname = 'due_date';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN due_date DATE COMMENT ''Due date'' AFTER start_date'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Insert dictionary codes for task_type
+INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(2, 'EPIC', 'Epic', 'Epic', '史诗', 1, '{"color": "#909399"}'),
+(2, 'FEATURE', 'Feature', 'Feature', '特性', 2, '{"color": "#409EFF"}'),
+(2, 'STORY', 'Story', 'Story', '故事', 3, '{"color": "#67C23A"}'),
+(2, 'SUBTASK', 'Sub-task', 'Sub-task', '子任务', 4, '{"color": "#E6A23C"}');
 
--- in_progress_since
-SET @columnname = 'in_progress_since';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN in_progress_since DATETIME COMMENT ''When task entered in_progress status'' AFTER due_date'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Insert dictionary codes for priority
+INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(3, 'LOW', 'Low', 'Low', '低', 1, '{"color": "#909399"}'),
+(3, 'MEDIUM', 'Medium', 'Medium', '中', 2, '{"color": "#E6A23C"}'),
+(3, 'HIGH', 'High', 'High', '高', 3, '{"color": "#F56C6C"}'),
+(3, 'URGENT', 'Urgent', 'Urgent', '紧急', 4, '{"color": "#F56C6C"}');
 
--- completion_date
-SET @columnname = 'completion_date';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN completion_date DATETIME COMMENT ''When task was completed'' AFTER in_progress_since'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Insert dictionary codes for project_type
+INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(4, 'DEVELOPE', 'Develope', 'Develope Project', '研发项目', 1, '{"color": "#409EFF"}'),
+(4, 'CUSTOM', 'Custom', 'Custom Project', '客户项目', 2, '{"color": "#67C23A"}');
 
--- version
-SET @columnname = 'version';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN version INT DEFAULT 1 COMMENT ''Optimistic lock'' AFTER completion_date'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- milestone_id
-SET @columnname = 'milestone_id';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE task ADD COLUMN milestone_id BIGINT COMMENT ''Auto-linked from sprint'' AFTER progress'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- ----------------------------------------
--- 1.2 修改 sprint 表 - 添加 PM 字段
--- ----------------------------------------
-SET @tablename = 'sprint';
-
--- goal
-SET @columnname = 'goal';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE sprint ADD COLUMN goal VARCHAR(500) COMMENT ''Sprint goal'' AFTER status'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- capacity_hours
-SET @columnname = 'capacity_hours';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE sprint ADD COLUMN capacity_hours INT COMMENT ''Total team capacity in hours'' AFTER goal'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- velocity
-SET @columnname = 'velocity';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE sprint ADD COLUMN velocity INT COMMENT ''Story points completed last sprint'' AFTER capacity_hours'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- start_reminder_sent
-SET @columnname = 'start_reminder_sent';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE sprint ADD COLUMN start_reminder_sent TINYINT DEFAULT 0 AFTER velocity'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- end_reminder_sent
-SET @columnname = 'end_reminder_sent';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE sprint ADD COLUMN end_reminder_sent TINYINT DEFAULT 0 AFTER start_reminder_sent'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- milestone_id
-SET @columnname = 'milestone_id';
-SET @preparedStatement = (SELECT IF(
-    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-     WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
-    'SELECT 1',
-    'ALTER TABLE sprint ADD COLUMN milestone_id BIGINT COMMENT ''Associated milestone'' AFTER status'
-));
-PREPARE stmt FROM @preparedStatement;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Insert dictionary codes for project_status
+INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+(5, 'PLANNING', 'Planning', 'Planning', '规划中', 1, '{"color": "#909399"}'),
+(5, 'ACTIVE', 'Active', 'Active', '进行中', 2, '{"color": "#67C23A"}'),
+(5, 'COMPLETED', 'Completed', 'Completed', '已完成', 3, '{"color": "#409EFF"}'),
+(5, 'ARCHIVED', 'Archived', 'Archived', '已归档', 4, '{"color": "#909399"}');
 
 -- =============================================================================
--- 第二部分: 创建新的 PM 表
--- =============================================================================
-
-CREATE TABLE IF NOT EXISTS project_template (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL COMMENT 'Template name',
-    description VARCHAR(500),
-    sprint_duration INT DEFAULT 14 COMMENT 'Sprint duration in days',
-    enable_priority TINYINT DEFAULT 1 COMMENT 'Enable P0-P3 priority',
-    task_types VARCHAR(255) DEFAULT 'EPIC,FEATURE,STORY,TASK,BUG' COMMENT 'Enabled task types',
-    default_status_flow VARCHAR(500) COMMENT 'Default status transition flow',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS project_role (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    project_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    role VARCHAR(50) NOT NULL COMMENT 'PROJECT_OWNER/PROJECT_MANAGER/DEV_LEAD/DEVELOPER/GUEST',
-    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    UNIQUE KEY uk_project_user (project_id, user_id),
-    INDEX idx_project (project_id),
-    INDEX idx_user (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS task_status (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    project_id BIGINT COMMENT 'NULL means system default',
-    code VARCHAR(50) NOT NULL COMMENT 'TODO, IN_PROGRESS, etc.',
-    name VARCHAR(100) NOT NULL,
-    name_en VARCHAR(100),
-    name_zh VARCHAR(100),
-    category VARCHAR(20) NOT NULL COMMENT 'todo/doing/done/alert',
-    color VARCHAR(20) DEFAULT '#909399',
-    sort_order INT DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    INDEX idx_project (project_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS status_transition (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    project_id BIGINT COMMENT 'NULL means system default',
-    from_status_id BIGINT NOT NULL COMMENT 'Source status',
-    to_status_id BIGINT NOT NULL COMMENT 'Target status',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    INDEX idx_project (project_id),
-    INDEX idx_from (from_status_id),
-    INDEX idx_to (to_status_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS task_dependency (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    task_id BIGINT NOT NULL COMMENT 'Current task',
-    depends_on_task_id BIGINT NOT NULL COMMENT 'Dependency task',
-    dependency_type VARCHAR(20) DEFAULT 'FS' COMMENT 'FS: Finish-Start, SS: Start-Start, FF: Finish-Finish, SF: Start-Finish',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    UNIQUE KEY uk_task_dependency (task_id, depends_on_task_id),
-    INDEX idx_task (task_id),
-    INDEX idx_depends_on (depends_on_task_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS task_attachment (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    task_id BIGINT NOT NULL,
-    file_name VARCHAR(255) NOT NULL,
-    file_path VARCHAR(500) NOT NULL,
-    file_size BIGINT COMMENT 'File size in bytes',
-    mime_type VARCHAR(100),
-    uploaded_by BIGINT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    INDEX idx_task (task_id),
-    INDEX idx_uploaded_by (uploaded_by)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS task_comment (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    task_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    content TEXT NOT NULL,
-    parent_comment_id BIGINT COMMENT 'For replies',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    INDEX idx_task (task_id),
-    INDEX idx_user (user_id),
-    INDEX idx_parent (parent_comment_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS milestone (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(200) NOT NULL,
-    description VARCHAR(500),
-    target_date DATE NOT NULL,
-    is_cross_project TINYINT DEFAULT 0 COMMENT 'Cross-project milestone',
-    status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT 'ACTIVE/ACHIEVED/FAILED',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    INDEX idx_target_date (target_date),
-    INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS project_milestone (
-    project_id BIGINT NOT NULL,
-    milestone_id BIGINT NOT NULL,
-    PRIMARY KEY (project_id, milestone_id),
-    INDEX idx_milestone (milestone_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS notification (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL COMMENT 'Recipient',
-    type VARCHAR(50) NOT NULL COMMENT 'TASK_ASSIGNED/TASK_STATUS_CHANGED/MILESTONE_DUE/etc.',
-    title VARCHAR(200) NOT NULL,
-    content TEXT,
-    related_task_id BIGINT COMMENT 'Related task if applicable',
-    related_project_id BIGINT COMMENT 'Related project if applicable',
-    is_read TINYINT DEFAULT 0,
-    read_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0,
-    INDEX idx_user (user_id),
-    INDEX idx_type (type),
-    INDEX idx_is_read (is_read),
-    INDEX idx_created (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS sprint_reminder_log (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    sprint_id BIGINT NOT NULL,
-    reminder_type VARCHAR(20) NOT NULL COMMENT 'START_REMINDER/END_REMINDER',
-    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_sprint (sprint_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- =============================================================================
--- 第三部分: 插入字典数据
+-- 第二部分: PM 扩展字典数据
 -- =============================================================================
 
 INSERT IGNORE INTO sys_dict_type (code, name, description) VALUES
@@ -362,7 +77,8 @@ INSERT IGNORE INTO sys_dict_type (code, name, description) VALUES
 ('NOTIFICATION_TYPE', 'Notification Type', 'Types of notifications in the system'),
 ('PROJECT_ROLE_PM', 'Project Role', 'Project-level roles'),
 ('MILESTONE_STATUS', 'Milestone Status', 'Milestone achievement status'),
-('SPRINT_STATUS_PM', 'Sprint Status', 'Sprint lifecycle status');
+('SPRINT_STATUS_PM', 'Sprint Status', 'Sprint lifecycle status'),
+('SPRINT_MODE_PM', 'Sprint Mode', 'Project sprint mode - SCRUM/KANBAN');
 
 INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
 ((SELECT id FROM sys_dict_type WHERE code = 'TASK_PRIORITY'), 'P0', 'P0 - Urgent', 'P0 Urgent', 'P0 紧急', 1, '{"color": "#EF4444", "level": 0}'),
@@ -423,10 +139,15 @@ INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, so
 ((SELECT id FROM sys_dict_type WHERE code = 'SPRINT_STATUS_PM'), 'ACTIVE', 'Active', 'Active', '进行中', 2, '{"color": "#10B981"}'),
 ((SELECT id FROM sys_dict_type WHERE code = 'SPRINT_STATUS_PM'), 'COMPLETED', 'Completed', 'Completed', '已完成', 3, '{"color": "#8B5CF6"}');
 
+INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+((SELECT id FROM sys_dict_type WHERE code = 'SPRINT_MODE_PM'), 'SCRUM', 'Scrum', 'Scrum', 'Scrum敏捷', 1, '{"color": "#3B82F6", "description": "Fixed sprint with planning and reviews"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'SPRINT_MODE_PM'), 'KANBAN', 'Kanban', 'Kanban', '看板', 2, '{"color": "#10B981", "description": "Continuous flow, no fixed sprints"}');
+
 -- =============================================================================
--- 第四部分: 插入 PM 表数据
+-- 第三部分: PM 表数据
 -- =============================================================================
 
+-- Insert default task statuses
 INSERT IGNORE INTO task_status (project_id, code, name, name_en, name_zh, category, color, sort_order) VALUES
 (NULL, 'TODO', 'Todo', 'Todo', '待办', 'todo', '#94A3B8', 1),
 (NULL, 'IN_PROGRESS', 'In Progress', 'In Progress', '进行中', 'doing', '#3B82F6', 2),
@@ -435,11 +156,13 @@ INSERT IGNORE INTO task_status (project_id, code, name, name_en, name_zh, catego
 (NULL, 'DONE', 'Done', 'Done', '已完成', 'done', '#10B981', 5),
 (NULL, 'BLOCKED', 'Blocked', 'Blocked', '已阻塞', 'alert', '#EF4444', 6);
 
+-- Insert default status transitions
 INSERT IGNORE INTO status_transition (project_id, from_status_id, to_status_id) VALUES
 (NULL, 1, 2), (NULL, 1, 6), (NULL, 2, 1), (NULL, 2, 3), (NULL, 2, 6),
 (NULL, 3, 2), (NULL, 3, 4), (NULL, 3, 6), (NULL, 4, 3), (NULL, 4, 5),
 (NULL, 4, 6), (NULL, 6, 1), (NULL, 6, 2);
 
+-- Insert project templates
 INSERT IGNORE INTO project_template (name, description, sprint_duration, enable_priority, task_types) VALUES
 ('敏捷开发模板', '标准的Scrum敏捷开发流程，2周Sprint', 14, 1, 'EPIC,FEATURE,STORY,TASK,BUG,SUBTASK'),
 ('看板模板', '看板模式，无固定Sprint，持续交付', 0, 1, 'EPIC,FEATURE,STORY,TASK,BUG'),

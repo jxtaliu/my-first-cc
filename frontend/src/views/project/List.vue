@@ -19,11 +19,19 @@
         <el-card class="project-card" @click="goToDetail(project.id)">
           <div class="project-header">
             <span class="project-name">{{ project.name }}</span>
-            <el-tag :type="project.type === 'SCRUM' ? 'success' : 'warning'" size="small">
-              {{ project.type }}
+            <el-tag :type="project.sprintMode === 'KANBAN' ? 'warning' : 'success'" size="small">
+              {{ project.sprintMode === 'KANBAN' ? $t('project.kanban') : $t('project.scrum') }}
             </el-tag>
           </div>
           <p class="project-desc">{{ project.description || $t('project.noDescription') }}</p>
+          <div class="project-info">
+            <span class="info-item">
+              <el-tag size="small" type="info">{{ getProjectTypeLabel(project.projectType) }}</el-tag>
+            </span>
+            <span class="info-item">
+              <el-tag size="small" :type="getStatusType(project.status)">{{ getStatusLabel(project.status) }}</el-tag>
+            </span>
+          </div>
           <div class="project-stats">
             <span><el-icon><Document /></el-icon> {{ project.taskCount || 0 }} {{ $t('project.tasks') }}</span>
             <span><el-icon><User /></el-icon> {{ project.memberCount || 0 }} {{ $t('project.members') }}</span>
@@ -37,7 +45,7 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="edit">{{ $t('common.edit') }}</el-dropdown-item>
-                  <el-dropdown-item command="archive" v-if="!project.archivedAt">
+                  <el-dropdown-item command="archive" v-if="project.status !== 'ARCHIVED'">
                     {{ $t('common.archive') }}
                   </el-dropdown-item>
                   <el-dropdown-item command="restore" v-else>
@@ -54,23 +62,35 @@
 
     <el-empty v-if="!projects.length && !loading" :description="$t('common.noData')" />
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? $t('common.edit') : $t('common.add')" width="500px">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? $t('common.edit') : $t('common.add')" width="600px">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
         <el-form-item :label="$t('project.name')" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
         <el-form-item :label="$t('project.description')" prop="description">
           <el-input v-model="form.description" type="textarea" :rows="3" />
         </el-form-item>
-        <el-form-item :label="$t('project.type')" prop="type">
-          <el-select v-model="form.type">
-            <el-option :label="$t('project.scrum')" value="SCRUM" />
-            <el-option :label="$t('project.kanban')" value="KANBAN" />
+        <el-form-item :label="$t('project.projectType')" prop="projectType">
+          <el-select v-model="form.projectType" placeholder="选择项目类型">
+            <el-option v-for="item in projectTypeOptions" :key="item.code" :label="locale === 'zh-CN' ? (item.nameZh || item.name) : item.name" :value="item.code" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('project.department')" prop="departmentId">
-          <el-select v-model="form.departmentId" :placeholder="$t('timesheet.selectProject')">
-            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
+        <el-form-item :label="$t('project.sprintMode')" prop="sprintMode">
+          <el-select v-model="form.sprintMode" placeholder="选择敏捷模式">
+            <el-option v-for="item in sprintModeOptions" :key="item.code" :label="locale === 'zh-CN' ? (item.nameZh || item.name) : item.name" :value="item.code" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('project.status')" prop="status">
+          <el-select v-model="form.status" placeholder="选择项目状态">
+            <el-option v-for="item in statusOptions" :key="item.code" :label="locale === 'zh-CN' ? (item.nameZh || item.name) : item.name" :value="item.code" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('project.owner')" prop="ownerId">
+          <el-select v-model="form.ownerId" placeholder="选择负责人" filterable>
+            <el-option v-for="user in userOptions" :key="user.id" :label="user.realName || user.username" :value="user.id">
+              <span>{{ user.realName || user.username }}</span>
+              <span class="user-email">{{ user.email }}</span>
+            </el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -83,15 +103,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Document, User, More } from '@element-plus/icons-vue'
 import { getProjects, createProject, updateProject, deleteProject, archiveProject, restoreProject } from '@/api/project'
+import request from '@/api/request'
 
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const activeTab = ref('all')
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -104,20 +125,61 @@ const form = reactive({
   id: null,
   name: '',
   description: '',
-  type: 'SCRUM',
-  departmentId: null
+  projectType: '',
+  status: 'PLANNING',
+  sprintMode: 'SCRUM',
+  ownerId: null
 })
 
 const rules = {
   name: [{ required: true, message: () => t('project.projectNameRequired') }],
-  type: [{ required: true, message: () => t('project.projectTypeRequired') }]
+  projectType: [{ required: true, message: '请选择项目类型' }],
+  sprintMode: [{ required: true, message: '请选择敏捷模式' }],
+  status: [{ required: true, message: '请选择项目状态' }],
+  ownerId: [{ required: true, message: '请选择负责人' }]
 }
 
-const departments = ref([
-  { id: 1, name: 'Engineering' },
-  { id: 2, name: 'Product' },
-  { id: 3, name: 'Design' }
-])
+// 下拉选项数据
+const projectTypeOptions = ref([])
+const statusOptions = ref([])
+const sprintModeOptions = ref([])
+const userOptions = ref([])
+
+const fetchProjectTypeOptions = async () => {
+  try {
+    const res = await request.get('/dicts/codes/project_type')
+    projectTypeOptions.value = res.data || []
+  } catch (e) {
+    console.error('Failed to fetch project type options', e)
+  }
+}
+
+const fetchStatusOptions = async () => {
+  try {
+    const res = await request.get('/dicts/codes/PROJECT_STATUS_PM')
+    statusOptions.value = res.data || []
+  } catch (e) {
+    console.error('Failed to fetch status options', e)
+  }
+}
+
+const fetchSprintModeOptions = async () => {
+  try {
+    const res = await request.get('/dicts/codes/SPRINT_MODE_PM')
+    sprintModeOptions.value = res.data || []
+  } catch (e) {
+    console.error('Failed to fetch sprint mode options', e)
+  }
+}
+
+const fetchUserOptions = async () => {
+  try {
+    const res = await request.get('/users')
+    userOptions.value = res.data || []
+  } catch (e) {
+    console.error('Failed to fetch user options', e)
+  }
+}
 
 const fetchProjects = async () => {
   loading.value = true
@@ -138,13 +200,29 @@ const handleTabChange = () => {
 
 const handleCreate = () => {
   isEdit.value = false
-  Object.assign(form, { id: null, name: '', description: '', type: 'SCRUM', departmentId: null })
+  Object.assign(form, {
+    id: null,
+    name: '',
+    description: '',
+    projectType: '',
+    status: 'PLANNING',
+    sprintMode: 'SCRUM',
+    ownerId: null
+  })
   dialogVisible.value = true
 }
 
 const handleEdit = (project) => {
   isEdit.value = true
-  Object.assign(form, { ...project })
+  Object.assign(form, {
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    projectType: project.projectType,
+    status: project.status,
+    sprintMode: project.sprintMode,
+    ownerId: project.ownerId
+  })
   dialogVisible.value = true
 }
 
@@ -209,8 +287,43 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString()
 }
 
+// 根据当前语言返回本地化名称
+const getLocalizedName = (item) => {
+  if (!item) return ''
+  if (locale.value === 'zh-CN') {
+    return item.nameZh || item.name
+  }
+  return item.name
+}
+
+const getProjectTypeLabel = (type) => {
+  const item = projectTypeOptions.value.find(o => o.code === type)
+  return item ? getLocalizedName(item) : type
+}
+
+const getStatusLabel = (status) => {
+  const item = statusOptions.value.find(o => o.code === status)
+  return item ? getLocalizedName(item) : status
+}
+
+const getStatusType = (status) => {
+  const typeMap = {
+    'PLANNING': 'info',
+    'STARTING': 'warning',
+    'ACTIVE': 'success',
+    'COMPLETED': 'primary',
+    'PAUSED': 'warning',
+    'ARCHIVED': 'info'
+  }
+  return typeMap[status] || 'info'
+}
+
 onMounted(() => {
   fetchProjects()
+  fetchProjectTypeOptions()
+  fetchStatusOptions()
+  fetchSprintModeOptions()
+  fetchUserOptions()
 })
 </script>
 
@@ -262,6 +375,17 @@ onMounted(() => {
   text-overflow: ellipsis;
 }
 
+.project-info {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+}
+
 .project-stats {
   display: flex;
   gap: 16px;
@@ -288,5 +412,11 @@ onMounted(() => {
 .project-date {
   color: var(--theme-text-secondary);
   font-size: 12px;
+}
+
+.user-email {
+  color: #999;
+  font-size: 12px;
+  margin-left: 8px;
 }
 </style>

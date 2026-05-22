@@ -47,7 +47,7 @@ class ProjectStatsServiceImplTest {
         testProject = new Project();
         testProject.setId(1L);
         testProject.setName("Test Project");
-        testProject.setStatus(2);
+        testProject.setStatus("ACTIVE");
 
         testSprint = new Sprint();
         testSprint.setId(1L);
