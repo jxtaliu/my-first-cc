@@ -80,6 +80,8 @@ services:
     image: node:20-alpine
     container_name: sme-pm-frontend
     restart: unless-stopped
+    environment:
+      DOCKER: "true"
     volumes:
       - ./frontend:/app
       - node-modules:/app/node_modules

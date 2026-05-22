@@ -18,7 +18,7 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: process.env.DOCKER ? 'http://sme-pm-backend:8080' : 'http://localhost:8080',
         changeOrigin: true
       }
     }

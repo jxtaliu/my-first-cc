@@ -19,6 +19,7 @@
         <el-card class="project-card" @click="goToDetail(project.id)">
           <div class="project-header">
             <span class="project-name">{{ project.name }}</span>
+            <span class="project-id">{{ project.projectId }}</span>
             <el-tag :type="project.sprintMode === 'KANBAN' ? 'warning' : 'success'" size="small">
               {{ project.sprintMode === 'KANBAN' ? $t('project.kanban') : $t('project.scrum') }}
             </el-tag>
@@ -64,6 +65,9 @@
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? $t('common.edit') : $t('common.add')" width="600px">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
+        <el-form-item label="项目ID" v-if="isEdit || form.projectId">
+          <el-input v-model="form.projectId" disabled />
+        </el-form-item>
         <el-form-item :label="$t('project.name')" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
@@ -123,6 +127,7 @@ const formRef = ref()
 
 const form = reactive({
   id: null,
+  projectId: '',
   name: '',
   description: '',
   projectType: '',
@@ -202,9 +207,10 @@ const handleCreate = () => {
   isEdit.value = false
   Object.assign(form, {
     id: null,
+    projectId: '',
     name: '',
     description: '',
-    projectType: '',
+    projectType: projectTypeOptions.value.length > 0 ? projectTypeOptions.value[0].code : '',
     status: 'PLANNING',
     sprintMode: 'SCRUM',
     ownerId: null
@@ -216,6 +222,7 @@ const handleEdit = (project) => {
   isEdit.value = true
   Object.assign(form, {
     id: project.id,
+    projectId: project.projectId,
     name: project.name,
     description: project.description,
     projectType: project.projectType,
@@ -356,14 +363,20 @@ onMounted(() => {
 
 .project-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
   margin-bottom: 12px;
 }
 
 .project-name {
   font-size: 18px;
   font-weight: bold;
+  flex: 1;
+}
+
+.project-id {
+  font-size: 12px;
+  color: var(--theme-text-secondary, #909399);
 }
 
 .project-desc {

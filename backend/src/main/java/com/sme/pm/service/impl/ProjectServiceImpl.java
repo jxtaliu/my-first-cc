@@ -38,6 +38,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project update(Project project) {
+        // Preserve existing projectId if not provided
+        if (project.getProjectId() == null || project.getProjectId().isEmpty()) {
+            Project existing = projectMapper.findById(project.getId());
+            if (existing != null) {
+                project.setProjectId(existing.getProjectId());
+            }
+        }
         projectMapper.updateById(project);
         return project;
     }
