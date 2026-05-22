@@ -10,19 +10,109 @@ USE sme_pm;
 -- 第一部分: 系统基础数据
 -- =============================================================================
 
--- Insert default roles
-INSERT IGNORE INTO sys_role (role_id, name, description) VALUES
-('ROLE_001', 'Super Admin', 'Full system access'),
-('ROLE_002', 'Department Admin', 'Department level access'),
-('ROLE_003', 'Project Admin', 'Project level access'),
-('ROLE_004', 'Member', 'Basic member access');
+-- =============================================================================
+-- 系统角色 (TRUNCATE后重新插入)
+-- =============================================================================
+TRUNCATE TABLE sys_role;
 
--- Insert default admin user (password: admin123)
-INSERT IGNORE INTO sys_user (user_id, username, password, email, real_name) VALUES
-('USR_001', 'admin', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'admin@example.com', 'Admin');
+INSERT INTO sys_role (role_id, name, description) VALUES
+('ROLE_SUPER_ADMIN', 'Super Admin', '系统最高权限'),
+('ROLE_DEPT_ADMIN', 'Dept Admin', '部门管理员 - 管理部门用户和资源'),
+('ROLE_PM', 'Project Manager', '项目经理 - 管理项目全生命周期'),
+('ROLE_DEV_LEAD', 'Dev Lead', '开发组长 - 技术负责人'),
+('ROLE_DEVELOPER', 'Developer', '开发人员 - 执行任务'),
+('ROLE_TESTER', 'Tester', '测试工程师 - 测试验证'),
+('ROLE_GUEST', 'Guest', '访客 - 只读访问');
 
--- Assign SUPER_ADMIN role to admin user
-INSERT IGNORE INTO sys_user_role (user_id, role_id) VALUES (1, 1);
+-- =============================================================================
+-- 部门数据 (8个部门)
+-- =============================================================================
+TRUNCATE TABLE sys_department;
+
+INSERT INTO sys_department (department_id, name, parent_id, sort_order, status) VALUES
+('DEPT001', '技术部', NULL, 1, 1),
+('DEPT002', '产品部', NULL, 2, 1),
+('DEPT003', '设计部', NULL, 3, 1),
+('DEPT004', '市场部', NULL, 4, 1),
+('DEPT005', '行政部', NULL, 5, 1),
+('DEPT006', '开发组', 1, 11, 1),
+('DEPT007', '测试组', 1, 12, 1),
+('DEPT008', '运维组', 1, 13, 1);
+
+-- =============================================================================
+-- 用户数据 (20个用户)
+-- 密码统一为: PM123456 (BCrypt加密后的值)
+-- 注意: department_id 使用数字ID (部门表的自增ID)
+-- =============================================================================
+TRUNCATE TABLE sys_user;
+
+INSERT INTO sys_user (user_id, username, password, email, real_name, status, department_id) VALUES
+-- 超级管理员
+('USR001', 'admin', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'admin@company.com', '系统管理员', 1, NULL),
+
+-- 技术部 (id=1)
+('USR002', 'zhangwei', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'zhang.wei@company.com', '张伟', 1, 1),
+('USR003', 'lina', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'li.na@company.com', '李娜', 1, 1),
+
+-- 开发组 (id=6)
+('USR004', 'wangfang', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'wang.fang@company.com', '王芳', 1, 6),
+('USR005', 'zhaoming', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'zhao.ming@company.com', '赵明', 1, 6),
+('USR006', 'sunhui', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'sun.hui@company.com', '孙辉', 1, 6),
+('USR007', 'zhoujing', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'zhou.jing@company.com', '周静', 1, 6),
+
+-- 测试组 (id=7)
+('USR008', 'wuyong', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'wu.yong@company.com', '吴勇', 1, 7),
+('USR009', 'zhengli', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'zheng.li@company.com', '郑丽', 1, 7),
+('USR010', 'chenhao', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'chen.hao@company.com', '陈浩', 1, 7),
+
+-- 运维组 (id=8)
+('USR011', 'liuqy', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'liu.qy@company.com', '刘强', 1, 8),
+
+-- 产品部 (id=2)
+('USR012', 'xiaoli', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'xiao.li@company.com', '肖丽', 1, 2),
+('USR013', 'huangbp', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'huang.bp@company.com', '黄宝平', 1, 2),
+('USR014', 'guxf', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'gu.xf@company.com', '顾晓峰', 1, 2),
+
+-- 设计部 (id=3)
+('USR015', 'liuyt', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'liu.yt@company.com', '刘雨婷', 1, 3),
+('USR016', 'mayan', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'ma.yan@company.com', '马艳', 1, 3),
+
+-- 市场部 (id=4)
+('USR017', 'zhangss', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'zhang.ss@company.com', '张姗姗', 1, 4),
+('USR018', 'lidong', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'li.dong@company.com', '李东', 1, 4),
+
+-- 行政部 (id=5)
+('USR019', 'wangxy', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'wang.xy@company.com', '王晓燕', 1, 5),
+('USR020', 'zhaoyy', '$2b$10$1QOu23c6LRlOVbyHtd6QJexktUnaUuhC8Pq2HOy1X0WSD0pNC7.DG', 'zhao.yy@company.com', '赵圆圆', 1, 5);
+
+-- =============================================================================
+-- 用户角色分配
+-- =============================================================================
+TRUNCATE TABLE sys_user_role;
+
+-- 管理员 -> 超级管理员
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r WHERE u.username = 'admin' AND r.role_id = 'ROLE_SUPER_ADMIN';
+
+-- 技术部经理 -> 部门管理员
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r WHERE u.username = 'zhangwei' AND r.role_id = 'ROLE_DEPT_ADMIN';
+
+-- 产品部经理 -> 项目经理
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r WHERE u.username = 'xiaoli' AND r.role_id = 'ROLE_PM';
+
+-- 开发组长
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r WHERE u.username = 'zhaoming' AND r.role_id = 'ROLE_DEV_LEAD';
+
+-- 开发人员
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r WHERE u.username IN ('wangfang', 'sunhui', 'zhoujing') AND r.role_id = 'ROLE_DEVELOPER';
+
+-- 测试工程师
+INSERT INTO sys_user_role (user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r WHERE u.username IN ('wuyong', 'zhengli', 'chenhao') AND r.role_id = 'ROLE_TESTER';
 
 -- Insert dictionary types (基础)
 INSERT IGNORE INTO sys_dict_type (code, name, description) VALUES
