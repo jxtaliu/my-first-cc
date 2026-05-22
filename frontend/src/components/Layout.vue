@@ -7,26 +7,78 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>{{ $t('nav.dashboard') }}</span>
         </el-menu-item>
-        <el-menu-item index="/projects">
-          <el-icon><Folder /></el-icon>
-          <span>{{ $t('nav.projects') }}</span>
-        </el-menu-item>
-        <el-menu-item index="/projects/my-board">
-          <el-icon><Grid /></el-icon>
-          <span>{{ $t('nav.myBoard') }}</span>
-        </el-menu-item>
-        <el-menu-item index="/projects/sprint-board/:id">
-          <el-icon><Timer /></el-icon>
-          <span>{{ $t('nav.sprintBoard') }}</span>
-        </el-menu-item>
-        <el-menu-item index="/projects/team-board">
-          <el-icon><User /></el-icon>
-          <span>{{ $t('nav.teamBoard') }}</span>
-        </el-menu-item>
-        <el-menu-item index="/projects/backlog">
-          <el-icon><List /></el-icon>
-          <span>{{ $t('nav.backlog') }}</span>
-        </el-menu-item>
+        <el-sub-menu index="/project-management">
+          <template #title>
+            <el-icon><FolderOpened /></el-icon>
+            <span>Project Management</span>
+          </template>
+          <el-menu-item-group title="My Work">
+            <el-menu-item index="/projects/my-board">
+              <el-icon><Grid /></el-icon>
+              <span>{{ $t('nav.myBoard') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/my-tasks">
+              <el-icon><List /></el-icon>
+              <span>My Tasks</span>
+            </el-menu-item>
+            <el-menu-item index="/timesheet/my">
+              <el-icon><Clock /></el-icon>
+              <span>My Timesheet</span>
+            </el-menu-item>
+          </el-menu-item-group>
+          <el-menu-item-group title="Project Overview">
+            <el-menu-item index="/projects">
+              <el-icon><Folder /></el-icon>
+              <span>{{ $t('nav.projects') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/milestones">
+              <el-icon><Flag /></el-icon>
+              <span>Milestones</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/stats">
+              <el-icon><TrendCharts /></el-icon>
+              <span>Project Stats</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/gantt">
+              <el-icon><Connection /></el-icon>
+              <span>Gantt Chart</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/backlog">
+              <el-icon><List /></el-icon>
+              <span>Backlog</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/compare">
+              <el-icon><DocumentCopy /></el-icon>
+              <span>Project Compare</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/portfolio">
+              <el-icon><TrendCharts /></el-icon>
+              <span>Portfolio</span>
+            </el-menu-item>
+          </el-menu-item-group>
+          <el-menu-item-group title="Project Settings">
+            <el-menu-item index="/projects/settings/sprint">
+              <el-icon><Timer /></el-icon>
+              <span>{{ $t('nav.sprintSettings') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/settings/status">
+              <el-icon><Grid /></el-icon>
+              <span>{{ $t('nav.statusConfig') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/settings/members">
+              <el-icon><User /></el-icon>
+              <span>{{ $t('nav.memberRoles') }}</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/settings/templates">
+              <el-icon><Document /></el-icon>
+              <span>Project Templates</span>
+            </el-menu-item>
+            <el-menu-item index="/projects/settings/notifications">
+              <el-icon><Bell /></el-icon>
+              <span>Notification Settings</span>
+            </el-menu-item>
+          </el-menu-item-group>
+        </el-sub-menu>
         <el-menu-item index="/timesheet">
           <el-icon><Clock /></el-icon>
           <span>{{ $t('nav.timesheet') }}</span>
@@ -117,7 +169,7 @@ import { useAuthStore } from '@/stores/auth'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import NotificationBell from '@/components/common/NotificationBell.vue'
-import { DataAnalysis, Folder, Grid, Timer, User, List, Clock, Bell, Setting, Key, OfficeBuilding, Document } from '@element-plus/icons-vue'
+import { DataAnalysis, Folder, FolderOpened, Flag, TrendCharts, Connection, DocumentCopy, Grid, Timer, User, List, Clock, Bell, Setting, Key, OfficeBuilding, Document } from '@element-plus/icons-vue'
 import { getUnreadCount } from '@/api/notification'
 
 const router = useRouter()
