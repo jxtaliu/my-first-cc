@@ -43,6 +43,11 @@ const routes = [
         component: () => import('@/views/project/MyBoard.vue')
       },
       {
+        path: 'projects/my-tasks',
+        name: 'MyTasks',
+        component: () => import('@/views/project/MyTasks.vue')
+      },
+      {
         path: 'projects/gantt/:id?',
         name: 'GanttView',
         component: () => import('@/views/project/GanttView.vue')
@@ -101,6 +106,16 @@ const routes = [
         path: 'projects/:id/settings/sprint',
         name: 'SprintSettings',
         component: () => import('@/views/project/Settings/SprintSettings.vue')
+      },
+      {
+        path: 'projects/settings/templates',
+        name: 'ProjectTemplates',
+        component: () => import('@/views/project/settings/ProjectTemplates.vue')
+      },
+      {
+        path: 'projects/settings/notifications',
+        name: 'NotificationSettings',
+        component: () => import('@/views/project/settings/NotificationSettings.vue')
       },
       {
         path: 'timesheet',
