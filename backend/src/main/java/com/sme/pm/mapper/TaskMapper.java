@@ -18,6 +18,12 @@ public interface TaskMapper extends BaseMapper<Task> {
     @Select("SELECT * FROM task WHERE id = #{id} AND deleted = 0")
     Task findById(@Param("id") Long id);
 
+    @Select("SELECT * FROM task WHERE task_id = #{taskId} AND deleted = 0")
+    Task findByTaskId(@Param("taskId") String taskId);
+
+    @Select("SELECT COUNT(*) FROM task WHERE deleted = 0")
+    int countAll();
+
     @Select("SELECT MAX(depth) FROM task WHERE parent_id = #{parentId} AND deleted = 0")
     Integer getMaxChildDepth(@Param("parentId") Long parentId);
 

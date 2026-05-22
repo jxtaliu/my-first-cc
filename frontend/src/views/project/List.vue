@@ -10,8 +10,7 @@
 
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <el-tab-pane :label="$t('project.all')" name="all" />
-      <el-tab-pane :label="$t('project.active')" name="active" />
-      <el-tab-pane :label="$t('project.archived')" name="archived" />
+      <el-tab-pane v-for="status in statusOptions" :key="status.code" :label="locale === 'zh-CN' ? status.nameZh : status.name" :name="status.code" />
     </el-tabs>
 
     <el-row :gutter="20">
@@ -65,8 +64,8 @@
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? $t('common.edit') : $t('common.add')" width="600px">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
-        <el-form-item label="项目ID" v-if="isEdit || form.projectId">
-          <el-input v-model="form.projectId" disabled />
+        <el-form-item :label="$t('project.projectId')" prop="projectId">
+          <el-input v-model="form.projectId" :disabled="isEdit" />
         </el-form-item>
         <el-form-item :label="$t('project.name')" prop="name">
           <el-input v-model="form.name" />
@@ -137,6 +136,7 @@ const form = reactive({
 })
 
 const rules = {
+  projectId: [{ required: true, message: () => t('project.projectIdRequired') }],
   name: [{ required: true, message: () => t('project.projectNameRequired') }],
   projectType: [{ required: true, message: '请选择项目类型' }],
   sprintMode: [{ required: true, message: '请选择敏捷模式' }],
@@ -189,7 +189,7 @@ const fetchUserOptions = async () => {
 const fetchProjects = async () => {
   loading.value = true
   try {
-    const params = activeTab.value === 'archived' ? { archived: true } : {}
+    const params = activeTab.value === 'all' ? {} : { status: activeTab.value }
     const res = await getProjects(params)
     projects.value = res.data || []
   } catch (e) {

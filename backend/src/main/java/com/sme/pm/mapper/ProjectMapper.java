@@ -12,6 +12,9 @@ public interface ProjectMapper extends BaseMapper<Project> {
     @Select("SELECT * FROM project WHERE deleted = 0 ORDER BY created_at DESC")
     List<Project> findAll();
 
+    @Select("SELECT * FROM project WHERE status = #{status} AND deleted = 0 ORDER BY created_at DESC")
+    List<Project> findByStatus(@Param("status") String status);
+
     @Select("SELECT * FROM project WHERE id = #{id} AND deleted = 0")
     Project findById(@Param("id") Long id);
 

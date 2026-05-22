@@ -8,9 +8,14 @@
             <h3>{{ $t('admin.dictTypes') }}</h3>
             <span class="type-count">{{ typeList.length }}</span>
           </div>
-          <el-button type="primary" size="small" circle @click="openTypeDialog()" class="add-btn">
-            <el-icon><Plus /></el-icon>
-          </el-button>
+          <div class="header-actions">
+            <el-button type="default" size="small" circle @click="handleRefreshCache" :loading="refreshing" class="refresh-btn" :title="$t('admin.refreshCache')">
+              <el-icon><Refresh /></el-icon>
+            </el-button>
+            <el-button type="primary" size="small" circle @click="openTypeDialog()" class="add-btn">
+              <el-icon><Plus /></el-icon>
+            </el-button>
+          </div>
         </div>
         <el-scrollbar height="calc(100vh - 180px)">
           <div class="type-list">
@@ -224,12 +229,13 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Refresh } from '@element-plus/icons-vue'
 import * as dictApi from '@/api/dict'
 
 const { t } = useI18n()
 
 const loading = ref(false)
+const refreshing = ref(false)
 const typeList = ref([])
 const itemList = ref([])
 const selectedTypeId = ref(null)
@@ -525,6 +531,19 @@ const handleDeleteItem = async (item) => {
   }
 }
 
+const handleRefreshCache = async () => {
+  refreshing.value = true
+  try {
+    await dictApi.refreshDictCache()
+    ElMessage.success(t('admin.refreshCacheSuccess') || '缓存刷新成功')
+    fetchTypes()
+  } catch (e) {
+    ElMessage.error(t('admin.refreshCacheFailed') || '缓存刷新失败')
+  } finally {
+    refreshing.value = false
+  }
+}
+
 onMounted(() => {
   fetchTypes()
 })
@@ -598,6 +617,29 @@ onMounted(() => {
 .type-panel .add-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.refresh-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #DCDFE6;
+  background: #fff;
+}
+
+.refresh-btn:hover {
+  border-color: #409EFF;
+  color: #409EFF;
+}
+
+.refresh-btn.is-loading {
+  border-color: #409EFF;
+  color: #409EFF;
 }
 
 .type-list {

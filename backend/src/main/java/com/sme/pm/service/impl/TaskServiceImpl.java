@@ -48,6 +48,18 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task create(Task task) {
+        // Generate task_id if not provided
+        if (task.getTaskId() == null || task.getTaskId().isEmpty()) {
+            int count = taskMapper.countAll();
+            task.setTaskId(String.format("TSK%03d", count + 1));
+        } else {
+            // Check for duplicate task_id
+            Task existing = taskMapper.findByTaskId(task.getTaskId());
+            if (existing != null) {
+                throw new IllegalArgumentException("任务ID已存在: " + task.getTaskId());
+            }
+        }
+
         if (task.getParentId() != null) {
             Task parent = taskMapper.findById(task.getParentId());
             if (parent != null) {

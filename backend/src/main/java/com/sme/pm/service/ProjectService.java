@@ -11,6 +11,7 @@ public interface ProjectService {
     void delete(Long id);
     Project getById(Long id);
     List<Project> list();
+    List<Project> listByStatus(String status);
     void archive(Long id);
     void restore(Long id);
     void addMember(String projectId, Long userId);

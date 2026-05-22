@@ -6,7 +6,7 @@
           <el-icon><ArrowLeft /></el-icon>
         </el-button>
         <h2>{{ project.name }}</h2>
-        <el-tag :type="project.type === 'SCRUM' ? 'success' : 'warning'">{{ project.type }}</el-tag>
+        <el-tag :type="project.sprintMode === 'SCRUM' ? 'success' : 'warning'">{{ project.sprintMode === 'SCRUM' ? $t('project.scrum') : $t('project.kanban') }}</el-tag>
       </div>
       <div class="header-right">
         <el-button @click="handleSettings">{{ $t('common.settings') }}</el-button>
@@ -14,14 +14,14 @@
     </div>
 
     <el-tabs v-model="activeTab" class="detail-tabs">
-      <el-tab-pane label="Board" name="board">
+      <el-tab-pane name="board">
         <template #label>
-          <span><el-icon><Grid /></el-icon> Board</span>
+          <span><el-icon><Grid /></el-icon> {{ $t('project.board') }}</span>
         </template>
         <div class="kanban-board">
           <div v-for="status in taskStatuses" :key="status.value" class="kanban-column">
             <div class="column-header">
-              <span class="column-title">{{ status.label }}</span>
+              <span class="column-title">{{ locale === 'zh-CN' ? status.nameZh : status.name }}</span>
               <el-badge :value="getTasksByStatus(status).length" type="info" />
             </div>
             <div
@@ -38,7 +38,10 @@
                 @click="openTaskDetail(task)"
               >
                 <div class="task-priority" :class="'priority-' + task.priority"></div>
-                <div class="task-title">{{ task.title }}</div>
+                <div class="task-header">
+                  <span class="task-id">{{ task.taskId }}</span>
+                  <span class="task-title">{{ task.title }}</span>
+                </div>
                 <div class="task-meta">
                   <el-tag v-if="task.sprintId" size="small" type="info">
                     {{ getSprintName(task.sprintId) }}
@@ -50,21 +53,21 @@
               </div>
               <div class="add-task-btn" @click="handleAddTask(status)">
                 <el-icon><Plus /></el-icon>
-                Add Task
+                {{ $t('project.addTask') }}
               </div>
             </div>
           </div>
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="Sprints" name="sprints" v-if="project.type === 'SCRUM'">
+      <el-tab-pane name="sprints" v-if="project.sprintMode === 'SCRUM'">
         <template #label>
-          <span><el-icon><Timer /></el-icon> Sprints</span>
+          <span><el-icon><Timer /></el-icon> {{ $t('project.sprints') }}</span>
         </template>
         <div class="sprints-view">
           <div class="sprints-header">
-            <el-button type="primary" @click="showSprintDialog = true">
-              <el-icon><Plus /></el-icon> Create Sprint
+            <el-button type="primary" @click="sprintDialogVisible = true">
+              <el-icon><Plus /></el-icon> {{ $t('project.createSprint') }}
             </el-button>
           </div>
           <el-timeline>
@@ -78,14 +81,14 @@
                 <div class="sprint-header">
                   <h4>{{ sprint.name }}</h4>
                   <el-tag :type="sprint.status === 'ACTIVE' ? 'success' : 'info'" size="small">
-                    {{ sprint.status }}
+                    {{ getSprintStatusLabel(sprint.status) }}
                   </el-tag>
                 </div>
                 <p class="sprint-dates">
                   {{ formatDate(sprint.startDate) }} - {{ formatDate(sprint.endDate) }}
                 </p>
                 <div class="sprint-stats">
-                  <span>{{ sprint.completedTasks || 0 }}/{{ sprint.totalTasks || 0 }} tasks completed</span>
+                  <span>{{ sprint.completedTasks || 0 }}/{{ sprint.totalTasks || 0 }} {{ $t('project.tasks') }}</span>
                 </div>
               </div>
             </el-timeline-item>
@@ -93,30 +96,30 @@
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="Members" name="members">
+      <el-tab-pane name="members">
         <template #label>
-          <span><el-icon><User /></el-icon> Members</span>
+          <span><el-icon><User /></el-icon> {{ $t('project.members') }}</span>
         </template>
         <div class="members-view">
           <div class="members-header">
             <el-button type="primary" @click="showMemberDialog = true">
-              <el-icon><Plus /></el-icon> Add Member
+              <el-icon><Plus /></el-icon> {{ $t('project.addMember') }}
             </el-button>
           </div>
           <el-table :data="members" style="width: 100%">
-            <el-table-column prop="username" label="Username" />
-            <el-table-column prop="email" label="Email" />
-            <el-table-column prop="role" label="Role">
+            <el-table-column prop="username" :label="$t('project.username')" />
+            <el-table-column prop="email" :label="$t('project.email')" />
+            <el-table-column prop="role" :label="$t('project.role')">
               <template #default="{ row }">
                 <el-select v-model="row.role" @change="handleRoleChange(row)">
-                  <el-option label="Admin" value="ADMIN" />
-                  <el-option label="Member" value="MEMBER" />
+                  <el-option :label="$t('project.admin')" value="ADMIN" />
+                  <el-option :label="$t('project.member')" value="MEMBER" />
                 </el-select>
               </template>
             </el-table-column>
-            <el-table-column label="Actions" width="100">
+            <el-table-column :label="$t('project.actions')" width="100">
               <template #default="{ row }">
-                <el-button text type="danger" @click="handleRemoveMember(row)">Remove</el-button>
+                <el-button text type="danger" @click="handleRemoveMember(row)">{{ $t('project.remove') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -124,37 +127,40 @@
       </el-tab-pane>
     </el-tabs>
 
-    <el-dialog v-model="taskDialogVisible" :title="editingTask?.id ? 'Edit Task' : 'New Task'" width="600px">
+    <el-dialog v-model="taskDialogVisible" :title="editingTask?.id ? $t('project.editTask') : $t('project.newTask')" width="600px">
       <el-form :model="taskForm" :rules="taskRules" ref="taskFormRef" label-width="100px">
-        <el-form-item label="Title" prop="title">
+        <el-form-item :label="$t('project.taskId')" prop="taskId">
+          <el-input v-model="taskForm.taskId" :disabled="!!editingTask?.id" />
+        </el-form-item>
+        <el-form-item :label="$t('project.title')" prop="title">
           <el-input v-model="taskForm.title" />
         </el-form-item>
-        <el-form-item label="Description" prop="description">
+        <el-form-item :label="$t('project.description')" prop="description">
           <el-input v-model="taskForm.description" type="textarea" :rows="4" />
         </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="Priority" prop="priority">
+            <el-form-item :label="$t('project.priority')" prop="priority">
               <el-select v-model="taskForm.priority">
-                <el-option label="Low" value="LOW" />
-                <el-option label="Medium" value="MEDIUM" />
-                <el-option label="High" value="HIGH" />
-                <el-option label="Urgent" value="URGENT" />
+                <el-option :label="$t('project.low')" value="LOW" />
+                <el-option :label="$t('project.medium')" value="MEDIUM" />
+                <el-option :label="$t('project.high')" value="HIGH" />
+                <el-option :label="$t('project.urgent')" value="URGENT" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="Status" prop="status">
+            <el-form-item :label="$t('project.status')" prop="status">
               <el-select v-model="taskForm.status">
-                <el-option v-for="s in taskStatuses" :key="s.value" :label="s.label" :value="s.value" />
+                <el-option v-for="s in taskStatuses" :key="s.value" :label="locale === 'zh-CN' ? s.nameZh : s.name" :value="s.value" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row :gutter="20" v-if="project.type === 'SCRUM'">
+        <el-row :gutter="20" v-if="project.sprintMode === 'SCRUM'">
           <el-col :span="12">
-            <el-form-item label="Sprint" prop="sprintId">
-              <el-select v-model="taskForm.sprintId" placeholder="Select sprint">
+            <el-form-item :label="$t('project.sprint')" prop="sprintId">
+              <el-select v-model="taskForm.sprintId" :placeholder="$t('project.selectSprint')">
                 <el-option v-for="s in sprints" :key="s.id" :label="s.name" :value="s.id" />
               </el-select>
             </el-form-item>
@@ -162,8 +168,8 @@
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="Assignee" prop="assigneeId">
-              <el-select v-model="taskForm.assigneeId" placeholder="Select assignee">
+            <el-form-item :label="$t('project.assignee')" prop="assigneeId">
+              <el-select v-model="taskForm.assigneeId" :placeholder="$t('project.selectAssignee')">
                 <el-option v-for="m in members" :key="m.id" :label="m.username" :value="m.id" />
               </el-select>
             </el-form-item>
@@ -176,18 +182,18 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="sprintDialogVisible" title="Create Sprint" width="500px">
+    <el-dialog v-model="sprintDialogVisible" :title="$t('project.createSprint')" width="500px">
       <el-form :model="sprintForm" :rules="sprintRules" ref="sprintFormRef" label-width="100px">
-        <el-form-item label="Name" prop="name">
+        <el-form-item :label="$t('project.name')" prop="name">
           <el-input v-model="sprintForm.name" />
         </el-form-item>
-        <el-form-item label="Start Date" prop="startDate">
+        <el-form-item :label="$t('project.startDate')" prop="startDate">
           <el-date-picker v-model="sprintForm.startDate" type="date" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="End Date" prop="endDate">
+        <el-form-item :label="$t('project.endDate')" prop="endDate">
           <el-date-picker v-model="sprintForm.endDate" type="date" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="Goal" prop="goal">
+        <el-form-item :label="$t('project.goal')" prop="goal">
           <el-input v-model="sprintForm.goal" type="textarea" :rows="3" />
         </el-form-item>
       </el-form>
@@ -200,15 +206,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Grid, Timer, User, Plus } from '@element-plus/icons-vue'
 import { getProject, getSprints, createSprint } from '@/api/project'
 import { getTasksByProject, createTask, updateTask, moveTask } from '@/api/task'
+import request from '@/api/request'
 
 const router = useRouter()
 const route = useRoute()
+const { t, locale } = useI18n()
 
 const project = ref({})
 const tasks = ref([])
@@ -220,15 +229,10 @@ const sprintDialogVisible = ref(false)
 const showMemberDialog = ref(false)
 const editingTask = ref(null)
 const draggedTask = ref(null)
-
-const taskStatuses = [
-  { label: 'Todo', value: 1 },
-  { label: 'In Progress', value: 2 },
-  { label: 'In Review', value: 3 },
-  { label: 'Done', value: 4 }
-]
+const taskStatuses = ref([])
 
 const taskForm = reactive({
+  taskId: '',
   title: '',
   description: '',
   priority: 'MEDIUM',
@@ -238,8 +242,9 @@ const taskForm = reactive({
 })
 
 const taskRules = {
-  title: [{ required: true, message: 'Title is required' }],
-  status: [{ required: true, message: 'Status is required' }]
+  taskId: [{ required: true, message: () => t('project.taskIdRequired') }],
+  title: [{ required: true, message: () => t('project.titleRequired') }],
+  status: [{ required: true, message: () => t('project.statusRequired') }]
 }
 
 const sprintForm = reactive({
@@ -250,9 +255,9 @@ const sprintForm = reactive({
 })
 
 const sprintRules = {
-  name: [{ required: true, message: 'Sprint name is required' }],
-  startDate: [{ required: true, message: 'Start date is required' }],
-  endDate: [{ required: true, message: 'End date is required' }]
+  name: [{ required: true, message: () => t('project.sprintNameRequired') }],
+  startDate: [{ required: true, message: () => t('project.startDateRequired') }],
+  endDate: [{ required: true, message: () => t('project.endDateRequired') }]
 }
 
 const taskFormRef = ref()
@@ -267,11 +272,44 @@ const getSprintName = (sprintId) => {
   return sprint?.name || ''
 }
 
+const getSprintStatusLabel = (status) => {
+  const statusMap = {
+    'PLANNING': locale.value === 'zh-CN' ? '规划中' : 'Planning',
+    'ACTIVE': locale.value === 'zh-CN' ? '进行中' : 'Active',
+    'COMPLETED': locale.value === 'zh-CN' ? '已完成' : 'Completed'
+  }
+  return statusMap[status] || status
+}
+
+const fetchTaskStatuses = async () => {
+  try {
+    const res = await request.get('/dicts/codes/task_status')
+    // Map dict codes to the format expected by frontend: { value, name, nameZh }
+    taskStatuses.value = (res.data || []).map(item => ({
+      value: item.sortOrder || 1,
+      code: item.code,
+      name: item.name,
+      nameZh: item.nameZh || item.name
+    }))
+  } catch (e) {
+    // Fallback to default statuses
+    taskStatuses.value = [
+      { value: 1, code: 'TODO', name: 'Todo', nameZh: '待办' },
+      { value: 2, code: 'IN_PROGRESS', name: 'In Progress', nameZh: '进行中' },
+      { value: 3, code: 'IN_REVIEW', name: 'In Review', nameZh: '审核中' },
+      { value: 4, code: 'DONE', name: 'Done', nameZh: '已完成' }
+    ]
+  }
+}
+
 const fetchProject = async () => {
   try {
     const res = await getProject(route.params.id)
     project.value = res.data || {}
     members.value = res.data?.members || []
+    if (project.value.sprintMode === 'SCRUM') {
+      fetchSprints()
+    }
   } catch (e) {
     // Handle error
   }
@@ -279,7 +317,9 @@ const fetchProject = async () => {
 
 const fetchTasks = async () => {
   try {
-    const res = await getTasksByProject(route.params.id)
+    // Use project.projectId (e.g., "PRJ001") instead of route.params.id (database id)
+    const projectId = project.value.projectId || route.params.id
+    const res = await getTasksByProject(projectId)
     tasks.value = res.data || []
   } catch (e) {
     // Handle error
@@ -314,6 +354,7 @@ const handleDrop = async (newStatus) => {
 const openTaskDetail = (task) => {
   editingTask.value = task
   Object.assign(taskForm, {
+    taskId: task.taskId,
     title: task.title,
     description: task.description,
     priority: task.priority,
@@ -327,6 +368,7 @@ const openTaskDetail = (task) => {
 const handleAddTask = (status) => {
   editingTask.value = null
   Object.assign(taskForm, {
+    taskId: '',
     title: '',
     description: '',
     priority: 'MEDIUM',
@@ -344,10 +386,11 @@ const handleTaskSubmit = async () => {
   try {
     if (editingTask.value?.id) {
       await updateTask(editingTask.value.id, taskForm)
-      ElMessage.success('Task updated')
+      ElMessage.success(t('project.taskUpdated'))
     } else {
-      await createTask({ ...taskForm, projectId: route.params.id })
-      ElMessage.success('Task created')
+      // Use project.projectId (e.g., "PRJ001") instead of route.params.id (database id)
+      await createTask({ ...taskForm, projectId: project.value.projectId, type: 'STORY' })
+      ElMessage.success(t('project.taskCreated'))
     }
     taskDialogVisible.value = false
     fetchTasks()
@@ -362,7 +405,7 @@ const handleSprintSubmit = async () => {
 
   try {
     await createSprint(route.params.id, sprintForm)
-    ElMessage.success('Sprint created')
+    ElMessage.success(t('project.sprintCreated'))
     sprintDialogVisible.value = false
     fetchSprints()
   } catch (e) {
@@ -371,17 +414,15 @@ const handleSprintSubmit = async () => {
 }
 
 const handleRoleChange = async (member) => {
-  // API call to update member role
-  ElMessage.success('Role updated')
+  ElMessage.success(t('project.roleUpdated'))
 }
 
 const handleRemoveMember = async (member) => {
-  // API call to remove member
-  ElMessage.success('Member removed')
+  ElMessage.success(t('project.memberRemoved'))
 }
 
 const handleSettings = () => {
-  // Navigate to project settings
+  router.push(`/projects/${route.params.id}/settings`)
 }
 
 const formatDate = (date) => {
@@ -389,12 +430,10 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString()
 }
 
-onMounted(() => {
-  fetchProject()
+onMounted(async () => {
+  fetchTaskStatuses()
+  await fetchProject()
   fetchTasks()
-  if (project.value.type === 'SCRUM') {
-    fetchSprints()
-  }
 })
 </script>
 
@@ -489,10 +528,25 @@ onMounted(() => {
 .priority-HIGH { background: #e6a23c; }
 .priority-URGENT { background: #f56c6c; }
 
-.task-title {
-  font-weight: 500;
+.task-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
   padding-left: 8px;
+}
+
+.task-id {
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+  background: var(--theme-border);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.task-title {
+  font-weight: 500;
+  flex: 1;
 }
 
 .task-meta {

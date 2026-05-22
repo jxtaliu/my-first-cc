@@ -43,7 +43,10 @@ public class ProjectController {
     }
 
     @GetMapping
-    public Result<List<Project>> list() {
+    public Result<List<Project>> list(@RequestParam(required = false) String status) {
+        if (status != null && !status.isEmpty()) {
+            return Result.success(projectService.listByStatus(status));
+        }
         return Result.success(projectService.list());
     }
 

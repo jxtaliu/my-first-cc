@@ -22,18 +22,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project create(Project project) {
-        // Generate project_id if not set
-        if (project.getProjectId() == null || project.getProjectId().isEmpty()) {
-            String newProjectId = generateProjectId();
-            project.setProjectId(newProjectId);
+        // Check for duplicate project_id
+        Project existing = projectMapper.findByProjectId(project.getProjectId());
+        if (existing != null) {
+            throw new IllegalArgumentException("项目ID已存在: " + project.getProjectId());
         }
         projectMapper.insert(project);
         return project;
-    }
-
-    private String generateProjectId() {
-        int count = projectMapper.countAll();
-        return String.format("PRJ_%03d", count + 1);
     }
 
     @Override
@@ -63,6 +58,11 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<Project> list() {
         return projectMapper.findAll();
+    }
+
+    @Override
+    public List<Project> listByStatus(String status) {
+        return projectMapper.findByStatus(status);
     }
 
     @Override

@@ -167,3 +167,32 @@ INSERT IGNORE INTO project_template (name, description, sprint_duration, enable_
 ('敏捷开发模板', '标准的Scrum敏捷开发流程，2周Sprint', 14, 1, 'EPIC,FEATURE,STORY,TASK,BUG,SUBTASK'),
 ('看板模板', '看板模式，无固定Sprint，持续交付', 0, 1, 'EPIC,FEATURE,STORY,TASK,BUG'),
 ('简单任务模板', '无优先级，适合简单任务管理', 14, 0, 'TASK');
+
+-- =============================================================================
+-- 第四部分: 初始项目数据
+-- =============================================================================
+
+-- 先添加更多项目类型
+INSERT IGNORE INTO sys_dict_code (dict_type_id, code, name, name_en, name_zh, sort_order, extra) VALUES
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'ERP', 'ERP', 'ERP System', 'ERP系统', 3, '{"color": "#6366F1"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'MOBILE', 'Mobile', 'Mobile App', '移动应用', 4, '{"color": "#EC4899"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'DATA_ANALYTICS', 'Data Analytics', 'Data Analytics', '数据分析', 5, '{"color": "#14B8A6"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'WEB', 'Web', 'Web Application', 'Web应用', 6, '{"color": "#3B82F6"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'CRM', 'CRM', 'Customer Relationship', '客户关系管理', 7, '{"color": "#F59E0B"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'INFRASTRUCTURE', 'Infra', 'Infrastructure', '基础设施', 8, '{"color": "#8B5CF6"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'REPORTING', 'Reporting', 'Reporting System', '报表系统', 9, '{"color": "#10B981"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'DOCUMENT', 'Document', 'Document Management', '文档管理', 10, '{"color": "#64748B"}'),
+((SELECT id FROM sys_dict_type WHERE code = 'project_type'), 'INTEGRATION', 'Integration', 'System Integration', '系统集成', 11, '{"color": "#EF4444"}');
+
+-- 插入10个初始项目
+INSERT IGNORE INTO project (project_id, name, description, project_type, status, sprint_mode, owner_id, created_at) VALUES
+('PRJ001', '企业内部管理系统', '建设集团级ERP系统，整合财务、采购、库存等模块', 'ERP', 'PLANNING', 'SCRUM', 1, NOW()),
+('PRJ002', '移动端App升级项目', 'iOS/Android双平台App全新设计开发', 'MOBILE', 'PLANNING', 'KANBAN', 1, NOW()),
+('PRJ003', '数据分析平台', '构建企业级数据仓库和BI报表平台', 'DATA_ANALYTICS', 'STARTING', 'SCRUM', 1, NOW()),
+('PRJ004', '电商网站重构', '对现有电商平台进行微服务架构重构', 'WEB', 'ACTIVE', 'SCRUM', 1, NOW()),
+('PRJ005', '客户关系管理系统', '全新CRM系统，支持销售流程和客户跟进', 'CRM', 'ACTIVE', 'KANBAN', 1, NOW()),
+('PRJ006', '自动化测试框架', '搭建CI/CD自动化测试体系', 'INFRASTRUCTURE', 'ACTIVE', 'SCRUM', 1, NOW()),
+('PRJ007', '财务报表系统', '月度季度财务报表自动生成系统', 'REPORTING', 'COMPLETED', 'SCRUM', 1, NOW()),
+('PRJ008', '文档管理系统', '企业级文档存储、检索、权限管理', 'DOCUMENT', 'COMPLETED', 'KANBAN', 1, NOW()),
+('PRJ009', '第三方支付集成', '对接支付宝、微信支付、银联', 'INTEGRATION', 'PAUSED', 'SCRUM', 1, NOW()),
+('PRJ010', '旧官网改版', '企业官网全新设计改版项目', 'WEB', 'ARCHIVED', 'KANBAN', 1, NOW());

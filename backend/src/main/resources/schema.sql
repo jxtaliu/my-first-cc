@@ -160,13 +160,14 @@ CREATE TABLE IF NOT EXISTS sprint (
 -- Task table with hierarchy (enhanced with PM fields)
 CREATE TABLE IF NOT EXISTS task (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    task_id VARCHAR(50) NOT NULL UNIQUE COMMENT 'Business key, e.g., TSK001',
     project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id, for fast query',
     sprint_id BIGINT,
     parent_id BIGINT,
     depth TINYINT DEFAULT 1 COMMENT '1-4, max 4 levels',
     title VARCHAR(500) NOT NULL,
     description TEXT,
-    type TINYINT NOT NULL COMMENT '1: epic, 2: feature, 3: story, 4: sub-task',
+    type VARCHAR(50) NOT NULL DEFAULT 'STORY' COMMENT 'EPIC/FEATURE/STORY/TASK/BUG/SUBTASK - from sys_dict_code',
     status TINYINT DEFAULT 1 COMMENT '1: todo, 2: in_progress, 3: done',
     priority VARCHAR(20) DEFAULT 'P2' COMMENT 'P0/P1/P2/P3',
     assignee_id BIGINT,
@@ -189,7 +190,8 @@ CREATE TABLE IF NOT EXISTS task (
     INDEX idx_assignee (assignee_id),
     INDEX idx_status (status),
     INDEX idx_priority (priority),
-    INDEX idx_milestone (milestone_id)
+    INDEX idx_milestone (milestone_id),
+    INDEX idx_task_id (task_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Timesheet table

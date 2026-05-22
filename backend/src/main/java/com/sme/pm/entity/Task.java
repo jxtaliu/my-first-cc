@@ -11,6 +11,8 @@ public class Task {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    private String taskId;  // Business key, e.g., TSK001
+
     private String projectId;  // References project.project_id, for fast query
 
     private Long sprintId;
@@ -23,7 +25,7 @@ public class Task {
 
     private String description;
 
-    private Integer type;  // 1: epic, 2: feature, 3: story, 4: sub-task
+    private String type;  // EPIC/FEATURE/STORY/TASK/BUG/SUBTASK - from sys_dict_code TASK_TYPE_PM
 
     private Integer status;  // References task_status table
 
