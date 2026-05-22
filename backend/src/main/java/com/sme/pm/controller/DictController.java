@@ -24,12 +24,12 @@ public class DictController {
         return Result.success(dictService.getAllTypes());
     }
 
-    @GetMapping("/{type}")
+    @GetMapping("/codes/{type}")
     public Result<List<DictCodeDTO>> getCodesByType(@PathVariable String type) {
         return Result.success(dictService.getCodesByType(type));
     }
 
-    @GetMapping("/{type}/{code}")
+    @GetMapping("/codes/{type}/{code}")
     public Result<DictCodeDTO> getCode(@PathVariable String type, @PathVariable String code) {
         DictCodeDTO dictCode = dictService.getCode(type, code);
         if (dictCode == null) {

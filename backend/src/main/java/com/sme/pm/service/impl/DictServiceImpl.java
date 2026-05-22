@@ -98,8 +98,15 @@ public class DictServiceImpl implements DictService {
 
     @Override
     public DictType updateType(DictType dictType) {
+        // Get existing code if not provided
+        if (dictType.getCode() == null || dictType.getCode().isEmpty()) {
+            DictType existing = dictTypeMapper.selectById(dictType.getId());
+            if (existing != null) {
+                dictType.setCode(existing.getCode());
+            }
+        }
         dictTypeMapper.updateDictType(dictType);
-        clearTypeCache(dictTypeMapper.selectById(dictType.getId()).getCode());
+        clearTypeCache(dictType.getCode());
         return dictType;
     }
 

@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.*;
 public interface DictTypeMapper extends BaseMapper<DictType> {
 
     @Update("<script>" +
-            "UPDATE sys_dict_type SET code = #{code}, name = #{name}, description = #{description} " +
+            "UPDATE sys_dict_type SET code = COALESCE(#{code}, code), name = #{name}, description = #{description} " +
             "WHERE id = #{id}" +
             "</script>")
     int updateDictType(DictType dictType);

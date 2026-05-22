@@ -83,7 +83,7 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     @Override
     public List<Timesheet> listByUser(Long userId) {
-        return timesheetMapper.selectList(null);
+        return timesheetMapper.findByUserId(userId);
     }
 
     @Override

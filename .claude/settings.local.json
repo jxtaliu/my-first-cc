@@ -1,7 +1,11 @@
 {
+  "attribution": {
+    "commit": ""
+  },
   "permissions": {
     "allow": [
       "Agent",
+      "Attribution",
       "Bash(git init *)",
       "Bash(gh auth *)",
       "Bash(git add *)",
@@ -55,7 +59,51 @@
       "Bash(npm test *)",
       "Bash(apt-get update *)",
       "Bash(tar -xzf maven.tar.gz)",
-      "Bash(wget -q https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -O maven.tar.gz)"
-    ]
+      "Bash(wget -q https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -O maven.tar.gz)",
+      "Bash(sudo rm *)",
+      "Bash(chmod -R 777 /home/jxtal/workspace/my-first-cc/backend/target)",
+      "Bash(npm run *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(./mvnw compile *)",
+      "Bash(sudo apt-get install -y -qq openjdk-17-jdk)",
+      "Bash(/home/jxtal/workspace/my-first-cc/backend/mvnw compile *)",
+      "Bash(chmod +x /home/jxtal/workspace/my-first-cc/backend/build-docker.sh)",
+      "Bash(/home/jxtal/workspace/my-first-cc/backend/build-docker.sh compile *)",
+      "Bash(/home/jxtal/workspace/my-first-cc/backend/build-docker.sh test *)",
+      "Bash(sudo update-alternatives *)",
+      "Bash(export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64)",
+      "Bash(/usr/lib/jvm/java-17-openjdk-amd64/bin/java -version)",
+      "Bash(bash *)",
+      "Bash(git *)",
+      "Skill(update-config)",
+      "Bash(chmod +x build-docker.sh)",
+      "Bash(./build-docker.sh compile *)",
+      "Bash(./build-docker.sh clean *)",
+      "Bash(echo \"Auth: 登录=$\\(curl -s -X POST http://localhost:8080/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(sudo chmod -R 777 /home/jxtal/workspace/my-first-cc/backend/target)",
+      "Bash(npx playwright *)",
+      "Bash(docker compose *)",
+      "Bash(docker-compose ps *)",
+      "Bash(sudo apt-get install -y chromium)",
+      "Bash(sudo *)",
+      "Bash(wget -q https://github.com/mbuzip/unzip/releases/download/6.0/unzip-6.0.x86_64.tar.gz)",
+      "Bash(busybox --list)",
+      "Bash(node -e \"const p = require\\('puppeteer'\\); console.log\\(p.defaultViewport\\)\")",
+      "Bash(mkdir -p /tmp/chromium_download)",
+      "Bash(node -e \"console.log\\(require\\('puppeteer'\\).executablePath\\(\\)\\)\")",
+      "Bash(PUPPETEER_SKIP_DOWNLOAD=true npm install puppeteer)",
+      "Bash(python3)",
+      "Bash(wget -q \"https://src.fedoraproject.org/repo/pkgs/unzip/unix/unzip-6.0.tar.gz\" -O unzip.tar.gz)",
+      "Bash(ls -la unzip.tar.gz)",
+      "Bash(npm pack *)",
+      "Bash(unzip --version)",
+      "Bash(chmod +x /tmp/chromium/chrome-linux64/chrome)",
+      "Bash(chmod -R 755 /tmp/chromium)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(fuser -k 3000/tcp)",
+      "Bash(fuser -k 3001/tcp)",
+      "Bash(netstat -tlnp)"
+    ],
+    "defaultMode": "acceptEdits"
   }
 }

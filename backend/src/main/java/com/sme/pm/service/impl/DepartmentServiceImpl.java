@@ -60,6 +60,11 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public Department create(Department department) {
+        // Generate next departmentId (e.g., DEPT001, DEPT002, ...)
+        Long maxId = departmentMapper.getMaxDepartmentIdNumber();
+        String departmentId = String.format("DEPT%03d", maxId + 1);
+        department.setDepartmentId(departmentId);
+
         departmentMapper.insert(department);
         return department;
     }
@@ -67,13 +72,23 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public Department update(Department department) {
         LambdaUpdateWrapper<Department> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(Department::getId, department.getId())
-               .set(Department::getDepartmentId, department.getDepartmentId())
-               .set(Department::getName, department.getName())
-               .set(Department::getParentId, department.getParentId())
-               .set(Department::getSortOrder, department.getSortOrder())
-               .set(Department::getStatus, department.getStatus());
-        departmentMapper.update(department, wrapper);
+        wrapper.eq(Department::getId, department.getId());
+        if (department.getDepartmentId() != null) {
+            wrapper.set(Department::getDepartmentId, department.getDepartmentId());
+        }
+        if (department.getName() != null) {
+            wrapper.set(Department::getName, department.getName());
+        }
+        if (department.getParentId() != null) {
+            wrapper.set(Department::getParentId, department.getParentId());
+        }
+        if (department.getSortOrder() != null) {
+            wrapper.set(Department::getSortOrder, department.getSortOrder());
+        }
+        if (department.getStatus() != null) {
+            wrapper.set(Department::getStatus, department.getStatus());
+        }
+        departmentMapper.update(null, wrapper);
         return department;
     }
 

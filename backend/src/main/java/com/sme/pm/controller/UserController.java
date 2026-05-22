@@ -88,6 +88,12 @@ public class UserController {
         return Result.success();
     }
 
+    @DeleteMapping("/{id}/department")
+    public Result<Void> removeDepartment(@PathVariable Long id) {
+        userService.assignDepartment(id, null);
+        return Result.success();
+    }
+
     @DeleteMapping("/{id}")
     public Result<Void> deleteUser(@PathVariable Long id) {
         userMapper.deleteUserRolesByUserId(id);

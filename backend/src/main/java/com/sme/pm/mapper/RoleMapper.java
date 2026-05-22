@@ -26,4 +26,7 @@ public interface RoleMapper extends BaseMapper<Role> {
 
     @Delete("DELETE FROM sys_role WHERE id = #{id}")
     void physicalDeleteById(@Param("id") Long id);
+
+    @Select("SELECT COALESCE(MAX(CAST(SUBSTRING(role_id, 6) AS UNSIGNED)), 0) FROM sys_role WHERE role_id LIKE 'ROLE_%'")
+    Long getMaxRoleIdNumber();
 }

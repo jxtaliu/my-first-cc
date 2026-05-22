@@ -33,4 +33,7 @@ public interface DepartmentMapper extends BaseMapper<Department> {
 
     @Delete("DELETE FROM sys_department WHERE id = #{id}")
     void physicalDeleteById(@Param("id") Long id);
+
+    @Select("SELECT COALESCE(MAX(CAST(SUBSTRING(department_id, 5) AS UNSIGNED)), 0) FROM sys_department WHERE department_id LIKE 'DEPT%'")
+    Long getMaxDepartmentIdNumber();
 }

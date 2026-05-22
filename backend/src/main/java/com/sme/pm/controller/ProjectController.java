@@ -65,8 +65,10 @@ public class ProjectController {
     }
 
     @PostMapping("/{projectId}/members")
-    public Result<Void> addMember(@PathVariable Long projectId, @RequestBody Object member) {
-        projectService.addMember(projectId, (Long) ((Map<?, ?>) member).get("userId"));
+    public Result<Void> addMember(@PathVariable Long projectId, @RequestBody Map<String, Object> member) {
+        Object userIdObj = member.get("userId");
+        Long userId = (userIdObj instanceof Number) ? ((Number) userIdObj).longValue() : Long.parseLong(userIdObj.toString());
+        projectService.addMember(projectId, userId);
         return Result.success();
     }
 

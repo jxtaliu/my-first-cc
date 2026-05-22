@@ -34,6 +34,11 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role create(Role role) {
+        // Generate next roleId (e.g., ROLE_001, ROLE_002, ...)
+        Long maxId = roleMapper.getMaxRoleIdNumber();
+        String roleId = String.format("ROLE_%03d", maxId + 1);
+        role.setRoleId(roleId);
+
         roleMapper.insert(role);
         return role;
     }
@@ -41,12 +46,20 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Role update(Role role) {
         LambdaUpdateWrapper<Role> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(Role::getId, role.getId())
-               .set(Role::getRoleId, role.getRoleId())
-               .set(Role::getName, role.getName())
-               .set(Role::getDescription, role.getDescription())
-               .set(Role::getStatus, role.getStatus());
-        roleMapper.update(role, wrapper);
+        wrapper.eq(Role::getId, role.getId());
+        if (role.getRoleId() != null) {
+            wrapper.set(Role::getRoleId, role.getRoleId());
+        }
+        if (role.getName() != null) {
+            wrapper.set(Role::getName, role.getName());
+        }
+        if (role.getDescription() != null) {
+            wrapper.set(Role::getDescription, role.getDescription());
+        }
+        if (role.getStatus() != null) {
+            wrapper.set(Role::getStatus, role.getStatus());
+        }
+        roleMapper.update(null, wrapper);
         return role;
     }
 

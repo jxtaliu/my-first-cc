@@ -31,4 +31,7 @@ public interface UserMapper extends BaseMapper<User> {
 
     @Delete("DELETE FROM sys_user WHERE id = #{id}")
     void physicalDeleteById(@Param("id") Long id);
+
+    @Select("SELECT COALESCE(MAX(CAST(SUBSTRING(user_id, 5) AS UNSIGNED)), 0) FROM sys_user WHERE user_id LIKE 'USR_%'")
+    Long getMaxUserIdNumber();
 }

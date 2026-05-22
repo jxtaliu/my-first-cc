@@ -26,4 +26,7 @@ public interface TimesheetMapper extends BaseMapper<Timesheet> {
 
     @Select("SELECT * FROM timesheet WHERE project_id = #{projectId} AND approval_status = 1 AND deleted = 0 ORDER BY created_at DESC")
     List<Timesheet> findPendingByProject(@Param("projectId") Long projectId);
+
+    @Select("SELECT * FROM timesheet WHERE user_id = #{userId} AND deleted = 0 ORDER BY work_date DESC")
+    List<Timesheet> findByUserId(@Param("userId") Long userId);
 }

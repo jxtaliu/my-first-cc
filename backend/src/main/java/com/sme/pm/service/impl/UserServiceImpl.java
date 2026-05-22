@@ -45,6 +45,11 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Username already exists");
         }
 
+        // Generate next userId (e.g., USR_001, USR_002, ...)
+        Long maxId = userMapper.getMaxUserIdNumber();
+        String userId = String.format("USR_%03d", maxId + 1);
+        user.setUserId(userId);
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userMapper.insert(user);
         return user;
