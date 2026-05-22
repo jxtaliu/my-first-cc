@@ -1,0 +1,96 @@
+/* 项目管理模块 CSS 变量 */
+/* Industrial Precision Design System */
+
+:root {
+  /* Primary Colors */
+  --pm-primary: #1E3A5F;
+  --pm-primary-light: #2D5A87;
+  --pm-primary-dark: #152A45;
+
+  /* Accent Colors */
+  --pm-accent: #00D4AA;
+  --pm-accent-light: #33DDBB;
+  --pm-accent-dark: #00B894;
+
+  /* Status Colors */
+  --pm-status-todo: #94A3B8;
+  --pm-status-in-progress: #3B82F6;
+  --pm-status-development: #8B5CF6;
+  --pm-status-review: #F59E0B;
+  --pm-status-testing: #F59E0B;
+  --pm-status-done: #10B981;
+  --pm-status-blocked: #EF4444;
+
+  /* Priority Colors */
+  --pm-priority-p0: #EF4444;
+  --pm-priority-p1: #F97316;
+  --pm-priority-p2: #FBBF24;
+  --pm-priority-p3: #6B7280;
+
+  /* Project Status Colors */
+  --pm-project-planning: #94A3B8;
+  --pm-project-starting: #3B82F6;
+  --pm-project-active: #10B981;
+  --pm-project-completed: #8B5CF6;
+  --pm-project-paused: #F59E0B;
+  --pm-project-archived: #64748B;
+
+  /* Task Type Colors */
+  --pm-type-epic: #8B5CF6;
+  --pm-type-feature: #3B82F6;
+  --pm-type-story: #10B981;
+  --pm-type-task: #94A3B8;
+  --pm-type-bug: #EF4444;
+  --pm-type-subtask: #64748B;
+
+  /* Background & Surface */
+  --pm-background: #F8FAFC;
+  --pm-card: #FFFFFF;
+  --pm-border: #E2E8F0;
+  --pm-border-light: #F1F5F9;
+
+  /* Text Colors */
+  --pm-text-primary: #1E293B;
+  --pm-text-secondary: #64748B;
+  --pm-text-muted: #94A3B8;
+  --pm-text-inverse: #FFFFFF;
+
+  /* Shadows */
+  --pm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --pm-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --pm-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --pm-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --pm-shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* Border Radius */
+  --pm-radius-xs: 4px;
+  --pm-radius-sm: 6px;
+  --pm-radius-md: 8px;
+  --pm-radius-lg: 12px;
+  --pm-radius-xl: 16px;
+
+  /* Spacing */
+  --pm-space-xs: 4px;
+  --pm-space-sm: 8px;
+  --pm-space-md: 12px;
+  --pm-space-lg: 16px;
+  --pm-space-xl: 20px;
+  --pm-space-2xl: 24px;
+  --pm-space-3xl: 32px;
+
+  /* Transitions */
+  --pm-transition-fast: 150ms ease;
+  --pm-transition-normal: 200ms ease;
+  --pm-transition-slow: 300ms ease;
+
+  /* Kanban specific */
+  --pm-kanban-column-width: 320px;
+  --pm-kanban-column-min-width: 280px;
+  --pm-task-card-border-left: 4px;
+
+  /* Z-index layers */
+  --pm-z-dropdown: 100;
+  --pm-z-modal: 200;
+  --pm-z-tooltip: 300;
+  --pm-z-drag: 400;
+}

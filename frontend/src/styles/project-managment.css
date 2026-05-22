@@ -1,0 +1,678 @@
+/* 项目管理模块样式 */
+/* Industrial Precision Design System */
+
+/* ============================================
+   Typography
+   ============================================ */
+
+.pm-heading-1 {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--pm-text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.pm-heading-2 {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--pm-text-primary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.pm-heading-3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--pm-text-primary);
+  margin: 0;
+}
+
+.pm-text-body {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--pm-text-primary);
+  line-height: 1.5;
+}
+
+.pm-text-small {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--pm-text-secondary);
+}
+
+.pm-text-mono {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+  font-size: 13px;
+}
+
+/* ============================================
+   Layout
+   ============================================ */
+
+.pm-page {
+  padding: var(--pm-space-2xl);
+  background: var(--pm-background);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.pm-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--pm-space-xl);
+}
+
+.pm-page-content {
+  display: flex;
+  gap: var(--pm-space-xl);
+}
+
+.pm-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.pm-main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ============================================
+   Cards
+   ============================================ */
+
+.pm-card {
+  background: var(--pm-card);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-lg);
+  box-shadow: var(--pm-shadow-card);
+  padding: var(--pm-space-xl);
+  transition: box-shadow var(--pm-transition-normal);
+}
+
+.pm-card:hover {
+  box-shadow: var(--pm-shadow-md);
+}
+
+.pm-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--pm-space-lg);
+  padding-bottom: var(--pm-space-lg);
+  border-bottom: 1px solid var(--pm-border-light);
+}
+
+.pm-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--pm-text-primary);
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+
+.pm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pm-space-sm);
+  padding: var(--pm-space-sm) var(--pm-space-lg);
+  border-radius: var(--pm-radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--pm-transition-fast);
+  border: none;
+}
+
+.pm-btn-primary {
+  background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-light) 100%);
+  color: var(--pm-text-inverse);
+}
+
+.pm-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+}
+
+.pm-btn-accent {
+  background: linear-gradient(135deg, var(--pm-accent) 0%, var(--pm-accent-dark) 100%);
+  color: var(--pm-text-inverse);
+}
+
+.pm-btn-outline {
+  background: transparent;
+  border: 1px solid var(--pm-border);
+  color: var(--pm-text-secondary);
+}
+
+.pm-btn-outline:hover {
+  border-color: var(--pm-primary);
+  color: var(--pm-primary);
+}
+
+/* ============================================
+   Kanban Board
+   ============================================ */
+
+.pm-kanban-board {
+  display: flex;
+  gap: var(--pm-space-lg);
+  overflow-x: auto;
+  padding-bottom: var(--pm-space-lg);
+}
+
+.pm-kanban-column {
+  width: var(--pm-kanban-column-width);
+  min-width: var(--pm-kanban-column-min-width);
+  background: var(--pm-background);
+  border-radius: var(--pm-radius-lg);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 200px);
+}
+
+.pm-kanban-column-header {
+  padding: var(--pm-space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--pm-border);
+}
+
+.pm-kanban-column-title {
+  display: flex;
+  align-items: center;
+  gap: var(--pm-space-sm);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--pm-text-primary);
+}
+
+.pm-kanban-column-count {
+  background: var(--pm-border-light);
+  color: var(--pm-text-secondary);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pm-kanban-column-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--pm-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-space-md);
+}
+
+.pm-kanban-column-footer {
+  padding: var(--pm-space-md);
+  border-top: 1px solid var(--pm-border-light);
+}
+
+/* ============================================
+   Task Card
+   ============================================ */
+
+.pm-task-card {
+  background: var(--pm-card);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-md);
+  padding: var(--pm-space-lg);
+  cursor: grab;
+  transition: all var(--pm-transition-normal);
+  position: relative;
+  border-left: var(--pm-task-card-border-left) solid var(--pm-status-color, var(--pm-status-todo));
+}
+
+.pm-task-card:hover {
+  box-shadow: var(--pm-shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.pm-task-card.dragging {
+  transform: scale(1.02);
+  box-shadow: var(--pm-shadow-lg);
+  opacity: 0.95;
+  cursor: grabbing;
+}
+
+.pm-task-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pm-space-sm);
+  margin-bottom: var(--pm-space-md);
+}
+
+.pm-task-card-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--pm-text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.pm-task-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--pm-space-md);
+  padding-top: var(--pm-space-md);
+  border-top: 1px solid var(--pm-border-light);
+}
+
+.pm-task-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--pm-space-sm);
+  font-size: 12px;
+  color: var(--pm-text-muted);
+}
+
+/* Status colors for task cards */
+.pm-task-card[data-status="todo"] {
+  --pm-status-color: var(--pm-status-todo);
+}
+
+.pm-task-card[data-status="in_progress"] {
+  --pm-status-color: var(--pm-status-in-progress);
+}
+
+.pm-task-card[data-status="development"] {
+  --pm-status-color: var(--pm-status-development);
+}
+
+.pm-task-card[data-status="testing"] {
+  --pm-status-color: var(--pm-status-testing);
+}
+
+.pm-task-card[data-status="done"] {
+  --pm-status-color: var(--pm-status-done);
+}
+
+.pm-task-card[data-status="blocked"] {
+  --pm-status-color: var(--pm-status-blocked);
+}
+
+/* ============================================
+   Tags & Badges
+   ============================================ */
+
+.pm-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--pm-radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pm-tag-epic {
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--pm-type-epic);
+}
+
+.pm-tag-feature {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--pm-type-feature);
+}
+
+.pm-tag-story {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--pm-type-story);
+}
+
+.pm-tag-task {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--pm-type-task);
+}
+
+.pm-tag-bug {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--pm-type-bug);
+}
+
+/* Priority badges */
+.pm-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--pm-radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+}
+
+.pm-priority-p0 {
+  background: var(--pm-priority-p0);
+}
+
+.pm-priority-p1 {
+  background: var(--pm-priority-p1);
+}
+
+.pm-priority-p2 {
+  background: var(--pm-priority-p2);
+}
+
+.pm-priority-p3 {
+  background: var(--pm-priority-p3);
+}
+
+/* ============================================
+   Progress
+   ============================================ */
+
+.pm-progress {
+  height: 6px;
+  background: var(--pm-border-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pm-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--pm-transition-slow);
+}
+
+.pm-progress-bar.success {
+  background: linear-gradient(90deg, var(--pm-status-done), var(--pm-accent));
+}
+
+.pm-progress-bar.warning {
+  background: linear-gradient(90deg, var(--pm-status-review), var(--pm-priority-p1));
+}
+
+.pm-progress-bar.danger {
+  background: linear-gradient(90deg, var(--pm-status-blocked), var(--pm-priority-p0));
+}
+
+/* ============================================
+   Avatar
+   ============================================ */
+
+.pm-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.pm-avatar-sm {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.pm-avatar-md {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.pm-avatar-lg {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.pm-avatar-group {
+  display: flex;
+}
+
+.pm-avatar-group .pm-avatar {
+  margin-left: -8px;
+  border: 2px solid white;
+}
+
+.pm-avatar-group .pm-avatar:first-child {
+  margin-left: 0;
+}
+
+/* ============================================
+   Stat Card
+   ============================================ */
+
+.pm-stat-card {
+  background: var(--pm-card);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-lg);
+  padding: var(--pm-space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--pm-space-sm);
+}
+
+.pm-stat-label {
+  font-size: 13px;
+  color: var(--pm-text-secondary);
+  font-weight: 500;
+}
+
+.pm-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--pm-text-primary);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.pm-stat-change {
+  display: flex;
+  align-items: center;
+  gap: var(--pm-space-xs);
+  font-size: 12px;
+}
+
+.pm-stat-change.positive {
+  color: var(--pm-status-done);
+}
+
+.pm-stat-change.negative {
+  color: var(--pm-status-blocked);
+}
+
+/* ============================================
+   Tables
+   ============================================ */
+
+.pm-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.pm-table th {
+  background: #FAFBFC;
+  color: var(--pm-text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--pm-border);
+}
+
+.pm-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--pm-border-light);
+  color: var(--pm-text-primary);
+  font-size: 14px;
+}
+
+.pm-table tr:hover td {
+  background: var(--pm-background);
+}
+
+/* ============================================
+   Dialogs
+   ============================================ */
+
+.pm-dialog {
+  border-radius: var(--pm-radius-xl);
+  overflow: hidden;
+}
+
+.pm-dialog .el-dialog__header {
+  padding: var(--pm-space-xl);
+  border-bottom: 1px solid var(--pm-border);
+  margin: 0;
+}
+
+.pm-dialog .el-dialog__title {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--pm-text-primary);
+}
+
+.pm-dialog .el-dialog__body {
+  padding: var(--pm-space-2xl);
+}
+
+.pm-dialog .el-dialog__footer {
+  padding: var(--pm-space-lg) var(--pm-space-2xl);
+  border-top: 1px solid var(--pm-border);
+}
+
+/* ============================================
+   Form Elements
+   ============================================ */
+
+.pm-form-item {
+  margin-bottom: var(--pm-space-lg);
+}
+
+.pm-form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pm-text-secondary);
+  margin-bottom: var(--pm-space-sm);
+  display: block;
+}
+
+.pm-input {
+  width: 100%;
+  border-radius: var(--pm-radius-md);
+}
+
+.pm-input .el-input__wrapper {
+  border-radius: var(--pm-radius-md);
+}
+
+/* ============================================
+   WIP Limit
+   ============================================ */
+
+.pm-wip-limit {
+  display: flex;
+  align-items: center;
+  gap: var(--pm-space-xs);
+  font-size: 12px;
+  color: var(--pm-text-muted);
+}
+
+.pm-wip-limit.exceeded {
+  color: var(--pm-status-blocked);
+  font-weight: 600;
+}
+
+/* ============================================
+   Empty State
+   ============================================ */
+
+.pm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pm-space-3xl);
+  color: var(--pm-text-muted);
+  text-align: center;
+}
+
+.pm-empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--pm-space-lg);
+  opacity: 0.5;
+}
+
+.pm-empty-text {
+  font-size: 14px;
+  margin-bottom: var(--pm-space-lg);
+}
+
+/* ============================================
+   Drag & Drop
+   ============================================ */
+
+.pm-drag-over {
+  background: rgba(0, 212, 170, 0.05);
+  border: 2px dashed var(--pm-accent);
+}
+
+.pm-wip-exceeded {
+  border: 2px solid var(--pm-status-blocked) !important;
+  animation: pm-pulse-danger 1s infinite;
+}
+
+@keyframes pm-pulse-danger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ============================================
+   Milestone
+   ============================================ */
+
+.pm-milestone {
+  position: relative;
+  padding: var(--pm-space-lg);
+  background: var(--pm-card);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius-lg);
+}
+
+.pm-milestone-progress {
+  margin-top: var(--pm-space-md);
+}
+
+/* ============================================
+   Notification Badge
+   ============================================ */
+
+.pm-notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  background: var(--pm-status-blocked);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}

@@ -46,6 +46,7 @@
           <LanguageSwitcher />
         </div>
         <div class="header-right">
+          <NotificationBell />
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               {{ authStore.user?.username }}
@@ -71,6 +72,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import NotificationBell from '@/components/common/NotificationBell.vue'
 import { User, Setting, Key, OfficeBuilding, Document } from '@element-plus/icons-vue'
 
 const router = useRouter()

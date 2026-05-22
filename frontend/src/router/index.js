@@ -33,6 +33,31 @@ const routes = [
         component: () => import('@/views/project/Detail.vue')
       },
       {
+        path: 'projects/board/:id',
+        name: 'ProjectBoard',
+        component: () => import('@/views/project/ProjectBoard.vue')
+      },
+      {
+        path: 'projects/my-board',
+        name: 'MyBoard',
+        component: () => import('@/views/project/MyBoard.vue')
+      },
+      {
+        path: 'projects/gantt/:id?',
+        name: 'GanttView',
+        component: () => import('@/views/project/GanttView.vue')
+      },
+      {
+        path: 'projects/milestones',
+        name: 'Milestones',
+        component: () => import('@/views/project/Milestones.vue')
+      },
+      {
+        path: 'projects/stats',
+        name: 'ProjectStats',
+        component: () => import('@/views/project/StatsDashboard.vue')
+      },
+      {
         path: 'timesheet',
         name: 'Timesheet',
         component: () => import('@/views/timesheet/Index.vue')

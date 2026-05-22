@@ -56,6 +56,30 @@ export function deleteSprint(projectId, sprintId) {
   return request.delete(`/projects/${projectId}/sprints/${sprintId}`)
 }
 
+export function startSprint(projectId, sprintId) {
+  return request.put(`/projects/${projectId}/sprints/${sprintId}/start`)
+}
+
+export function completeSprint(projectId, sprintId) {
+  return request.put(`/projects/${projectId}/sprints/${sprintId}/complete`)
+}
+
+export function getSprintTasks(projectId, sprintId) {
+  return request.get(`/projects/${projectId}/sprints/${sprintId}/tasks`)
+}
+
 export function getProjectStats(projectId) {
   return request.get(`/projects/${projectId}/stats`)
+}
+
+export function getProjectRoles(projectId) {
+  return request.get(`/project-roles/project/${projectId}`)
+}
+
+export function assignProjectRole(projectId, userId, role) {
+  return request.post('/project-roles', { projectId, userId, role })
+}
+
+export function removeProjectRole(projectId, userId) {
+  return request.delete(`/project-roles/project/${projectId}/user/${userId}`)
 }

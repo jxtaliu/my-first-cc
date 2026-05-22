@@ -3,13 +3,17 @@ package com.sme.pm.controller;
 import com.sme.pm.common.CurrentUser;
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Task;
+import com.sme.pm.entity.TaskAttachment;
+import com.sme.pm.entity.TaskComment;
+import com.sme.pm.entity.TaskDependency;
 import com.sme.pm.service.TaskService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping("/api/v1/tasks")
 public class TaskController {
 
     private final TaskService taskService;
@@ -26,11 +30,18 @@ public class TaskController {
 
     @GetMapping
     public Result<List<Task>> list(@RequestParam(required = false) Long sprintId,
-                                   @RequestParam(required = false) Long projectId) {
+                                   @RequestParam(required = false) Long projectId,
+                                   @RequestParam(required = false) Long assigneeId) {
         if (sprintId != null) {
             return Result.success(taskService.listBySprint(sprintId));
         }
-        return Result.success(taskService.listByProject(projectId));
+        if (projectId != null) {
+            return Result.success(taskService.listByProject(projectId));
+        }
+        if (assigneeId != null) {
+            return Result.success(taskService.listByAssignee(assigneeId));
+        }
+        return Result.error("Must provide sprintId, projectId, or assigneeId");
     }
 
     @GetMapping("/{id}")
@@ -62,14 +73,68 @@ public class TaskController {
         return Result.success();
     }
 
-    @GetMapping("/{taskId}/comments")
-    public Result<List<Object>> getComments(@PathVariable Long taskId) {
-        return Result.success(taskService.getComments(taskId));
+    @PutMapping("/{id}/status")
+    public Result<Task> updateStatus(@PathVariable Long id, @RequestParam Long statusId) {
+        return Result.success(taskService.updateStatus(id, statusId));
     }
 
-    @PostMapping("/{taskId}/comments")
-    public Result<Void> addComment(@PathVariable Long taskId, @RequestBody Object comment) {
-        taskService.addComment(taskId, comment);
+    @GetMapping("/{id}/can-transition/{targetStatusId}")
+    public Result<Boolean> canTransitionTo(@PathVariable Long id, @PathVariable Long targetStatusId) {
+        return Result.success(taskService.canTransitionTo(id, targetStatusId));
+    }
+
+    @GetMapping("/{id}/comments")
+    public Result<List<TaskComment>> getComments(@PathVariable Long id) {
+        return Result.success(taskService.getComments(id));
+    }
+
+    @PostMapping("/{id}/comments")
+    public Result<Void> addComment(@PathVariable Long id, @RequestBody TaskComment comment) {
+        taskService.addComment(id, comment);
+        return Result.success();
+    }
+
+    @GetMapping("/{id}/attachments")
+    public Result<List<TaskAttachment>> getAttachments(@PathVariable Long id) {
+        return Result.success(taskService.getAttachments(id));
+    }
+
+    @PostMapping("/{id}/attachments")
+    public Result<Void> addAttachment(@PathVariable Long id, @RequestBody TaskAttachment attachment) {
+        taskService.addAttachment(id, attachment);
+        return Result.success();
+    }
+
+    @DeleteMapping("/attachments/{attachmentId}")
+    public Result<Void> deleteAttachment(@PathVariable Long attachmentId) {
+        taskService.deleteAttachment(attachmentId);
+        return Result.success();
+    }
+
+    @GetMapping("/{id}/dependencies")
+    public Result<List<TaskDependency>> getDependencies(@PathVariable Long id) {
+        return Result.success(taskService.getDependencies(id));
+    }
+
+    @GetMapping("/{id}/blocking")
+    public Result<List<TaskDependency>> getBlockingDependencies(@PathVariable Long id) {
+        return Result.success(taskService.getBlockingDependencies(id));
+    }
+
+    @GetMapping("/{id}/blocking-count")
+    public Result<Integer> countBlockingDependencies(@PathVariable Long id) {
+        return Result.success(taskService.countBlockingDependencies(id));
+    }
+
+    @PostMapping("/{id}/dependencies")
+    public Result<Void> addDependency(@PathVariable Long id, @RequestBody TaskDependency dependency) {
+        taskService.addDependency(id, dependency);
+        return Result.success();
+    }
+
+    @DeleteMapping("/dependencies/{dependencyId}")
+    public Result<Void> removeDependency(@PathVariable Long dependencyId) {
+        taskService.removeDependency(dependencyId);
         return Result.success();
     }
 }

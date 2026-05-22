@@ -92,6 +92,11 @@ public class TimesheetController {
         return Result.success();
     }
 
+    @GetMapping("/pending-approval/{projectId}")
+    public Result<List<Timesheet>> getPendingApproval(@PathVariable Long projectId) {
+        return Result.success(timesheetService.listPendingByProject(projectId));
+    }
+
     @PostMapping("/{id}/resubmit")
     public Result<Void> resubmit(@PathVariable Long id) {
         timesheetService.resubmit(id);

@@ -46,6 +46,12 @@ export default {
     tasks: 'Tasks',
     hoursThisWeek: 'Hours This Week'
   },
+  notification: {
+    title: 'Notifications',
+    markAllRead: 'Mark all read',
+    markAsRead: 'Mark as read',
+    noNotifications: 'No notifications'
+  },
   project: {
     name: 'Project Name',
     description: 'Description',
@@ -214,6 +220,95 @@ export default {
     deleteSuccess: 'Deleted successfully',
     operationFailed: 'Operation failed',
     fetchFailed: 'Fetch failed',
-    deleteFailed: 'Delete failed'
+    deleteFailed: 'Delete failed',
+
+    // Project Management
+    project: {
+      title: 'Project Management',
+      myBoard: 'My Board',
+      myBoardDesc: 'View tasks assigned to you across all projects',
+      allProjects: 'All Projects',
+      selectProject: 'Select Project',
+      createTask: 'Create Task',
+      taskDetail: 'Task Detail',
+      taskTitle: 'Task Title',
+      status: 'Status',
+      priority: 'Priority',
+      estimateHours: 'Estimate',
+      remainingHours: 'Remaining',
+      actualHours: 'Actual',
+      description: 'Description',
+      dependencies: 'Dependencies',
+      addDependency: 'Add Dependency',
+      searchTasks: 'Search tasks...',
+      tasks: 'Tasks',
+      noTasks: 'No tasks',
+      taskStatusUpdated: 'Task status updated',
+      taskUpdated: 'Task updated',
+      taskCreated: 'Task created',
+
+      // Sprint
+      sprint: 'Sprint',
+      sprints: 'Sprints',
+      createSprint: 'Create Sprint',
+      sprintName: 'Sprint Name',
+      sprintGoal: 'Sprint Goal',
+      sprintDuration: 'Duration',
+      sprintStartDate: 'Start Date',
+      sprintEndDate: 'End Date',
+
+      // Milestones
+      milestones: 'Milestones',
+      milestonesDesc: 'Manage project milestones',
+      createMilestone: 'Create Milestone',
+      editMilestone: 'Edit Milestone',
+      milestoneName: 'Milestone Name',
+      milestoneNamePlaceholder: 'e.g., Release V2.0',
+      targetDate: 'Target Date',
+      selectDate: 'Select Date',
+      relatedProjects: 'Related Projects',
+      descriptionPlaceholder: 'Describe the milestone...',
+      allMilestones: 'All Milestones',
+      crossProject: 'Cross-Project',
+      projectMilestones: 'Project Milestones',
+      filterByProject: 'Filter by Project',
+      noMilestones: 'No milestones',
+      milestoneNameRequired: 'Milestone name is required',
+      milestoneUpdated: 'Milestone updated',
+      milestoneCreated: 'Milestone created',
+
+      // Stats Dashboard
+      statsDashboard: 'Project Statistics',
+      statsDashboardDesc: 'View project efficiency and quality metrics',
+      selectProjects: 'Select Projects',
+      export: 'Export',
+      exportSuccess: 'Export successful',
+      taskCompletionRate: 'Task Completion',
+      workEfficiency: 'Work Efficiency',
+      defectDensity: 'Defect Density',
+      teamThroughput: 'Team Throughput',
+      milestoneAchievement: 'Milestone Achievement',
+      avgTaskDuration: 'Avg Task Duration',
+      burndownChart: 'Burndown Chart',
+      workHoursComparison: 'Hours Comparison',
+      projectComparison: 'Project Comparison',
+      projectName: 'Project Name',
+      progress: 'Progress',
+      quality: 'Quality',
+      collaboration: 'Collaboration',
+      overall: 'Overall',
+      trend: 'Trend',
+      ideal: 'Ideal',
+      actual: 'Actual',
+      milestoneProgress: 'Milestone Progress',
+      teamWorkDistribution: 'Team Distribution',
+
+      // Gantt
+      ganttView: 'Gantt View',
+      ganttViewDesc: 'View task timeline and dependencies',
+      today: 'Today',
+      jumpedToToday: 'Jumped to today',
+      taskName: 'Task Name'
+    }
   }
 }

@@ -2,14 +2,17 @@ package com.sme.pm.service.impl;
 
 import com.sme.pm.entity.Project;
 import com.sme.pm.entity.Timesheet;
+import com.sme.pm.event.TimesheetApprovalEvent;
 import com.sme.pm.mapper.ProjectMapper;
 import com.sme.pm.mapper.TimesheetMapper;
 import com.sme.pm.service.TimesheetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -28,45 +31,23 @@ class TimesheetServiceImplTest {
     @Mock
     private ProjectMapper projectMapper;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private TimesheetService timesheetService;
 
     @BeforeEach
     void setUp() {
-        timesheetService = new TimesheetServiceImpl(timesheetMapper, projectMapper);
+        timesheetService = new TimesheetServiceImpl(timesheetMapper, projectMapper, eventPublisher);
     }
 
     @Test
-    void create_shouldAutoApprove_forInternalProject() {
-        Project project = new Project();
-        project.setId(1L);
-        project.setProjectType(1); // Internal
-
+    void create_shouldSetPendingStatus_forExternalProject() {
         Timesheet timesheet = new Timesheet();
         timesheet.setProjectId(1L);
         timesheet.setHours(8);
         timesheet.setWorkDate(LocalDateTime.now());
 
-        when(projectMapper.findById(1L)).thenReturn(project);
-        when(timesheetMapper.insert(any(Timesheet.class))).thenReturn(1);
-
-        Timesheet result = timesheetService.create(timesheet);
-
-        assertEquals(2, result.getApprovalStatus()); // Auto-approved
-        verify(timesheetMapper).insert(timesheet);
-    }
-
-    @Test
-    void create_shouldSetPending_forExternalProject() {
-        Project project = new Project();
-        project.setId(1L);
-        project.setProjectType(2); // External/Client
-
-        Timesheet timesheet = new Timesheet();
-        timesheet.setProjectId(1L);
-        timesheet.setHours(8);
-        timesheet.setWorkDate(LocalDateTime.now());
-
-        when(projectMapper.findById(1L)).thenReturn(project);
         when(timesheetMapper.insert(any(Timesheet.class))).thenReturn(1);
 
         Timesheet result = timesheetService.create(timesheet);
@@ -159,52 +140,95 @@ class TimesheetServiceImplTest {
     }
 
     @Test
-    void approve_shouldSetApprovalStatusAndApprover() {
+    void approve_shouldSetApprovalStatusAndPublishEvent() {
         Long timesheetId = 1L;
         Long approverId = 2L;
+        Long userId = 3L;
+        Long projectId = 10L;
 
+        Timesheet timesheet = new Timesheet();
+        timesheet.setId(timesheetId);
+        timesheet.setUserId(userId);
+        timesheet.setProjectId(projectId);
+        timesheet.setApprovalStatus(1);
+
+        when(timesheetMapper.selectById(timesheetId)).thenReturn(timesheet);
         when(timesheetMapper.updateById(any(Timesheet.class))).thenReturn(1);
 
         timesheetService.approve(timesheetId, approverId);
 
-        verify(timesheetMapper).updateById(argThat(timesheet ->
-            timesheet.getId().equals(timesheetId) &&
-            timesheet.getApprovalStatus() == 2 &&
-            timesheet.getApproverId().equals(approverId) &&
-            timesheet.getApprovedAt() != null
+        verify(timesheetMapper).updateById(argThat(t ->
+            t.getId().equals(timesheetId) &&
+            t.getApprovalStatus() == 2 &&
+            t.getApproverId().equals(approverId) &&
+            t.getApprovedAt() != null
         ));
+
+        ArgumentCaptor<TimesheetApprovalEvent> eventCaptor = ArgumentCaptor.forClass(TimesheetApprovalEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        TimesheetApprovalEvent capturedEvent = eventCaptor.getValue();
+        assertEquals(userId, capturedEvent.getUserId());
+        assertEquals(timesheetId, capturedEvent.getTimesheetId());
+        assertEquals("APPROVED", capturedEvent.getApprovalStatus());
+        assertEquals("Timesheet Approved", capturedEvent.getTitle());
+        assertEquals(projectId, capturedEvent.getRelatedProjectId());
     }
 
     @Test
-    void reject_shouldSetRejectionStatusAndReason() {
+    void reject_shouldSetRejectionReasonAndPublishEvent() {
         Long timesheetId = 1L;
         Long approverId = 2L;
+        Long userId = 3L;
+        Long projectId = 10L;
         String reason = "Hours exceed estimate";
 
+        Timesheet timesheet = new Timesheet();
+        timesheet.setId(timesheetId);
+        timesheet.setUserId(userId);
+        timesheet.setProjectId(projectId);
+        timesheet.setApprovalStatus(1);
+
+        when(timesheetMapper.selectById(timesheetId)).thenReturn(timesheet);
         when(timesheetMapper.updateById(any(Timesheet.class))).thenReturn(1);
 
         timesheetService.reject(timesheetId, approverId, reason);
 
-        verify(timesheetMapper).updateById(argThat(timesheet -> {
-            assertEquals(timesheetId, timesheet.getId());
-            assertEquals(3, timesheet.getApprovalStatus());
-            assertEquals(approverId, timesheet.getApproverId());
-            assertEquals(reason, timesheet.getRejectionReason());
+        verify(timesheetMapper).updateById(argThat(t -> {
+            assertEquals(timesheetId, t.getId());
+            assertEquals(3, t.getApprovalStatus());
+            assertEquals(approverId, t.getApproverId());
+            assertEquals(reason, t.getRejectionReason());
             return true;
         }));
+
+        ArgumentCaptor<TimesheetApprovalEvent> eventCaptor = ArgumentCaptor.forClass(TimesheetApprovalEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        TimesheetApprovalEvent capturedEvent = eventCaptor.getValue();
+        assertEquals(userId, capturedEvent.getUserId());
+        assertEquals(timesheetId, capturedEvent.getTimesheetId());
+        assertEquals("REJECTED", capturedEvent.getApprovalStatus());
+        assertEquals("Timesheet Rejected", capturedEvent.getTitle());
+        assertTrue(capturedEvent.getContent().contains(reason));
+        assertEquals(projectId, capturedEvent.getRelatedProjectId());
     }
 
     @Test
     void resubmit_shouldResetStatusToPending() {
         Long timesheetId = 1L;
 
+        Timesheet timesheet = new Timesheet();
+        timesheet.setId(timesheetId);
+        timesheet.setApprovalStatus(2);
+
         when(timesheetMapper.updateById(any(Timesheet.class))).thenReturn(1);
 
         timesheetService.resubmit(timesheetId);
 
-        verify(timesheetMapper).updateById(argThat(timesheet -> {
-            assertEquals(timesheetId, timesheet.getId());
-            assertEquals(1, timesheet.getApprovalStatus());
+        verify(timesheetMapper).updateById(argThat(t -> {
+            assertEquals(timesheetId, t.getId());
+            assertEquals(1, t.getApprovalStatus());
             return true;
         }));
     }

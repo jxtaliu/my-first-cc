@@ -1,0 +1,37 @@
+package com.sme.pm.entity;
+
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@TableName("task_status")
+public class TaskStatus {
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    private Long projectId;  // NULL means system default
+
+    private String code;  // TODO, IN_PROGRESS, etc.
+
+    private String name;
+
+    private String nameEn;
+
+    private String nameZh;
+
+    private String category;  // todo, doing, done, alert
+
+    private String color;
+
+    private Integer sortOrder;
+
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createdAt;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedAt;
+
+    @TableLogic
+    private Integer deleted;
+}

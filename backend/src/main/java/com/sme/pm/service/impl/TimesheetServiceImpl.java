@@ -2,9 +2,14 @@ package com.sme.pm.service.impl;
 
 import com.sme.pm.entity.Timesheet;
 import com.sme.pm.entity.Project;
+import com.sme.pm.entity.ProjectRole;
+import com.sme.pm.event.TimesheetApprovalEvent;
+import com.sme.pm.event.TimesheetSubmittedEvent;
 import com.sme.pm.mapper.TimesheetMapper;
 import com.sme.pm.mapper.ProjectMapper;
+import com.sme.pm.service.IProjectRoleService;
 import com.sme.pm.service.TimesheetService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,23 +23,35 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     private final TimesheetMapper timesheetMapper;
     private final ProjectMapper projectMapper;
+    private final ApplicationEventPublisher eventPublisher;
+    private final IProjectRoleService projectRoleService;
 
-    public TimesheetServiceImpl(TimesheetMapper timesheetMapper, ProjectMapper projectMapper) {
+    public TimesheetServiceImpl(TimesheetMapper timesheetMapper, ProjectMapper projectMapper,
+                                ApplicationEventPublisher eventPublisher,
+                                IProjectRoleService projectRoleService) {
         this.timesheetMapper = timesheetMapper;
         this.projectMapper = projectMapper;
+        this.eventPublisher = eventPublisher;
+        this.projectRoleService = projectRoleService;
     }
 
     @Override
     @Transactional
     public Timesheet create(Timesheet timesheet) {
-        Project project = projectMapper.findById(timesheet.getProjectId());
-        if (project != null && project.getProjectType() == 1) {
-            timesheet.setApprovalStatus(2);
-        } else {
-            timesheet.setApprovalStatus(1);
-        }
-
+        timesheet.setApprovalStatus(1);
         timesheetMapper.insert(timesheet);
+
+        // Publish TimesheetSubmittedEvent to notify project managers
+        TimesheetSubmittedEvent event = new TimesheetSubmittedEvent(
+                this,
+                timesheet.getUserId(),
+                timesheet.getId(),
+                "Timesheet Submitted",
+                "A new timesheet requires your approval",
+                timesheet.getProjectId()
+        );
+        eventPublisher.publishEvent(event);
+
         return timesheet;
     }
 
@@ -85,25 +102,68 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    public List<Timesheet> listPendingByProject(Long projectId) {
+        return timesheetMapper.findPendingByProject(projectId);
+    }
+
+    @Override
     @Transactional
     public void approve(Long timesheetId, Long approverId) {
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(timesheetId);
+        Timesheet timesheet = timesheetMapper.selectById(timesheetId);
+
+        // Check if approver has PROJECT_MANAGER role in the project
+        List<ProjectRole> pmRoles = projectRoleService.findByProjectAndRole(timesheet.getProjectId(), "PROJECT_MANAGER");
+        boolean isProjectManager = pmRoles.stream().anyMatch(r -> r.getUserId().equals(approverId));
+        if (!isProjectManager) {
+            throw new IllegalStateException("Only project manager can approve timesheets");
+        }
+
         timesheet.setApprovalStatus(2);
         timesheet.setApproverId(approverId);
         timesheet.setApprovedAt(LocalDateTime.now());
         timesheetMapper.updateById(timesheet);
+
+        // Publish TimesheetApprovalEvent
+        TimesheetApprovalEvent event = new TimesheetApprovalEvent(
+                this,
+                timesheet.getUserId(),
+                timesheetId,
+                "APPROVED",
+                "Timesheet Approved",
+                "Your timesheet has been approved",
+                timesheet.getProjectId()
+        );
+        eventPublisher.publishEvent(event);
     }
 
     @Override
     @Transactional
     public void reject(Long timesheetId, Long approverId, String reason) {
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(timesheetId);
+        Timesheet timesheet = timesheetMapper.selectById(timesheetId);
+
+        // Check if approver has PROJECT_MANAGER role in the project
+        List<ProjectRole> pmRoles = projectRoleService.findByProjectAndRole(timesheet.getProjectId(), "PROJECT_MANAGER");
+        boolean isProjectManager = pmRoles.stream().anyMatch(r -> r.getUserId().equals(approverId));
+        if (!isProjectManager) {
+            throw new IllegalStateException("Only project manager can reject timesheets");
+        }
+
         timesheet.setApprovalStatus(3);
         timesheet.setApproverId(approverId);
         timesheet.setRejectionReason(reason);
         timesheetMapper.updateById(timesheet);
+
+        // Publish TimesheetApprovalEvent
+        TimesheetApprovalEvent event = new TimesheetApprovalEvent(
+                this,
+                timesheet.getUserId(),
+                timesheetId,
+                "REJECTED",
+                "Timesheet Rejected",
+                "Your timesheet has been rejected: " + reason,
+                timesheet.getProjectId()
+        );
+        eventPublisher.publishEvent(event);
     }
 
     @Override

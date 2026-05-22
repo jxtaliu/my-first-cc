@@ -46,6 +46,12 @@ export default {
     tasks: '任务数',
     hoursThisWeek: '本周工时'
   },
+  notification: {
+    title: '通知中心',
+    markAllRead: '全部已读',
+    markAsRead: '标为已读',
+    noNotifications: '暂无通知'
+  },
   project: {
     name: '项目名称',
     description: '描述',
@@ -214,6 +220,95 @@ export default {
     deleteSuccess: '删除成功',
     operationFailed: '操作失败',
     fetchFailed: '获取数据失败',
-    deleteFailed: '删除失败'
+    deleteFailed: '删除失败',
+
+    // Project Management
+    project: {
+      title: '项目管理',
+      myBoard: '我的看板',
+      myBoardDesc: '跨项目查看分配给您的任务',
+      allProjects: '所有项目',
+      selectProject: '选择项目',
+      createTask: '创建任务',
+      taskDetail: '任务详情',
+      taskTitle: '任务标题',
+      status: '状态',
+      priority: '优先级',
+      estimateHours: '预估工时',
+      remainingHours: '剩余工时',
+      actualHours: '实际工时',
+      description: '描述',
+      dependencies: '依赖任务',
+      addDependency: '添加依赖',
+      searchTasks: '搜索任务...',
+      tasks: '任务',
+      noTasks: '暂无任务',
+      taskStatusUpdated: '任务状态已更新',
+      taskUpdated: '任务已更新',
+      taskCreated: '任务已创建',
+
+      // Sprint
+      sprint: '冲刺',
+      sprints: '冲刺列表',
+      createSprint: '创建冲刺',
+      sprintName: '冲刺名称',
+      sprintGoal: '冲刺目标',
+      sprintDuration: '冲刺时长',
+      sprintStartDate: '开始日期',
+      sprintEndDate: '结束日期',
+
+      // Milestones
+      milestones: '里程碑',
+      milestonesDesc: '管理项目里程碑',
+      createMilestone: '创建里程碑',
+      editMilestone: '编辑里程碑',
+      milestoneName: '里程碑名称',
+      milestoneNamePlaceholder: '如：发布 V2.0',
+      targetDate: '目标日期',
+      selectDate: '选择日期',
+      relatedProjects: '关联项目',
+      descriptionPlaceholder: '描述里程碑...',
+      allMilestones: '全部里程碑',
+      crossProject: '跨项目里程碑',
+      projectMilestones: '项目里程碑',
+      filterByProject: '按项目筛选',
+      noMilestones: '暂无里程碑',
+      milestoneNameRequired: '请输入里程碑名称',
+      milestoneUpdated: '里程碑已更新',
+      milestoneCreated: '里程碑已创建',
+
+      // Stats Dashboard
+      statsDashboard: '项目统计',
+      statsDashboardDesc: '查看项目效率和质量指标',
+      selectProjects: '选择项目',
+      export: '导出',
+      exportSuccess: '导出成功',
+      taskCompletionRate: '任务完成率',
+      workEfficiency: '工时效率',
+      defectDensity: '缺陷密度',
+      teamThroughput: '团队吞吐量',
+      milestoneAchievement: '里程碑达成率',
+      avgTaskDuration: '平均任务时长',
+      burndownChart: '燃尽图',
+      workHoursComparison: '工时对比',
+      projectComparison: '项目对比',
+      projectName: '项目名称',
+      progress: '进度',
+      quality: '质量',
+      collaboration: '协作',
+      overall: '综合',
+      trend: '趋势',
+      ideal: '理想',
+      actual: '实际',
+      milestoneProgress: '里程碑进度',
+      teamWorkDistribution: '团队工作分布',
+
+      // Gantt
+      ganttView: '甘特图',
+      ganttViewDesc: '查看任务时间线和依赖关系',
+      today: '今天',
+      jumpedToToday: '已跳转到今天',
+      taskName: '任务名称'
+    }
   }
 }

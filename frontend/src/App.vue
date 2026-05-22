@@ -11,6 +11,9 @@ const themeStore = useThemeStore()
 </script>
 
 <style>
+@import './styles/variables.css';
+@import './styles/project-managment.css';
+
 * {
   margin: 0;
   padding: 0;
