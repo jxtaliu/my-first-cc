@@ -7,7 +7,7 @@ USE sme_pm;
 -- ============================================
 -- 1. Add Dict Types for PM Module
 -- ============================================
-INSERT INTO sys_dict_type (code, name, description) VALUES
+INSERT IGNORE INTO sys_dict_type (code, name, description) VALUES
 ('TASK_PRIORITY', 'Task Priority', 'Priority levels for tasks - P0/P1/P2/P3'),
 ('TASK_TYPE_PM', 'Task Type', 'Task types for PM - EPIC/FEATURE/STORY/TASK/BUG'),
 ('PROJECT_STATUS_PM', 'Project Status', 'Project lifecycle status'),
@@ -280,26 +280,24 @@ CREATE TABLE IF NOT EXISTS sprint_reminder_log (
 -- ============================================
 -- 21. Alter Task Table - Add PM Columns
 -- ============================================
-ALTER TABLE task
-ADD COLUMN IF NOT EXISTS project_id BIGINT COMMENT 'Project reference' AFTER sprint_id,
-ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'P2' COMMENT 'P0/P1/P2/P3' AFTER status,
-ADD COLUMN IF NOT EXISTS remaining_hours INT COMMENT 'Remaining work hours' AFTER actual_hours,
-ADD COLUMN IF NOT EXISTS progress INT DEFAULT 0 COMMENT 'Progress percentage 0-100' AFTER remaining_hours,
-ADD COLUMN IF NOT EXISTS start_date DATE COMMENT 'Actual start date' AFTER progress,
-ADD COLUMN IF NOT EXISTS due_date DATE COMMENT 'Due date' AFTER start_date,
-ADD COLUMN IF NOT EXISTS in_progress_since DATETIME COMMENT 'When task entered in_progress status' AFTER due_date,
-ADD COLUMN IF NOT EXISTS completion_date DATETIME COMMENT 'When task was completed' AFTER in_progress_since,
-ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 COMMENT 'Optimistic lock' AFTER completion_date;
+ALTER TABLE task ADD COLUMN project_id BIGINT COMMENT 'Project reference' AFTER sprint_id;
+ALTER TABLE task ADD COLUMN priority VARCHAR(20) DEFAULT 'P2' COMMENT 'P0/P1/P2/P3' AFTER status;
+ALTER TABLE task ADD COLUMN remaining_hours INT COMMENT 'Remaining work hours' AFTER actual_hours;
+ALTER TABLE task ADD COLUMN progress INT DEFAULT 0 COMMENT 'Progress percentage 0-100' AFTER remaining_hours;
+ALTER TABLE task ADD COLUMN start_date DATE COMMENT 'Actual start date' AFTER progress;
+ALTER TABLE task ADD COLUMN due_date DATE COMMENT 'Due date' AFTER start_date;
+ALTER TABLE task ADD COLUMN in_progress_since DATETIME COMMENT 'When task entered in_progress status' AFTER due_date;
+ALTER TABLE task ADD COLUMN completion_date DATETIME COMMENT 'When task was completed' AFTER in_progress_since;
+ALTER TABLE task ADD COLUMN version INT DEFAULT 1 COMMENT 'Optimistic lock' AFTER completion_date;
 
 -- ============================================
 -- 22. Alter Sprint Table - Add PM Columns
 -- ============================================
-ALTER TABLE sprint
-ADD COLUMN IF NOT EXISTS goal VARCHAR(500) COMMENT 'Sprint goal' AFTER status,
-ADD COLUMN IF NOT EXISTS capacity_hours INT COMMENT 'Total team capacity in hours' AFTER goal,
-ADD COLUMN IF NOT EXISTS velocity INT COMMENT 'Story points completed last sprint' AFTER capacity_hours,
-ADD COLUMN IF NOT EXISTS start_reminder_sent TINYINT DEFAULT 0 AFTER velocity,
-ADD COLUMN IF NOT EXISTS end_reminder_sent TINYINT DEFAULT 0 AFTER start_reminder_sent;
+ALTER TABLE sprint ADD COLUMN goal VARCHAR(500) COMMENT 'Sprint goal' AFTER status;
+ALTER TABLE sprint ADD COLUMN capacity_hours INT COMMENT 'Total team capacity in hours' AFTER goal;
+ALTER TABLE sprint ADD COLUMN velocity INT COMMENT 'Story points completed last sprint' AFTER capacity_hours;
+ALTER TABLE sprint ADD COLUMN start_reminder_sent TINYINT DEFAULT 0 AFTER velocity;
+ALTER TABLE sprint ADD COLUMN end_reminder_sent TINYINT DEFAULT 0 AFTER start_reminder_sent;
 
 -- ============================================
 -- 23. Insert System Task Statuses
