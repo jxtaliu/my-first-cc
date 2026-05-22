@@ -5,10 +5,12 @@ import com.sme.pm.entity.Sprint;
 import com.sme.pm.entity.Task;
 import com.sme.pm.mapper.SprintMapper;
 import com.sme.pm.mapper.TaskMapper;
+import com.sme.pm.service.ISprintService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/projects/{projectId}/sprints")
@@ -16,10 +18,12 @@ public class SprintController {
 
     private final SprintMapper sprintMapper;
     private final TaskMapper taskMapper;
+    private final ISprintService sprintService;
 
-    public SprintController(SprintMapper sprintMapper, TaskMapper taskMapper) {
+    public SprintController(SprintMapper sprintMapper, TaskMapper taskMapper, ISprintService sprintService) {
         this.sprintMapper = sprintMapper;
         this.taskMapper = taskMapper;
+        this.sprintService = sprintService;
     }
 
     @PostMapping
@@ -79,5 +83,32 @@ public class SprintController {
     @GetMapping("/{id}/tasks")
     public Result<List<Task>> getSprintTasks(@PathVariable Long id) {
         return Result.success(taskMapper.findBySprintId(id));
+    }
+
+    @GetMapping("/{sprintId}/stats")
+    public Result<Map<String, Object>> getSprintStats(@PathVariable Long sprintId) {
+        return Result.success(sprintService.getSprintStats(sprintId));
+    }
+
+    @GetMapping("/{sprintId}/velocity")
+    public Result<Integer> calculateVelocity(@PathVariable Long sprintId) {
+        return Result.success(sprintService.calculateVelocity(sprintId));
+    }
+
+    @GetMapping("/{projectId}/backlog")
+    public Result<List<Task>> getBacklogTasks(@PathVariable Long projectId) {
+        return Result.success(sprintService.getBacklogTasks(projectId));
+    }
+
+    @PostMapping("/{sprintId}/tasks/{taskId}")
+    public Result<Void> addTaskToSprint(@PathVariable Long sprintId, @PathVariable Long taskId) {
+        sprintService.addTaskToSprint(sprintId, taskId);
+        return Result.success();
+    }
+
+    @DeleteMapping("/{sprintId}/tasks/{taskId}")
+    public Result<Void> removeTaskFromSprint(@PathVariable Long sprintId, @PathVariable Long taskId) {
+        sprintService.removeTaskFromSprint(taskId);
+        return Result.success();
     }
 }

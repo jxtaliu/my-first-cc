@@ -281,6 +281,7 @@ CREATE TABLE IF NOT EXISTS sprint_reminder_log (
 -- 21. Alter Task Table - Add PM Columns
 -- ============================================
 ALTER TABLE task
+ADD COLUMN IF NOT EXISTS project_id BIGINT COMMENT 'Project reference' AFTER sprint_id,
 ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'P2' COMMENT 'P0/P1/P2/P3' AFTER status,
 ADD COLUMN IF NOT EXISTS remaining_hours INT COMMENT 'Remaining work hours' AFTER actual_hours,
 ADD COLUMN IF NOT EXISTS progress INT DEFAULT 0 COMMENT 'Progress percentage 0-100' AFTER remaining_hours,

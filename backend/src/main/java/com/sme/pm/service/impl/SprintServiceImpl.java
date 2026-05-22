@@ -1,0 +1,196 @@
+package com.sme.pm.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.sme.pm.entity.Project;
+import com.sme.pm.entity.Sprint;
+import com.sme.pm.entity.Task;
+import com.sme.pm.mapper.ProjectMapper;
+import com.sme.pm.mapper.SprintMapper;
+import com.sme.pm.mapper.TaskMapper;
+import com.sme.pm.service.ISprintService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> implements ISprintService {
+
+    private final SprintMapper sprintMapper;
+    private final TaskMapper taskMapper;
+    private final ProjectMapper projectMapper;
+
+    public SprintServiceImpl(SprintMapper sprintMapper, TaskMapper taskMapper, ProjectMapper projectMapper) {
+        this.sprintMapper = sprintMapper;
+        this.taskMapper = taskMapper;
+        this.projectMapper = projectMapper;
+    }
+
+    @Override
+    public List<Sprint> findByProjectId(Long projectId) {
+        return sprintMapper.findByProjectId(projectId);
+    }
+
+    @Override
+    public Sprint findById(Long id) {
+        return sprintMapper.findById(id);
+    }
+
+    @Override
+    @Transactional
+    public Sprint create(Sprint sprint) {
+        sprint.setStatus(1); // Planning status
+        sprintMapper.insert(sprint);
+        return sprint;
+    }
+
+    @Override
+    @Transactional
+    public Sprint update(Sprint sprint) {
+        sprintMapper.updateById(sprint);
+        return sprint;
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        sprintMapper.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public Sprint startSprint(Long id) {
+        Sprint sprint = sprintMapper.findById(id);
+        if (sprint == null) {
+            throw new IllegalArgumentException("Sprint not found");
+        }
+        sprint.setStatus(2); // ACTIVE
+        sprint.setStartDate(LocalDateTime.now());
+        sprintMapper.updateById(sprint);
+        return sprint;
+    }
+
+    @Override
+    @Transactional
+    public Sprint completeSprint(Long id) {
+        Sprint sprint = sprintMapper.findById(id);
+        if (sprint == null) {
+            throw new IllegalArgumentException("Sprint not found");
+        }
+        sprint.setStatus(3); // COMPLETED
+        sprint.setEndDate(LocalDateTime.now());
+        sprintMapper.updateById(sprint);
+        return sprint;
+    }
+
+    @Override
+    public int calculateVelocity(Long sprintId) {
+        List<Task> tasks = taskMapper.findBySprintId(sprintId);
+        int velocity = 0;
+        for (Task task : tasks) {
+            // Sum up story points from progress or estimate hours
+            if (task.getProgress() != null && task.getProgress() == 100) {
+                // Completed task - use estimateHours as story points proxy
+                velocity += (task.getEstimateHours() != null) ? task.getEstimateHours() : 0;
+            }
+        }
+        return velocity;
+    }
+
+    @Override
+    public int calculateCapacity(Long sprintId) {
+        Sprint sprint = sprintMapper.findById(sprintId);
+        if (sprint == null) {
+            return 0;
+        }
+
+        // Calculate based on sprint duration and team size
+        Project project = projectMapper.findById(sprint.getProjectId());
+        if (project == null) {
+            return 0;
+        }
+
+        // Get team member count from project_member table
+        List<Long> memberIds = projectMapper.findMemberIds(project.getId());
+        int teamSize = memberIds.size();
+
+        // Calculate sprint duration in days
+        long durationDays = 0;
+        if (sprint.getStartDate() != null && sprint.getEndDate() != null) {
+            durationDays = ChronoUnit.DAYS.between(sprint.getStartDate(), sprint.getEndDate());
+        } else {
+            // Default to 14 days (2 weeks) if dates not set
+            durationDays = 14;
+        }
+
+        // Assume 8 working hours per day per team member
+        int workingHoursPerDay = 8;
+        return (int) (teamSize * durationDays * workingHoursPerDay);
+    }
+
+    @Override
+    public Map<String, Object> getSprintStats(Long sprintId) {
+        Map<String, Object> stats = new HashMap<>();
+
+        List<Task> tasks = taskMapper.findBySprintId(sprintId);
+        int totalTasks = tasks.size();
+        int completedTasks = 0;
+        int remainingTasks = 0;
+
+        for (Task task : tasks) {
+            if (task.getProgress() != null && task.getProgress() == 100) {
+                completedTasks++;
+            } else {
+                remainingTasks++;
+            }
+        }
+
+        int velocity = calculateVelocity(sprintId);
+        int capacity = calculateCapacity(sprintId);
+
+        stats.put("totalTasks", totalTasks);
+        stats.put("completedTasks", completedTasks);
+        stats.put("remainingTasks", remainingTasks);
+        stats.put("velocity", velocity);
+        stats.put("capacity", capacity);
+
+        return stats;
+    }
+
+    @Override
+    @Transactional
+    public void addTaskToSprint(Long sprintId, Long taskId) {
+        Task task = taskMapper.findById(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("Task not found");
+        }
+        task.setSprintId(sprintId);
+        taskMapper.updateById(task);
+    }
+
+    @Override
+    @Transactional
+    public void removeTaskFromSprint(Long taskId) {
+        Task task = taskMapper.findById(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("Task not found");
+        }
+        task.setSprintId(null);
+        taskMapper.updateById(task);
+    }
+
+    @Override
+    public List<Task> getBacklogTasks(Long projectId) {
+        LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Task::getProjectId, projectId)
+               .isNull(Task::getSprintId)
+               .eq(Task::getDeleted, 0)
+               .orderByAsc(Task::getCreatedAt);
+        return taskMapper.selectList(wrapper);
+    }
+}

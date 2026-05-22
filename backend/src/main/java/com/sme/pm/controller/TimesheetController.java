@@ -3,6 +3,7 @@ package com.sme.pm.controller;
 import com.sme.pm.common.CurrentUser;
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Timesheet;
+import com.sme.pm.service.IRolePermissionService;
 import com.sme.pm.service.TimesheetService;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +14,11 @@ import java.util.List;
 public class TimesheetController {
 
     private final TimesheetService timesheetService;
+    private final IRolePermissionService rolePermissionService;
 
-    public TimesheetController(TimesheetService timesheetService) {
+    public TimesheetController(TimesheetService timesheetService, IRolePermissionService rolePermissionService) {
         this.timesheetService = timesheetService;
+        this.rolePermissionService = rolePermissionService;
     }
 
     @PostMapping
@@ -81,6 +84,16 @@ public class TimesheetController {
 
     @PostMapping("/{id}/approve")
     public Result<Void> approve(@PathVariable Long id, @CurrentUser Long userId) {
+        // Check permission - only PROJECT_MANAGER or PROJECT_OWNER can approve
+        Timesheet timesheet = timesheetService.getById(id);
+        if (timesheet == null) {
+            return Result.error("Timesheet not found");
+        }
+
+        if (!rolePermissionService.canApproveTimesheet(userId, timesheet.getProjectId())) {
+            return Result.error(403, "You don't have permission to approve timesheets for this project");
+        }
+
         timesheetService.approve(id, userId);
         return Result.success();
     }
@@ -88,6 +101,16 @@ public class TimesheetController {
     @PostMapping("/{id}/reject")
     public Result<Void> reject(@PathVariable Long id, @CurrentUser Long userId,
                                @RequestParam String reason) {
+        // Check permission - only PROJECT_MANAGER or PROJECT_OWNER can reject
+        Timesheet timesheet = timesheetService.getById(id);
+        if (timesheet == null) {
+            return Result.error("Timesheet not found");
+        }
+
+        if (!rolePermissionService.canApproveTimesheet(userId, timesheet.getProjectId())) {
+            return Result.error(403, "You don't have permission to reject timesheets for this project");
+        }
+
         timesheetService.reject(id, userId, reason);
         return Result.success();
     }
