@@ -32,7 +32,7 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
     }
 
     @Override
-    public List<Sprint> findByProjectId(Long projectId) {
+    public List<Sprint> findByProjectId(String projectId) {
         return sprintMapper.findByProjectId(projectId);
     }
 
@@ -110,13 +110,13 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
         }
 
         // Calculate based on sprint duration and team size
-        Project project = projectMapper.findById(sprint.getProjectId());
+        Project project = projectMapper.findByProjectId(sprint.getProjectId());
         if (project == null) {
             return 0;
         }
 
         // Get team member count from project_member table
-        List<Long> memberIds = projectMapper.findMemberIds(project.getId());
+        List<Long> memberIds = projectMapper.findMemberIds(sprint.getProjectId());
         int teamSize = memberIds.size();
 
         // Calculate sprint duration in days
@@ -195,7 +195,7 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
     }
 
     @Override
-    public List<Task> getBacklogTasks(Long projectId) {
+    public List<Task> getBacklogTasks(String projectId) {
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Task::getProjectId, projectId)
                .isNull(Task::getSprintId)

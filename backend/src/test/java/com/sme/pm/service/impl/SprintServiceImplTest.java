@@ -47,7 +47,7 @@ class SprintServiceImplTest {
     void setUp() {
         testSprint = new Sprint();
         testSprint.setId(1L);
-        testSprint.setProjectId(1L);
+        testSprint.setProjectId("PRJ_001");
         testSprint.setName("Sprint 1");
         testSprint.setStatus(1);
         testSprint.setStartDate(LocalDateTime.now());
@@ -55,7 +55,7 @@ class SprintServiceImplTest {
 
         testTask1 = new Task();
         testTask1.setId(1L);
-        testTask1.setProjectId(1L);
+        testTask1.setProjectId("PRJ_001");
         testTask1.setSprintId(1L);
         testTask1.setTitle("Task 1");
         testTask1.setEstimateHours(8);
@@ -63,7 +63,7 @@ class SprintServiceImplTest {
 
         testTask2 = new Task();
         testTask2.setId(2L);
-        testTask2.setProjectId(1L);
+        testTask2.setProjectId("PRJ_001");
         testTask2.setSprintId(1L);
         testTask2.setTitle("Task 2");
         testTask2.setEstimateHours(4);
@@ -93,8 +93,8 @@ class SprintServiceImplTest {
     void testCalculateCapacity_shouldCalculateBasedOnTeamSize() {
         // Arrange
         when(sprintMapper.findById(1L)).thenReturn(testSprint);
-        when(projectMapper.findById(1L)).thenReturn(testProject);
-        when(projectMapper.findMemberIds(1L)).thenReturn(Arrays.asList(1L, 2L, 3L));
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(Arrays.asList(1L, 2L, 3L));
 
         // Act
         int capacity = sprintService.calculateCapacity(1L);
@@ -111,8 +111,8 @@ class SprintServiceImplTest {
         List<Task> tasks = Arrays.asList(testTask1, testTask2);
         when(taskMapper.findBySprintId(1L)).thenReturn(tasks);
         when(sprintMapper.findById(1L)).thenReturn(testSprint);
-        when(projectMapper.findById(1L)).thenReturn(testProject);
-        when(projectMapper.findMemberIds(1L)).thenReturn(Arrays.asList(1L, 2L));
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(Arrays.asList(1L, 2L));
 
         // Act
         Map<String, Object> stats = sprintService.getSprintStats(1L);
@@ -190,13 +190,13 @@ class SprintServiceImplTest {
         // Arrange
         Task backlogTask = new Task();
         backlogTask.setId(3L);
-        backlogTask.setProjectId(1L);
+        backlogTask.setProjectId("PRJ_001");
         backlogTask.setSprintId(null);
 
         when(taskMapper.selectList(any())).thenReturn(Collections.singletonList(backlogTask));
 
         // Act
-        List<Task> backlogTasks = sprintService.getBacklogTasks(1L);
+        List<Task> backlogTasks = sprintService.getBacklogTasks("PRJ_001");
 
         // Assert
         assertEquals(1, backlogTasks.size());
@@ -257,15 +257,15 @@ class SprintServiceImplTest {
         // Arrange
         Task taskWithNullProgress = new Task();
         taskWithNullProgress.setId(3L);
-        taskWithNullProgress.setProjectId(1L);
+        taskWithNullProgress.setProjectId("PRJ_001");
         taskWithNullProgress.setSprintId(1L);
         taskWithNullProgress.setProgress(null);
         taskWithNullProgress.setEstimateHours(10);
 
         when(taskMapper.findBySprintId(1L)).thenReturn(Collections.singletonList(taskWithNullProgress));
         when(sprintMapper.findById(1L)).thenReturn(testSprint);
-        when(projectMapper.findById(1L)).thenReturn(testProject);
-        when(projectMapper.findMemberIds(1L)).thenReturn(Collections.singletonList(1L));
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(Collections.singletonList(1L));
 
         // Act
         Map<String, Object> stats = sprintService.getSprintStats(1L);

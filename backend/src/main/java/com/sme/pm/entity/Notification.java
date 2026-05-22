@@ -20,7 +20,7 @@ public class Notification {
 
     private Long relatedTaskId;
 
-    private Long relatedProjectId;
+    private String relatedProjectId;  // References project.project_id
 
     private Integer isRead;  // 0: unread, 1: read
 

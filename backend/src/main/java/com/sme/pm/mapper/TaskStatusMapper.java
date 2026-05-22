@@ -10,7 +10,7 @@ import java.util.List;
 public interface TaskStatusMapper extends BaseMapper<TaskStatus> {
 
     @Select("SELECT * FROM task_status WHERE (project_id = #{projectId} OR project_id IS NULL) AND deleted = 0 ORDER BY sort_order")
-    List<TaskStatus> findByProjectId(@Param("projectId") Long projectId);
+    List<TaskStatus> findByProjectId(@Param("projectId") String projectId);
 
     @Select("SELECT * FROM task_status WHERE project_id IS NULL AND deleted = 0 ORDER BY sort_order")
     List<TaskStatus> findSystemDefaults();

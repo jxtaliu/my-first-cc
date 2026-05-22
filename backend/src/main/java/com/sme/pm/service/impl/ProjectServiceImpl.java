@@ -22,8 +22,18 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project create(Project project) {
+        // Generate project_id if not set
+        if (project.getProjectId() == null || project.getProjectId().isEmpty()) {
+            String newProjectId = generateProjectId();
+            project.setProjectId(newProjectId);
+        }
         projectMapper.insert(project);
         return project;
+    }
+
+    private String generateProjectId() {
+        int count = projectMapper.countAll();
+        return String.format("PRJ_%03d", count + 1);
     }
 
     @Override
@@ -68,23 +78,23 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void addMember(Long projectId, Long userId) {
+    public void addMember(String projectId, Long userId) {
         projectMapper.addMember(projectId, userId);
     }
 
     @Override
     @Transactional
-    public void removeMember(Long projectId, Long userId) {
+    public void removeMember(String projectId, Long userId) {
         projectMapper.removeMember(projectId, userId);
     }
 
     @Override
-    public List<Map<String, Object>> getMembers(Long projectId) {
+    public List<Map<String, Object>> getMembers(String projectId) {
         return new ArrayList<>();
     }
 
     @Override
-    public Map<String, Object> getStats(Long projectId) {
+    public Map<String, Object> getStats(String projectId) {
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalTasks", 0);
         stats.put("completedTasks", 0);

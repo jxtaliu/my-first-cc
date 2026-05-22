@@ -12,7 +12,7 @@ public class Timesheet {
 
     private Long userId;
 
-    private Long projectId;
+    private String projectId; // References project.project_id
 
     private Long taskId;  // nullable
 

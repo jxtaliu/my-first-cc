@@ -7,7 +7,7 @@ public class TaskDependencyBlockedEvent extends BaseNotificationEvent {
     private final Long taskId;
 
     public TaskDependencyBlockedEvent(Object source, Long userId, String title, String content,
-                                      Long taskId, Long relatedProjectId) {
+                                      Long taskId, String relatedProjectId) {
         super(source, userId, title, content, taskId, relatedProjectId);
         this.taskId = taskId;
     }

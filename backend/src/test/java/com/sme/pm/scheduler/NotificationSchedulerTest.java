@@ -76,7 +76,7 @@ class NotificationSchedulerTest {
     void checkSprintReminders_shouldNotifyUpcomingSprint() {
         Sprint sprint = new Sprint();
         sprint.setId(1L);
-        sprint.setProjectId(10L);
+        sprint.setProjectId("PRJ_001");
         sprint.setName("Sprint 1");
         sprint.setStatus(1); // Planning status
         sprint.setStartDate(LocalDateTime.now().plusHours(12)); // Starting within 24h
@@ -89,7 +89,7 @@ class NotificationSchedulerTest {
         when(sprintMapper.selectList(any(LambdaQueryWrapper.class)))
             .thenReturn(Collections.singletonList(sprint))
             .thenReturn(Collections.emptyList());
-        when(projectMapper.findMemberIds(10L)).thenReturn(memberIds);
+        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(memberIds);
 
         scheduler.checkUpcomingSprints();
 
@@ -111,7 +111,7 @@ class NotificationSchedulerTest {
     void checkSprintReminders_shouldNotifyEndingSprint() {
         Sprint sprint = new Sprint();
         sprint.setId(2L);
-        sprint.setProjectId(10L);
+        sprint.setProjectId("PRJ_001");
         sprint.setName("Sprint 2");
         sprint.setStatus(2); // Active status
         sprint.setStartDate(LocalDateTime.now().minusDays(13));
@@ -124,7 +124,7 @@ class NotificationSchedulerTest {
         when(sprintMapper.selectList(any(LambdaQueryWrapper.class)))
             .thenReturn(Collections.emptyList())
             .thenReturn(Collections.singletonList(sprint));
-        when(projectMapper.findMemberIds(10L)).thenReturn(memberIds);
+        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(memberIds);
 
         scheduler.checkUpcomingSprints();
 
@@ -146,7 +146,7 @@ class NotificationSchedulerTest {
     void checkMilestoneReminders_shouldNotifyDueMilestone() {
         Milestone milestone = new Milestone();
         milestone.setId(1L);
-        milestone.setProjectId(10L);
+        milestone.setProjectId("PRJ_001");
         milestone.setName("Q1 Milestone");
         milestone.setTargetDate(LocalDate.now().plusDays(2)); // Within 3 days
         milestone.setStatus("ACTIVE");
@@ -158,7 +158,7 @@ class NotificationSchedulerTest {
             .thenReturn(Collections.singletonList(milestone));
         when(taskMapper.selectList(any(LambdaQueryWrapper.class)))
             .thenReturn(Collections.emptyList());
-        when(projectMapper.findMemberIds(10L)).thenReturn(memberIds);
+        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(memberIds);
 
         scheduler.checkMilestonesAndOverdueTasks();
 

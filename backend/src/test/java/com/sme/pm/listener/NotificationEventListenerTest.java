@@ -47,7 +47,7 @@ class NotificationEventListenerTest {
         Long userId = 1L;
         Long taskId = 100L;
         Long assigneeId = 2L;
-        Long projectId = 10L;
+        String projectId = "PRJ_001";
         String title = "Task Assigned";
         String content = "You have been assigned to task: Test Task";
 
@@ -76,7 +76,7 @@ class NotificationEventListenerTest {
         Long taskId = 100L;
         Long oldStatusId = 10L;
         Long newStatusId = 20L;
-        Long projectId = 10L;
+        String projectId = "PRJ_001";
         String title = "Task Status Changed";
         String content = "Task \"Test Task\" status changed to In Progress";
 
@@ -104,7 +104,7 @@ class NotificationEventListenerTest {
         Long userId = 1L;
         Long taskId = 100L;
         Long commentId = 200L;
-        Long projectId = 10L;
+        String projectId = "PRJ_001";
         String title = "New Comment";
         String content = "Hey @john and @jane, please review this task";
 
@@ -148,7 +148,7 @@ class NotificationEventListenerTest {
         Long userId = 1L;
         Long taskId = 100L;
         Long commentId = 200L;
-        Long projectId = 10L;
+        String projectId = "PRJ_001";
         String title = "New Comment";
         String content = "I commented on this task";
 

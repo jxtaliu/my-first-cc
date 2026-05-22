@@ -6,7 +6,7 @@ import com.sme.pm.entity.StatusTransition;
 import java.util.List;
 
 public interface IStatusTransitionService extends IService<StatusTransition> {
-    List<StatusTransition> findByProjectId(Long projectId);
+    List<StatusTransition> findByProjectId(String projectId);
     List<StatusTransition> findByFromStatus(Long fromStatusId);
     boolean existsTransition(Long fromStatusId, Long toStatusId);
 }

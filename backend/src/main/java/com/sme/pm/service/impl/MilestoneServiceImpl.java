@@ -31,7 +31,7 @@ public class MilestoneServiceImpl extends ServiceImpl<MilestoneMapper, Milestone
     }
 
     @Override
-    public List<Milestone> findByProjectId(Long projectId) {
+    public List<Milestone> findByProjectId(String projectId) {
         LambdaQueryWrapper<Milestone> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Milestone::getProjectId, projectId)
                .eq(Milestone::getDeleted, 0)

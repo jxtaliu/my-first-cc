@@ -60,12 +60,12 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/members")
-    public Result<?> getMembers(@PathVariable Long projectId) {
+    public Result<?> getMembers(@PathVariable String projectId) {
         return Result.success(projectService.getMembers(projectId));
     }
 
     @PostMapping("/{projectId}/members")
-    public Result<Void> addMember(@PathVariable Long projectId, @RequestBody Map<String, Object> member) {
+    public Result<Void> addMember(@PathVariable String projectId, @RequestBody Map<String, Object> member) {
         Object userIdObj = member.get("userId");
         Long userId = (userIdObj instanceof Number) ? ((Number) userIdObj).longValue() : Long.parseLong(userIdObj.toString());
         projectService.addMember(projectId, userId);
@@ -73,13 +73,13 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{projectId}/members/{userId}")
-    public Result<Void> removeMember(@PathVariable Long projectId, @PathVariable Long userId) {
+    public Result<Void> removeMember(@PathVariable String projectId, @PathVariable Long userId) {
         projectService.removeMember(projectId, userId);
         return Result.success();
     }
 
     @GetMapping("/{projectId}/stats")
-    public Result<Object> getStats(@PathVariable Long projectId) {
+    public Result<Object> getStats(@PathVariable String projectId) {
         return Result.success(projectService.getStats(projectId));
     }
 }

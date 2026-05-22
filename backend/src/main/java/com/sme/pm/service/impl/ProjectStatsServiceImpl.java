@@ -37,7 +37,7 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
             return stats;
         }
 
-        List<Task> tasks = taskMapper.findByProjectId(projectId);
+        List<Task> tasks = taskMapper.findByProjectId(project.getProjectId());
         int totalTasks = tasks.size();
         int completedTasks = 0;
         int inProgressTasks = 0;
@@ -99,7 +99,12 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
     public Map<String, Object> getTeamThroughput(Long projectId, String startDate, String endDate) {
         Map<String, Object> throughput = new HashMap<>();
 
-        List<Task> tasks = taskMapper.findByProjectId(projectId);
+        Project project = projectMapper.findById(projectId);
+        if (project == null) {
+            return throughput;
+        }
+
+        List<Task> tasks = taskMapper.findByProjectId(project.getProjectId());
 
         // Filter tasks by date range if provided
         LocalDate start = startDate != null ? LocalDate.parse(startDate) : null;

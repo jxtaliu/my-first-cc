@@ -28,7 +28,7 @@ public class MilestoneController {
     }
 
     @GetMapping("/project/{projectId}")
-    public Result<List<Milestone>> findByProjectId(@PathVariable Long projectId) {
+    public Result<List<Milestone>> findByProjectId(@PathVariable String projectId) {
         return Result.success(milestoneService.findByProjectId(projectId));
     }
 

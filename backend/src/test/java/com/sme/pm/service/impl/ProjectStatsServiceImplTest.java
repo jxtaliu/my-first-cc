@@ -51,14 +51,14 @@ class ProjectStatsServiceImplTest {
 
         testSprint = new Sprint();
         testSprint.setId(1L);
-        testSprint.setProjectId(1L);
+        testSprint.setProjectId("PRJ_001");
         testSprint.setName("Sprint 1");
         testSprint.setStartDate(LocalDateTime.now().minusDays(7));
         testSprint.setEndDate(LocalDateTime.now().plusDays(7));
 
         completedTask = new Task();
         completedTask.setId(1L);
-        completedTask.setProjectId(1L);
+        completedTask.setProjectId("PRJ_001");
         completedTask.setSprintId(1L);
         completedTask.setTitle("Completed Task");
         completedTask.setEstimateHours(8);
@@ -67,7 +67,7 @@ class ProjectStatsServiceImplTest {
 
         inProgressTask = new Task();
         inProgressTask.setId(2L);
-        inProgressTask.setProjectId(1L);
+        inProgressTask.setProjectId("PRJ_001");
         inProgressTask.setSprintId(1L);
         inProgressTask.setTitle("In Progress Task");
         inProgressTask.setEstimateHours(4);
@@ -75,7 +75,7 @@ class ProjectStatsServiceImplTest {
 
         notStartedTask = new Task();
         notStartedTask.setId(3L);
-        notStartedTask.setProjectId(1L);
+        notStartedTask.setProjectId("PRJ_001");
         notStartedTask.setSprintId(1L);
         notStartedTask.setTitle("Not Started Task");
         notStartedTask.setEstimateHours(2);
@@ -87,7 +87,7 @@ class ProjectStatsServiceImplTest {
         // Arrange
         List<Task> tasks = Arrays.asList(completedTask, inProgressTask, notStartedTask);
         when(projectMapper.findById(1L)).thenReturn(testProject);
-        when(taskMapper.findByProjectId(1L)).thenReturn(tasks);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
 
         // Act
         Map<String, Object> stats = projectStatsService.getProjectStats(1L);
@@ -123,13 +123,13 @@ class ProjectStatsServiceImplTest {
         // Arrange
         Task taskWithNullEstimate = new Task();
         taskWithNullEstimate.setId(4L);
-        taskWithNullEstimate.setProjectId(1L);
+        taskWithNullEstimate.setProjectId("PRJ_001");
         taskWithNullEstimate.setEstimateHours(null);
         taskWithNullEstimate.setProgress(100);
 
         List<Task> tasks = Collections.singletonList(taskWithNullEstimate);
         when(projectMapper.findById(1L)).thenReturn(testProject);
-        when(taskMapper.findByProjectId(1L)).thenReturn(tasks);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
 
         // Act
         Map<String, Object> stats = projectStatsService.getProjectStats(1L);
@@ -149,20 +149,20 @@ class ProjectStatsServiceImplTest {
 
         Task task1 = new Task();
         task1.setId(1L);
-        task1.setProjectId(1L);
+        task1.setProjectId("PRJ_001");
         task1.setEstimateHours(10);
         task1.setProgress(100);
 
         Task task2 = new Task();
         task2.setId(2L);
-        task2.setProjectId(2L);
+        task2.setProjectId("PRJ_002");
         task2.setEstimateHours(20);
         task2.setProgress(50);
 
         when(projectMapper.findById(1L)).thenReturn(testProject);
         when(projectMapper.findById(2L)).thenReturn(project2);
-        when(taskMapper.findByProjectId(1L)).thenReturn(Collections.singletonList(task1));
-        when(taskMapper.findByProjectId(2L)).thenReturn(Collections.singletonList(task2));
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Collections.singletonList(task1));
+        when(taskMapper.findByProjectId("PRJ_002")).thenReturn(Collections.singletonList(task2));
 
         // Act
         List<Map<String, Object>> comparisons = projectStatsService.compareProjects(Arrays.asList(1L, 2L));
@@ -230,7 +230,7 @@ class ProjectStatsServiceImplTest {
         // Arrange
         Sprint sprintWithNullDates = new Sprint();
         sprintWithNullDates.setId(2L);
-        sprintWithNullDates.setProjectId(1L);
+        sprintWithNullDates.setProjectId("PRJ_001");
         sprintWithNullDates.setName("Sprint 2");
         sprintWithNullDates.setStartDate(null);
         sprintWithNullDates.setEndDate(null);
@@ -275,13 +275,13 @@ class ProjectStatsServiceImplTest {
         // Arrange
         Task taskWithNullProgress = new Task();
         taskWithNullProgress.setId(1L);
-        taskWithNullProgress.setProjectId(1L);
+        taskWithNullProgress.setProjectId("PRJ_001");
         taskWithNullProgress.setEstimateHours(10);
         taskWithNullProgress.setProgress(null);
 
         List<Task> tasks = Collections.singletonList(taskWithNullProgress);
         when(projectMapper.findById(1L)).thenReturn(testProject);
-        when(taskMapper.findByProjectId(1L)).thenReturn(tasks);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
 
         // Act
         Map<String, Object> stats = projectStatsService.getProjectStats(1L);
@@ -298,19 +298,19 @@ class ProjectStatsServiceImplTest {
         // Arrange
         Task task1 = new Task();
         task1.setId(1L);
-        task1.setProjectId(1L);
+        task1.setProjectId("PRJ_001");
         task1.setEstimateHours(5);
         task1.setProgress(100);
 
         Task task2 = new Task();
         task2.setId(2L);
-        task2.setProjectId(1L);
+        task2.setProjectId("PRJ_001");
         task2.setEstimateHours(10);
         task2.setProgress(100);
 
         List<Task> tasks = Arrays.asList(task1, task2);
         when(projectMapper.findById(1L)).thenReturn(testProject);
-        when(taskMapper.findByProjectId(1L)).thenReturn(tasks);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
 
         // Act
         Map<String, Object> stats = projectStatsService.getProjectStats(1L);

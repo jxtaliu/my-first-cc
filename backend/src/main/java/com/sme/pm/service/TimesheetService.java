@@ -12,9 +12,9 @@ public interface TimesheetService {
     List<Timesheet> listWeekly(Long userId, String startDate, String endDate);
     List<Timesheet> listMonthly(Long userId, String startDate, String endDate);
     List<Timesheet> listByUser(Long userId);
-    List<Timesheet> listProjectTimesheets(Long projectId, String startDate, String endDate);
+    List<Timesheet> listProjectTimesheets(String projectId, String startDate, String endDate);
     Map<String, Object> getStats(Long userId, String startDate, String endDate);
-    List<Timesheet> listPendingByProject(Long projectId);
+    List<Timesheet> listPendingByProject(String projectId);
     void approve(Long timesheetId, Long approverId);
     void reject(Long timesheetId, Long approverId, String reason);
     void resubmit(Long timesheetId);

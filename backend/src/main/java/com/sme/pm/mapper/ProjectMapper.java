@@ -15,12 +15,18 @@ public interface ProjectMapper extends BaseMapper<Project> {
     @Select("SELECT * FROM project WHERE id = #{id} AND deleted = 0")
     Project findById(@Param("id") Long id);
 
+    @Select("SELECT * FROM project WHERE project_id = #{projectId} AND deleted = 0")
+    Project findByProjectId(@Param("projectId") String projectId);
+
+    @Select("SELECT COUNT(*) FROM project WHERE deleted = 0")
+    int countAll();
+
     @Insert("INSERT INTO project_member (project_id, user_id, joined_at) VALUES (#{projectId}, #{userId}, NOW())")
-    void addMember(@Param("projectId") Long projectId, @Param("userId") Long userId);
+    void addMember(@Param("projectId") String projectId, @Param("userId") Long userId);
 
     @Delete("DELETE FROM project_member WHERE project_id = #{projectId} AND user_id = #{userId}")
-    void removeMember(@Param("projectId") Long projectId, @Param("userId") Long userId);
+    void removeMember(@Param("projectId") String projectId, @Param("userId") Long userId);
 
     @Select("SELECT user_id FROM project_member WHERE project_id = #{projectId}")
-    List<Long> findMemberIds(@Param("projectId") Long projectId);
+    List<Long> findMemberIds(@Param("projectId") String projectId);
 }

@@ -11,11 +11,11 @@ public abstract class BaseNotificationEvent extends ApplicationEvent {
     private final String title;
     private final String content;
     private final Long relatedTaskId;
-    private final Long relatedProjectId;
+    private final String relatedProjectId;
     private final LocalDateTime eventTime;
 
     protected BaseNotificationEvent(Object source, Long userId, String title, String content,
-                                    Long relatedTaskId, Long relatedProjectId) {
+                                    Long relatedTaskId, String relatedProjectId) {
         super(source);
         this.userId = userId;
         this.title = title;

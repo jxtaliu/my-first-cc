@@ -8,7 +8,7 @@ public class TimesheetApprovalEvent extends BaseNotificationEvent {
     private final String approvalStatus;
 
     public TimesheetApprovalEvent(Object source, Long userId, Long timesheetId, String approvalStatus,
-                                   String title, String content, Long relatedProjectId) {
+                                   String title, String content, String relatedProjectId) {
         super(source, userId, title, content, null, relatedProjectId);
         this.timesheetId = timesheetId;
         this.approvalStatus = approvalStatus;

@@ -87,7 +87,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
-    public List<Timesheet> listProjectTimesheets(Long projectId, String startDate, String endDate) {
+    public List<Timesheet> listProjectTimesheets(String projectId, String startDate, String endDate) {
         return timesheetMapper.findByProjectAndDateRange(projectId, startDate, endDate);
     }
 
@@ -102,7 +102,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
-    public List<Timesheet> listPendingByProject(Long projectId) {
+    public List<Timesheet> listPendingByProject(String projectId) {
         return timesheetMapper.findPendingByProject(projectId);
     }
 

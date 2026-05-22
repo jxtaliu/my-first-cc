@@ -18,7 +18,7 @@ public class TaskStatusController {
     }
 
     @GetMapping("/project/{projectId}")
-    public Result<List<TaskStatus>> findByProjectId(@PathVariable Long projectId) {
+    public Result<List<TaskStatus>> findByProjectId(@PathVariable String projectId) {
         return Result.success(taskStatusService.findByProjectId(projectId));
     }
 
@@ -28,7 +28,7 @@ public class TaskStatusController {
     }
 
     @GetMapping("/project/{projectId}/{code}")
-    public Result<TaskStatus> findByCode(@PathVariable Long projectId, @PathVariable String code) {
+    public Result<TaskStatus> findByCode(@PathVariable String projectId, @PathVariable String code) {
         TaskStatus status = taskStatusService.findByCode(projectId, code);
         return status != null ? Result.success(status) : Result.error("Status not found");
     }

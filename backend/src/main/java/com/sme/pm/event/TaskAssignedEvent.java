@@ -8,7 +8,7 @@ public class TaskAssignedEvent extends BaseNotificationEvent {
     private final Long assigneeId;
 
     public TaskAssignedEvent(Object source, Long userId, Long taskId, Long assigneeId,
-                             String title, String content, Long relatedProjectId) {
+                             String title, String content, String relatedProjectId) {
         super(source, userId, title, content, taskId, relatedProjectId);
         this.taskId = taskId;
         this.assigneeId = assigneeId;

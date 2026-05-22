@@ -10,7 +10,7 @@ public class MilestoneDueEvent extends BaseNotificationEvent {
     private final LocalDate targetDate;
 
     public MilestoneDueEvent(Object source, Long userId, Long milestoneId, LocalDate targetDate,
-                              String title, String content, Long relatedProjectId) {
+                              String title, String content, String relatedProjectId) {
         super(source, userId, title, content, null, relatedProjectId);
         this.milestoneId = milestoneId;
         this.targetDate = targetDate;

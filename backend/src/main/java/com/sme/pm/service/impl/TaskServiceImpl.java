@@ -97,7 +97,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> listByProject(Long projectId) {
+    public List<Task> listByProject(String projectId) {
         return taskMapper.findByProjectId(projectId);
     }
 

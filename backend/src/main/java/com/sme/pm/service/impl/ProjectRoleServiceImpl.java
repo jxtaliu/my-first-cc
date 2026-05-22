@@ -13,7 +13,7 @@ import java.util.List;
 public class ProjectRoleServiceImpl extends ServiceImpl<ProjectRoleMapper, ProjectRole> implements IProjectRoleService {
 
     @Override
-    public List<ProjectRole> findByProjectId(Long projectId) {
+    public List<ProjectRole> findByProjectId(String projectId) {
         LambdaQueryWrapper<ProjectRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ProjectRole::getProjectId, projectId)
                .eq(ProjectRole::getDeleted, 0);
@@ -29,7 +29,7 @@ public class ProjectRoleServiceImpl extends ServiceImpl<ProjectRoleMapper, Proje
     }
 
     @Override
-    public ProjectRole findByProjectAndUser(Long projectId, Long userId) {
+    public ProjectRole findByProjectAndUser(String projectId, Long userId) {
         LambdaQueryWrapper<ProjectRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ProjectRole::getProjectId, projectId)
                .eq(ProjectRole::getUserId, userId)
@@ -38,7 +38,7 @@ public class ProjectRoleServiceImpl extends ServiceImpl<ProjectRoleMapper, Proje
     }
 
     @Override
-    public List<ProjectRole> findByProjectAndRole(Long projectId, String role) {
+    public List<ProjectRole> findByProjectAndRole(String projectId, String role) {
         LambdaQueryWrapper<ProjectRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ProjectRole::getProjectId, projectId)
                .eq(ProjectRole::getRole, role)
@@ -47,7 +47,7 @@ public class ProjectRoleServiceImpl extends ServiceImpl<ProjectRoleMapper, Proje
     }
 
     @Override
-    public void assignRole(Long projectId, Long userId, String role) {
+    public void assignRole(String projectId, Long userId, String role) {
         ProjectRole existing = findByProjectAndUser(projectId, userId);
         if (existing != null) {
             existing.setRole(role);
@@ -62,7 +62,7 @@ public class ProjectRoleServiceImpl extends ServiceImpl<ProjectRoleMapper, Proje
     }
 
     @Override
-    public void removeRole(Long projectId, Long userId) {
+    public void removeRole(String projectId, Long userId) {
         LambdaQueryWrapper<ProjectRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ProjectRole::getProjectId, projectId)
                .eq(ProjectRole::getUserId, userId);

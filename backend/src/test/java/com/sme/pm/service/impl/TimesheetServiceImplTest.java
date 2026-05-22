@@ -48,7 +48,7 @@ class TimesheetServiceImplTest {
     @Test
     void create_shouldSetPendingStatus_forExternalProject() {
         Timesheet timesheet = new Timesheet();
-        timesheet.setProjectId(1L);
+        timesheet.setProjectId("PRJ_001");
         timesheet.setHours(8);
         timesheet.setWorkDate(LocalDateTime.now());
 
@@ -125,7 +125,7 @@ class TimesheetServiceImplTest {
 
     @Test
     void listProjectTimesheets_shouldReturnProjectTimesheets() {
-        Long projectId = 1L;
+        String projectId = "PRJ_001";
         String startDate = "2024-01-01";
         String endDate = "2024-01-31";
 
@@ -148,7 +148,7 @@ class TimesheetServiceImplTest {
         Long timesheetId = 1L;
         Long approverId = 2L;
         Long userId = 3L;
-        Long projectId = 10L;
+        String projectId = "PRJ_002";
 
         Timesheet timesheet = new Timesheet();
         timesheet.setId(timesheetId);
@@ -184,7 +184,7 @@ class TimesheetServiceImplTest {
         Long timesheetId = 1L;
         Long approverId = 2L;
         Long userId = 3L;
-        Long projectId = 10L;
+        String projectId = "PRJ_002";
         String reason = "Hours exceed estimate";
 
         Timesheet timesheet = new Timesheet();

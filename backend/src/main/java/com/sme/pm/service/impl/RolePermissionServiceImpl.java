@@ -15,7 +15,7 @@ public class RolePermissionServiceImpl implements IRolePermissionService {
     }
 
     @Override
-    public boolean canApproveTimesheet(Long userId, Long projectId) {
+    public boolean canApproveTimesheet(Long userId, String projectId) {
         ProjectRole role = projectRoleMapper.findByProjectAndUser(projectId, userId);
         if (role == null) {
             return false;
@@ -25,7 +25,7 @@ public class RolePermissionServiceImpl implements IRolePermissionService {
     }
 
     @Override
-    public boolean canManageSprint(Long userId, Long projectId) {
+    public boolean canManageSprint(Long userId, String projectId) {
         ProjectRole role = projectRoleMapper.findByProjectAndUser(projectId, userId);
         if (role == null) {
             return false;
@@ -35,7 +35,7 @@ public class RolePermissionServiceImpl implements IRolePermissionService {
     }
 
     @Override
-    public boolean canManageTasks(Long userId, Long projectId) {
+    public boolean canManageTasks(Long userId, String projectId) {
         ProjectRole role = projectRoleMapper.findByProjectAndUser(projectId, userId);
         if (role == null) {
             return false;
@@ -45,7 +45,7 @@ public class RolePermissionServiceImpl implements IRolePermissionService {
     }
 
     @Override
-    public boolean canManageMembers(Long userId, Long projectId) {
+    public boolean canManageMembers(Long userId, String projectId) {
         ProjectRole role = projectRoleMapper.findByProjectAndUser(projectId, userId);
         if (role == null) {
             return false;
@@ -55,7 +55,7 @@ public class RolePermissionServiceImpl implements IRolePermissionService {
     }
 
     @Override
-    public boolean canConfigureProject(Long userId, Long projectId) {
+    public boolean canConfigureProject(Long userId, String projectId) {
         ProjectRole role = projectRoleMapper.findByProjectAndUser(projectId, userId);
         if (role == null) {
             return false;
@@ -65,7 +65,7 @@ public class RolePermissionServiceImpl implements IRolePermissionService {
     }
 
     @Override
-    public String getProjectRole(Long userId, Long projectId) {
+    public String getProjectRole(Long userId, String projectId) {
         ProjectRole role = projectRoleMapper.findByProjectAndUser(projectId, userId);
         if (role == null) {
             return "NONE";

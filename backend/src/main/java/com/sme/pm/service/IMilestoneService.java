@@ -8,6 +8,6 @@ import java.util.List;
 public interface IMilestoneService extends IService<Milestone> {
     List<Milestone> findAll();
     List<Milestone> findCrossProject();
-    List<Milestone> findByProjectId(Long projectId);
+    List<Milestone> findByProjectId(String projectId);
     List<Milestone> findDueSoon(int days);
 }

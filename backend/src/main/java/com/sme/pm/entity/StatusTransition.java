@@ -10,7 +10,7 @@ public class StatusTransition {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long projectId;  // NULL means system default
+    private String projectId; // References project.project_id  // NULL means system default
 
     private Long fromStatusId;  // Source status
 

@@ -30,7 +30,7 @@ public class TaskController {
 
     @GetMapping
     public Result<List<Task>> list(@RequestParam(required = false) Long sprintId,
-                                   @RequestParam(required = false) Long projectId,
+                                   @RequestParam(required = false) String projectId,
                                    @RequestParam(required = false) Long assigneeId) {
         if (sprintId != null) {
             return Result.success(taskService.listBySprint(sprintId));

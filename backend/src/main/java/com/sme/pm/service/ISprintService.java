@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ISprintService extends IService<Sprint> {
-    List<Sprint> findByProjectId(Long projectId);
+    List<Sprint> findByProjectId(String projectId);
     Sprint findById(Long id);
     Sprint create(Sprint sprint);
     Sprint update(Sprint sprint);
@@ -26,5 +26,5 @@ public interface ISprintService extends IService<Sprint> {
     // Sprint planning
     void addTaskToSprint(Long sprintId, Long taskId);
     void removeTaskFromSprint(Long taskId);
-    List<Task> getBacklogTasks(Long projectId);
+    List<Task> getBacklogTasks(String projectId);
 }

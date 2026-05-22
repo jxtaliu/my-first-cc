@@ -11,7 +11,7 @@ public class Task {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long projectId;
+    private String projectId;  // References project.project_id, for fast query
 
     private Long sprintId;
 

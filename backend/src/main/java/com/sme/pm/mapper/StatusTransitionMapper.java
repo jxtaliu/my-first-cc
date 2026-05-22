@@ -10,7 +10,7 @@ import java.util.List;
 public interface StatusTransitionMapper extends BaseMapper<StatusTransition> {
 
     @Select("SELECT * FROM status_transition WHERE (project_id = #{projectId} OR project_id IS NULL) AND deleted = 0")
-    List<StatusTransition> findByProjectId(@Param("projectId") Long projectId);
+    List<StatusTransition> findByProjectId(@Param("projectId") String projectId);
 
     @Select("SELECT * FROM status_transition WHERE from_status_id = #{fromStatusId} AND deleted = 0")
     List<StatusTransition> findByFromStatus(@Param("fromStatusId") Long fromStatusId);

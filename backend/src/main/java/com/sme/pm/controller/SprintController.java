@@ -27,14 +27,14 @@ public class SprintController {
     }
 
     @PostMapping
-    public Result<Sprint> create(@PathVariable Long projectId, @RequestBody Sprint sprint) {
+    public Result<Sprint> create(@PathVariable String projectId, @RequestBody Sprint sprint) {
         sprint.setProjectId(projectId);
         sprintMapper.insert(sprint);
         return Result.success(sprint);
     }
 
     @GetMapping
-    public Result<List<Sprint>> list(@PathVariable Long projectId) {
+    public Result<List<Sprint>> list(@PathVariable String projectId) {
         return Result.success(sprintMapper.findByProjectId(projectId));
     }
 
@@ -96,7 +96,7 @@ public class SprintController {
     }
 
     @GetMapping("/backlog")
-    public Result<List<Task>> getBacklogTasks(@PathVariable Long projectId) {
+    public Result<List<Task>> getBacklogTasks(@PathVariable String projectId) {
         return Result.success(sprintService.getBacklogTasks(projectId));
     }
 

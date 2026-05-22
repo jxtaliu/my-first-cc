@@ -19,7 +19,7 @@ public class Milestone {
 
     private Integer isCrossProject;  // 0: project milestone, 1: cross-project
 
-    private Long projectId;  // NULL for cross-project milestones
+    private String projectId; // References project.project_id  // NULL for cross-project milestones
 
     private String status;  // ACTIVE, ACHIEVED, FAILED
 

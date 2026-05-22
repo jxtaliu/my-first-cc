@@ -13,7 +13,7 @@ import java.util.List;
 public class StatusTransitionServiceImpl extends ServiceImpl<StatusTransitionMapper, StatusTransition> implements IStatusTransitionService {
 
     @Override
-    public List<StatusTransition> findByProjectId(Long projectId) {
+    public List<StatusTransition> findByProjectId(String projectId) {
         LambdaQueryWrapper<StatusTransition> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(StatusTransition::getProjectId, projectId)
                .eq(StatusTransition::getDeleted, 0);

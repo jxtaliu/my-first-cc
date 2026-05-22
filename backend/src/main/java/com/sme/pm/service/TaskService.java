@@ -14,7 +14,7 @@ public interface TaskService {
     void delete(Long id);
     Task getById(Long id);
     List<Task> listBySprint(Long sprintId);
-    List<Task> listByProject(Long projectId);
+    List<Task> listByProject(String projectId);
     List<Task> listByParent(Long parentId);
     List<Task> listByAssignee(Long assigneeId);
     void assign(Long taskId, Long userId);

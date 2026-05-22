@@ -10,11 +10,13 @@ public class Project {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    private String projectId;  // Business key, e.g., PRJ_001
+
     private String name;
 
     private String description;
 
-    private String projectType = "SCRUM";  // SCRUM/KANBAN
+    private String projectType;  // DEVELOPE/CUSTOM
 
     private String status = "PLANNING";  // PLANNING/ACTIVE/COMPLETED/ARCHIVED
 

@@ -13,8 +13,8 @@ public interface ProjectService {
     List<Project> list();
     void archive(Long id);
     void restore(Long id);
-    void addMember(Long projectId, Long userId);
-    void removeMember(Long projectId, Long userId);
-    List<Map<String, Object>> getMembers(Long projectId);
-    Map<String, Object> getStats(Long projectId);
+    void addMember(String projectId, Long userId);
+    void removeMember(String projectId, Long userId);
+    List<Map<String, Object>> getMembers(String projectId);
+    Map<String, Object> getStats(String projectId);
 }

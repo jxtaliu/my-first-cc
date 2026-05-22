@@ -20,7 +20,7 @@ public interface MilestoneMapper extends BaseMapper<Milestone> {
             "INNER JOIN project_milestone pm ON m.id = pm.milestone_id " +
             "WHERE pm.project_id = #{projectId} AND m.deleted = 0 " +
             "ORDER BY m.target_date")
-    List<Milestone> findByProjectId(@Param("projectId") Long projectId);
+    List<Milestone> findByProjectId(@Param("projectId") String projectId);
 
     @Select("SELECT * FROM milestone WHERE target_date <= #{endDate} AND status = 'ACTIVE' AND deleted = 0")
     List<Milestone> findDueSoon(@Param("endDate") LocalDate endDate);

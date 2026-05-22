@@ -59,7 +59,7 @@ public class TimesheetController {
     }
 
     @GetMapping("/project/{projectId}")
-    public Result<List<Timesheet>> projectTimesheets(@PathVariable Long projectId,
+    public Result<List<Timesheet>> projectTimesheets(@PathVariable String projectId,
                                                       @RequestParam String startDate,
                                                       @RequestParam String endDate) {
         return Result.success(timesheetService.listProjectTimesheets(projectId, startDate, endDate));
@@ -116,7 +116,7 @@ public class TimesheetController {
     }
 
     @GetMapping("/pending-approval/{projectId}")
-    public Result<List<Timesheet>> getPendingApproval(@PathVariable Long projectId) {
+    public Result<List<Timesheet>> getPendingApproval(@PathVariable String projectId) {
         return Result.success(timesheetService.listPendingByProject(projectId));
     }
 

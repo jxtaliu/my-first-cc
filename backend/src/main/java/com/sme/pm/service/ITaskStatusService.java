@@ -6,7 +6,7 @@ import com.sme.pm.entity.TaskStatus;
 import java.util.List;
 
 public interface ITaskStatusService extends IService<TaskStatus> {
-    List<TaskStatus> findByProjectId(Long projectId);
+    List<TaskStatus> findByProjectId(String projectId);
     List<TaskStatus> findSystemDefaults();
-    TaskStatus findByCode(Long projectId, String code);
+    TaskStatus findByCode(String projectId, String code);
 }

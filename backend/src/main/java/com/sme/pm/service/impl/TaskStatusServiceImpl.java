@@ -13,7 +13,7 @@ import java.util.List;
 public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskStatus> implements ITaskStatusService {
 
     @Override
-    public List<TaskStatus> findByProjectId(Long projectId) {
+    public List<TaskStatus> findByProjectId(String projectId) {
         LambdaQueryWrapper<TaskStatus> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TaskStatus::getProjectId, projectId)
                .eq(TaskStatus::getDeleted, 0)
@@ -31,7 +31,7 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
     }
 
     @Override
-    public TaskStatus findByCode(Long projectId, String code) {
+    public TaskStatus findByCode(String projectId, String code) {
         LambdaQueryWrapper<TaskStatus> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TaskStatus::getProjectId, projectId)
                .eq(TaskStatus::getCode, code)

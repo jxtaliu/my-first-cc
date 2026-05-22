@@ -10,7 +10,7 @@ public class ProjectRole {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long projectId;
+    private String projectId; // References project.project_id
 
     private Long userId;
 

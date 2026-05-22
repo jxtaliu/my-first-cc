@@ -9,7 +9,7 @@ public class TaskStatusChangedEvent extends BaseNotificationEvent {
     private final Long newStatusId;
 
     public TaskStatusChangedEvent(Object source, Long userId, Long taskId, Long oldStatusId,
-                                  Long newStatusId, String title, String content, Long relatedProjectId) {
+                                  Long newStatusId, String title, String content, String relatedProjectId) {
         super(source, userId, title, content, taskId, relatedProjectId);
         this.taskId = taskId;
         this.oldStatusId = oldStatusId;

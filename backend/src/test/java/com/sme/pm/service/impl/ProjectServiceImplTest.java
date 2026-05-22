@@ -63,28 +63,28 @@ class ProjectServiceImplTest {
 
     @Test
     void delete_shouldCallDeleteById() {
-        Long projectId = 1L;
+        Long id = 1L;
 
-        projectService.delete(projectId);
+        projectService.delete(id);
 
-        verify(projectMapper).deleteById(projectId);
+        verify(projectMapper).deleteById(id);
     }
 
     @Test
     void getById_shouldReturnProject() {
-        Long projectId = 1L;
+        Long id = 1L;
         Project expectedProject = new Project();
-        expectedProject.setId(projectId);
+        expectedProject.setId(id);
         expectedProject.setName("Test Project");
 
-        when(projectMapper.findById(projectId)).thenReturn(expectedProject);
+        when(projectMapper.findById(id)).thenReturn(expectedProject);
 
-        Project result = projectService.getById(projectId);
+        Project result = projectService.getById(id);
 
         assertNotNull(result);
-        assertEquals(projectId, result.getId());
+        assertEquals(id, result.getId());
         assertEquals("Test Project", result.getName());
-        verify(projectMapper).findById(projectId);
+        verify(projectMapper).findById(id);
     }
 
     @Test
@@ -108,43 +108,43 @@ class ProjectServiceImplTest {
 
     @Test
     void archive_shouldSetStatusToArchived() {
-        Long projectId = 1L;
+        Long id = 1L;
 
         when(projectMapper.updateById(any(Project.class))).thenReturn(1);
 
-        projectService.archive(projectId);
+        projectService.archive(id);
 
         verify(projectMapper).updateById(argThat(project ->
-            project.getId().equals(projectId) && "ARCHIVED".equals(project.getStatus())
+            project.getId().equals(id) && "ARCHIVED".equals(project.getStatus())
         ));
     }
 
     @Test
     void restore_shouldSetStatusToActive() {
-        Long projectId = 1L;
+        Long id = 1L;
 
         when(projectMapper.updateById(any(Project.class))).thenReturn(1);
 
-        projectService.restore(projectId);
+        projectService.restore(id);
 
         verify(projectMapper).updateById(argThat(project ->
-            project.getId().equals(projectId) && "ACTIVE".equals(project.getStatus())
+            project.getId().equals(id) && "ACTIVE".equals(project.getStatus())
         ));
     }
 
     @Test
     void addMember_shouldCallAddMember() {
-        Long projectId = 1L;
+        String projectId = "PRJ_001";
         Long userId = 2L;
 
         projectService.addMember(projectId, userId);
 
-        verify(projectMapper).addMember(projectId, userId);
+        verify(projectMapper).addMember("PRJ_001", userId);
     }
 
     @Test
     void removeMember_shouldCallRemoveMember() {
-        Long projectId = 1L;
+        String projectId = "PRJ_001";
         Long userId = 2L;
 
         projectService.removeMember(projectId, userId);

@@ -111,31 +111,34 @@ CREATE TABLE IF NOT EXISTS sys_dict_code (
 -- Project table
 CREATE TABLE IF NOT EXISTS project (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id VARCHAR(50) NOT NULL UNIQUE COMMENT 'Business key, e.g., PRJ_001',
     name VARCHAR(200) NOT NULL,
     description TEXT,
-    project_type VARCHAR(50) NOT NULL COMMENT 'SCRUM/KANBAN - from sys_dict_code',
+    project_type VARCHAR(50) NOT NULL COMMENT 'DEVELOPE/CUSTOM - from sys_dict_code',
     status VARCHAR(50) DEFAULT 'PLANNING' COMMENT 'PLANNING/ACTIVE/COMPLETED/ARCHIVED - from sys_dict_code',
     sprint_mode VARCHAR(50) DEFAULT 'SCRUM' COMMENT 'SCRUM/KANBAN - from sys_dict_code',
     owner_id BIGINT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted TINYINT DEFAULT 0,
+    INDEX idx_project_id (project_id),
     INDEX idx_owner (owner_id),
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Project member
 CREATE TABLE IF NOT EXISTS project_member (
-    project_id BIGINT NOT NULL,
+    project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id',
     user_id BIGINT NOT NULL,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (project_id, user_id)
+    PRIMARY KEY (project_id, user_id),
+    INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Sprint table (enhanced with PM fields)
 CREATE TABLE IF NOT EXISTS sprint (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    project_id BIGINT NOT NULL,
+    project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id',
     name VARCHAR(200) NOT NULL,
     goal VARCHAR(500) COMMENT 'Sprint goal',
     start_date DATE,
@@ -157,6 +160,7 @@ CREATE TABLE IF NOT EXISTS sprint (
 -- Task table with hierarchy (enhanced with PM fields)
 CREATE TABLE IF NOT EXISTS task (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id, for fast query',
     sprint_id BIGINT,
     parent_id BIGINT,
     depth TINYINT DEFAULT 1 COMMENT '1-4, max 4 levels',
@@ -179,6 +183,7 @@ CREATE TABLE IF NOT EXISTS task (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted TINYINT DEFAULT 0,
+    INDEX idx_project (project_id),
     INDEX idx_sprint (sprint_id),
     INDEX idx_parent (parent_id),
     INDEX idx_assignee (assignee_id),
@@ -191,7 +196,7 @@ CREATE TABLE IF NOT EXISTS task (
 CREATE TABLE IF NOT EXISTS timesheet (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    project_id BIGINT NOT NULL,
+    project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id',
     task_id BIGINT,
     work_date DATE NOT NULL,
     hours INT NOT NULL,
@@ -230,7 +235,7 @@ CREATE TABLE IF NOT EXISTS project_template (
 -- Project role
 CREATE TABLE IF NOT EXISTS project_role (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    project_id BIGINT NOT NULL,
+    project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id',
     user_id BIGINT NOT NULL,
     role VARCHAR(50) NOT NULL COMMENT 'PROJECT_OWNER/PROJECT_MANAGER/DEV_LEAD/DEVELOPER/GUEST',
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -245,7 +250,7 @@ CREATE TABLE IF NOT EXISTS project_role (
 -- Task status
 CREATE TABLE IF NOT EXISTS task_status (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    project_id BIGINT COMMENT 'NULL means system default',
+    project_id VARCHAR(50) COMMENT 'NULL means system default, references project.project_id',
     code VARCHAR(50) NOT NULL COMMENT 'TODO, IN_PROGRESS, etc.',
     name VARCHAR(100) NOT NULL,
     name_en VARCHAR(100),
@@ -262,7 +267,7 @@ CREATE TABLE IF NOT EXISTS task_status (
 -- Status transition
 CREATE TABLE IF NOT EXISTS status_transition (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    project_id BIGINT COMMENT 'NULL means system default',
+    project_id VARCHAR(50) COMMENT 'NULL means system default, references project.project_id',
     from_status_id BIGINT NOT NULL COMMENT 'Source status',
     to_status_id BIGINT NOT NULL COMMENT 'Target status',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -320,6 +325,7 @@ CREATE TABLE IF NOT EXISTS task_comment (
 -- Milestone
 CREATE TABLE IF NOT EXISTS milestone (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id VARCHAR(50) COMMENT 'NULL for cross-project milestones, references project.project_id',
     name VARCHAR(200) NOT NULL,
     description VARCHAR(500),
     target_date DATE NOT NULL,
@@ -328,13 +334,14 @@ CREATE TABLE IF NOT EXISTS milestone (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted TINYINT DEFAULT 0,
+    INDEX idx_project (project_id),
     INDEX idx_target_date (target_date),
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Project milestone association
 CREATE TABLE IF NOT EXISTS project_milestone (
-    project_id BIGINT NOT NULL,
+    project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id',
     milestone_id BIGINT NOT NULL,
     PRIMARY KEY (project_id, milestone_id),
     INDEX idx_milestone (milestone_id)
@@ -348,7 +355,7 @@ CREATE TABLE IF NOT EXISTS notification (
     title VARCHAR(200) NOT NULL,
     content TEXT,
     related_task_id BIGINT COMMENT 'Related task if applicable',
-    related_project_id BIGINT COMMENT 'Related project if applicable',
+    related_project_id VARCHAR(50) COMMENT 'Related project if applicable, references project.project_id',
     is_read TINYINT DEFAULT 0,
     read_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

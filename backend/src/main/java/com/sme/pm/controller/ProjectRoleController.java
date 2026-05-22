@@ -18,7 +18,7 @@ public class ProjectRoleController {
     }
 
     @GetMapping("/project/{projectId}")
-    public Result<List<ProjectRole>> findByProjectId(@PathVariable Long projectId) {
+    public Result<List<ProjectRole>> findByProjectId(@PathVariable String projectId) {
         return Result.success(projectRoleService.findByProjectId(projectId));
     }
 
@@ -28,13 +28,13 @@ public class ProjectRoleController {
     }
 
     @GetMapping("/project/{projectId}/user/{userId}")
-    public Result<ProjectRole> findByProjectAndUser(@PathVariable Long projectId, @PathVariable Long userId) {
+    public Result<ProjectRole> findByProjectAndUser(@PathVariable String projectId, @PathVariable Long userId) {
         ProjectRole role = projectRoleService.findByProjectAndUser(projectId, userId);
         return role != null ? Result.success(role) : Result.error("Role not found");
     }
 
     @GetMapping("/project/{projectId}/role/{role}")
-    public Result<List<ProjectRole>> findByProjectAndRole(@PathVariable Long projectId, @PathVariable String role) {
+    public Result<List<ProjectRole>> findByProjectAndRole(@PathVariable String projectId, @PathVariable String role) {
         return Result.success(projectRoleService.findByProjectAndRole(projectId, role));
     }
 
@@ -45,7 +45,7 @@ public class ProjectRoleController {
     }
 
     @DeleteMapping("/project/{projectId}/user/{userId}")
-    public Result<Void> removeRole(@PathVariable Long projectId, @PathVariable Long userId) {
+    public Result<Void> removeRole(@PathVariable String projectId, @PathVariable Long userId) {
         projectRoleService.removeRole(projectId, userId);
         return Result.success();
     }

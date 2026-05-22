@@ -203,7 +203,7 @@ class TaskServiceImplTest {
         task.setId(taskId);
         task.setTitle("Test Task");
         task.setAssigneeId(null);
-        task.setProjectId(100L);
+        task.setProjectId("PRJ_TEST");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
         when(taskMapper.updateById(any(Task.class))).thenReturn(1);
@@ -217,7 +217,7 @@ class TaskServiceImplTest {
         assertEquals(userId, capturedEvent.getUserId());
         assertEquals(taskId, capturedEvent.getTaskId());
         assertEquals(userId, capturedEvent.getAssigneeId());
-        assertEquals(100L, capturedEvent.getRelatedProjectId());
+        assertEquals("PRJ_TEST", capturedEvent.getRelatedProjectId());
         assertEquals("Task Assigned", capturedEvent.getTitle());
     }
 
@@ -232,7 +232,7 @@ class TaskServiceImplTest {
         task.setTitle("Test Task");
         task.setStatus(oldStatusId);
         task.setAssigneeId(5L);
-        task.setProjectId(100L);
+        task.setProjectId("PRJ_TEST");
 
         TaskStatus currentStatus = new TaskStatus();
         currentStatus.setId(oldStatusId.longValue());
@@ -278,7 +278,7 @@ class TaskServiceImplTest {
         task.setTitle("Test Task");
         task.setStatus(oldStatusId);
         task.setAssigneeId(5L);
-        task.setProjectId(100L);
+        task.setProjectId("PRJ_TEST");
         task.setInProgressSince(null); // Not yet in progress
 
         TaskStatus currentStatus = new TaskStatus();
@@ -318,7 +318,7 @@ class TaskServiceImplTest {
         task.setTitle("Test Task");
         task.setStatus(oldStatusId);
         task.setAssigneeId(5L);
-        task.setProjectId(100L);
+        task.setProjectId("PRJ_TEST");
         task.setProgress(50);
         task.setInProgressSince(java.time.LocalDateTime.now());
 

@@ -11,7 +11,7 @@ public class TaskCommentEvent extends BaseNotificationEvent {
     private final String[] mentions;
 
     public TaskCommentEvent(Object source, Long userId, Long taskId, Long commentId,
-                             String[] mentions, String title, String content, Long relatedProjectId) {
+                             String[] mentions, String title, String content, String relatedProjectId) {
         super(source, userId, title, content, taskId, relatedProjectId);
         this.taskId = taskId;
         this.commentId = commentId;
