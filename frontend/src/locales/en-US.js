@@ -93,7 +93,22 @@ export default {
     confirmMarkAllRead: 'Mark all notifications as read?',
     markAllReadSuccess: 'All notifications marked as read',
     confirmDelete: 'Are you sure to delete this notification?',
-    deletedSuccess: 'Notification deleted'
+    deletedSuccess: 'Notification deleted',
+    // Notification settings
+    notificationTypes: 'Notification Types',
+    notificationMethods: 'Notification Methods',
+    taskAssigned: 'Task Assigned',
+    taskStatusChanged: 'Task Status Changed',
+    sprintStart: 'Sprint Started',
+    sprintEnd: 'Sprint Ended',
+    timesheetApproved: 'Timesheet Approved',
+    timesheetRejected: 'Timesheet Rejected',
+    emailNotification: 'Email Notification',
+    inAppNotification: 'In-App Notification',
+    quietHours: 'Quiet Hours',
+    enableQuietHours: 'Enable Quiet Hours',
+    quietHoursStart: 'Start Time',
+    quietHoursEnd: 'End Time'
   },
   project: {
     name: 'Project Name',

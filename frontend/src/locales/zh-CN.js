@@ -93,7 +93,22 @@ export default {
     confirmMarkAllRead: '确定将所有通知标为已读？',
     markAllReadSuccess: '所有通知已标为已读',
     confirmDelete: '确定要删除此通知吗？',
-    deletedSuccess: '通知已删除'
+    deletedSuccess: '通知已删除',
+    // Notification settings
+    notificationTypes: '通知类型',
+    notificationMethods: '通知方式',
+    taskAssigned: '任务已分配',
+    taskStatusChanged: '任务状态变更',
+    sprintStart: 'Sprint已开始',
+    sprintEnd: 'Sprint已结束',
+    timesheetApproved: '工时已审批',
+    timesheetRejected: '工时已拒绝',
+    emailNotification: '邮件通知',
+    inAppNotification: '应用内通知',
+    quietHours: '免打扰时间',
+    enableQuietHours: '启用免打扰',
+    quietHoursStart: '开始时间',
+    quietHoursEnd: '结束时间'
   },
   project: {
     name: '项目名称',

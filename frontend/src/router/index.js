@@ -110,12 +110,12 @@ const routes = [
       {
         path: 'projects/settings/templates',
         name: 'ProjectTemplates',
-        component: () => import('@/views/project/settings/ProjectTemplates.vue')
+        component: () => import('@/views/project/Settings/ProjectTemplates.vue')
       },
       {
         path: 'projects/settings/notifications',
         name: 'NotificationSettings',
-        component: () => import('@/views/project/settings/NotificationSettings.vue')
+        component: () => import('@/views/project/Settings/NotificationSettings.vue')
       },
       {
         path: 'timesheet',
