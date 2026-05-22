@@ -141,7 +141,8 @@ const getProgressClass = (progress) => {
 
 const getAvatarText = (name) => {
   if (!name) return '?'
-  return name.charAt(0).toUpperCase()
+  const str = String(name)
+  return str.charAt(0).toUpperCase()
 }
 
 const formatDuration = (days) => {

@@ -29,57 +29,57 @@ export function restoreProject(id) {
 }
 
 export function getProjectMembers(projectId) {
-  return request.get(`/projects/${projectId}/members`)
+  return request.get(`/v1/projects/${projectId}/members`)
 }
 
 export function addProjectMember(projectId, data) {
-  return request.post(`/projects/${projectId}/members`, data)
+  return request.post(`/v1/projects/${projectId}/members`, data)
 }
 
 export function removeProjectMember(projectId, userId) {
-  return request.delete(`/projects/${projectId}/members/${userId}`)
+  return request.delete(`/v1/projects/${projectId}/members/${userId}`)
 }
 
 export function getSprints(projectId) {
-  return request.get(`/projects/${projectId}/sprints`)
+  return request.get(`/v1/projects/${projectId}/sprints`)
 }
 
 export function createSprint(projectId, data) {
-  return request.post(`/projects/${projectId}/sprints`, data)
+  return request.post(`/v1/projects/${projectId}/sprints`, data)
 }
 
 export function updateSprint(projectId, sprintId, data) {
-  return request.put(`/projects/${projectId}/sprints/${sprintId}`, data)
+  return request.put(`/v1/projects/${projectId}/sprints/${sprintId}`, data)
 }
 
 export function deleteSprint(projectId, sprintId) {
-  return request.delete(`/projects/${projectId}/sprints/${sprintId}`)
+  return request.delete(`/v1/projects/${projectId}/sprints/${sprintId}`)
 }
 
 export function startSprint(projectId, sprintId) {
-  return request.put(`/projects/${projectId}/sprints/${sprintId}/start`)
+  return request.put(`/v1/projects/${projectId}/sprints/${sprintId}/start`)
 }
 
 export function completeSprint(projectId, sprintId) {
-  return request.put(`/projects/${projectId}/sprints/${sprintId}/complete`)
+  return request.put(`/v1/projects/${projectId}/sprints/${sprintId}/complete`)
 }
 
 export function getSprintTasks(projectId, sprintId) {
-  return request.get(`/projects/${projectId}/sprints/${sprintId}/tasks`)
+  return request.get(`/v1/projects/${projectId}/sprints/${sprintId}/tasks`)
 }
 
 export function getProjectStats(projectId) {
-  return request.get(`/projects/${projectId}/stats`)
+  return request.get(`/v1/projects/${projectId}/stats`)
 }
 
 export function getProjectRoles(projectId) {
-  return request.get(`/project-roles/project/${projectId}`)
+  return request.get(`/v1/project-roles/project/${projectId}`)
 }
 
 export function assignProjectRole(projectId, userId, role) {
-  return request.post('/project-roles', { projectId, userId, role })
+  return request.post('/v1/project-roles', { projectId, userId, role })
 }
 
 export function removeProjectRole(projectId, userId) {
-  return request.delete(`/project-roles/project/${projectId}/user/${userId}`)
+  return request.delete(`/v1/project-roles/project/${projectId}/user/${userId}`)
 }

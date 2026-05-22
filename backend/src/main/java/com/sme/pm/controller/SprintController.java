@@ -95,7 +95,7 @@ public class SprintController {
         return Result.success(sprintService.calculateVelocity(sprintId));
     }
 
-    @GetMapping("/{projectId}/backlog")
+    @GetMapping("/backlog")
     public Result<List<Task>> getBacklogTasks(@PathVariable Long projectId) {
         return Result.success(sprintService.getBacklogTasks(projectId));
     }

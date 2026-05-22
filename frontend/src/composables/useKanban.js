@@ -22,10 +22,17 @@ export function useKanban() {
   async function loadTaskStatuses(projectId) {
     loading.value = true
     try {
-      const res = projectId
-        ? await getTaskStatusesByProject(projectId)
-        : await getSystemTaskStatuses()
-      taskStatuses.value = res.data || res
+      let statuses = []
+      if (projectId) {
+        const projectRes = await getTaskStatusesByProject(projectId)
+        statuses = projectRes.data || projectRes
+      }
+      // Fallback to system statuses if project has no custom statuses
+      if (!statuses || statuses.length === 0) {
+        const systemRes = await getSystemTaskStatuses()
+        statuses = systemRes.data || systemRes
+      }
+      taskStatuses.value = statuses
       columns.value = taskStatuses.value.map(s => ({
         id: s.code,
         status: s.code,
