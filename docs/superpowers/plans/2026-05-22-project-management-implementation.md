@@ -1,13 +1,13 @@
 # 项目管理模块实施计划
 
-> **目标**: 实现完整的项目管理功能，包含看板、甘特图、里程碑、跨项目统计
+> **目标**: 实现完整的项目管理功能
 > **设计规格**: `docs/superpowers/specs/2026-05-22-project-management-design.md`
 > **前端框架**: Vue 3 + Element Plus
 > **后端框架**: Spring Boot
 
 ---
 
-## 一、任务分解
+## 一、完整功能清单
 
 ### 阶段一：基础设施 (预计 2 天)
 
@@ -28,120 +28,198 @@
 
 ---
 
-### 阶段二：看板视图 (预计 3 天)
+### 阶段二：项目核心管理 (预计 2 天)
 
-#### 任务 2.1: 我的看板
+#### 任务 2.1: 项目模板管理
+- [ ] 创建 `ProjectTemplateController.java` - 项目模板 API
+- [ ] 创建 `ProjectTemplateService.java` - 模板服务
+- [ ] 创建 `ProjectTemplateMapper.java` - 模板 Mapper
+- [ ] 前端: `frontend/src/views/admin/ProjectTemplates.vue` - 模板管理页面
+- [ ] 实现模板 CRUD
+- [ ] 实现模板应用到项目
+
+#### 任务 2.2: 项目角色管理
+- [ ] 扩展 `ProjectMember` - 添加角色字段 (项目负责人/项目经理/开发负责人/开发者/访客)
+- [ ] 创建 `ProjectRole` 枚举/实体
+- [ ] 实现角色权限校验
+- [ ] 前端: 项目设置页面 - 成员角色管理
+
+#### 任务 2.3: 项目状态管理
+- [ ] 添加项目状态枚举 (规划中/启动中/进行中/已完成/暂停/已归档)
+- [ ] 实现状态流转校验
+- [ ] 前端: 项目状态选择器
+
+---
+
+### 阶段三：任务管理增强 (预计 3 天)
+
+#### 任务 3.1: 任务状态自定义
+- [ ] 创建 `TaskStatus` 实体 - 可配置的任务状态
+- [ ] 创建 `StatusTransition` 实体 - 状态流转规则
+- [ ] 实现状态流转校验逻辑
+- [ ] 前端: 状态管理页面 - 添加/编辑/删除状态
+- [ ] 前端: 状态流转规则配置页面
+
+#### 任务 3.2: 任务优先级
+- [ ] 添加 `Task` 优先级字段 (P0/P1/P2/P3)
+- [ ] 实现优先级筛选和排序
+- [ ] 前端: 优先级选择器组件
+- [ ] 前端: 看板列按优先级筛选
+
+#### 任务 3.3: 任务依赖关系
+- [ ] 创建 `TaskDependency` 实体 - 任务依赖
+- [ ] 实现依赖类型 (FS/SS/FF/SF)
+- [ ] 实现依赖校验 (删除/移动时检查)
+- [ ] 前端: 任务详情 - 添加依赖弹窗
+- [ ] 前端: 甘特图 - 依赖线可视化
+
+#### 任务 3.4: 任务工时
+- [ ] 添加 `remainingHours` 字段到 `Task`
+- [ ] 实现工时更新逻辑
+- [ ] 前端: 任务详情 - 工时编辑
+- [ ] 前端: 任务卡片显示预估/剩余/实际工时
+
+---
+
+### 阶段四：Sprint 管理 (预计 2 天)
+
+#### 任务 4.1: Sprint 基础功能
+- [ ] 完善 `SprintService` - Sprint CRUD
+- [ ] 实现 Sprint 规划 - 从 Backlog 添加到 Sprint
+- [ ] 前端: Sprint 列表页面
+- [ ] 前端: Sprint 创建/编辑弹窗
+
+#### 任务 4.2: Sprint 设置
+- [ ] 添加 Sprint 目标、长度配置
+- [ ] 实现 Sprint 提醒功能
+- [ ] 前端: Sprint 设置页面
+- [ ] 前端: Sprint 目标编辑
+
+#### 任务 4.3: Sprint 预估
+- [ ] 实现团队速率计算
+- [ ] 实现容量计算
+- [ ] 实现完成预测
+- [ ] 前端: Sprint 统计面板
+
+---
+
+### 阶段五：看板视图 (预计 3 天)
+
+#### 任务 5.1: 我的看板
 - [ ] 创建 `frontend/src/views/project/MyBoard.vue` - 我的看板页面
-- [ ] 实现任务筛选逻辑（按项目、状态、优先级）
-- [ ] 实现 WIP 限制逻辑
+- [ ] 实现跨项目任务筛选
+- [ ] 实现 WIP 限制
 - [ ] 实现泳道切换
 
-#### 任务 2.2: 项目看板
-- [ ] 创建 `frontend/src/views/project/ProjectBoard.vue` - 项目看板页面
-- [ ] 实现项目内所有任务的看板展示
+#### 任务 5.2: 项目看板
+- [ ] 创建 `frontend/src/views/project/ProjectBoard.vue` - 项目看板
 - [ ] 实现快速添加任务
-- [ ] 实现拖拽校验
+- [ ] 实现拖拽校验 (状态流转规则)
 
-#### 任务 2.3: 冲刺看板
-- [ ] 创建 `frontend/src/views/project/SprintBoard.vue` - 冲刺看板页面
+#### 任务 5.3: 冲刺看板
+- [ ] 创建 `frontend/src/views/project/SprintBoard.vue` - 冲刺看板
 - [ ] 实现 Sprint 选择器
 - [ ] 实现 Sprint 燃尽图
-- [ ] 实现任务状态流转规则
 
-#### 任务 2.4: 团队看板
-- [ ] 创建 `frontend/src/views/project/TeamBoard.vue` - 团队看板页面
-- [ ] 实现团队筛选
-- [ ] 实现多成员视图
-
-#### 任务 2.5: Backlog 看板
-- [ ] 创建 `frontend/src/views/project/BacklogBoard.vue` - Backlog 页面
-- [ ] 实现优先级排序
-- [ ] 实现快速规划到 Sprint
+#### 任务 5.4: 团队看板 & Backlog
+- [ ] 创建 `frontend/src/views/project/TeamBoard.vue` - 团队看板
+- [ ] 创建 `frontend/src/views/project/BacklogBoard.vue` - Backlog
 
 ---
 
-### 阶段三：甘特图 (预计 2 天)
+### 阶段六：甘特图 (预计 2 天)
 
-#### 任务 3.1: 甘特图组件
-- [ ] 创建 `frontend/src/components/gantt/GanttChart.vue` - 甘特图主组件
-- [ ] 创建 `frontend/src/components/gantt/GanttTask.vue` - 甘特图任务条
-- [ ] 创建 `frontend/src/components/gantt/GanttTimeline.vue` - 时间轴
-
-#### 任务 3.2: 甘特图页面
-- [ ] 创建 `frontend/src/views/project/GanttView.vue` - 甘特图页面
-- [ ] 实现任务依赖关系可视化
+#### 任务 6.1: 甘特图组件
+- [ ] 创建 `frontend/src/components/gantt/GanttChart.vue`
+- [ ] 创建 `frontend/src/components/gantt/GanttTask.vue`
+- [ ] 实现任务依赖线可视化
 - [ ] 实现拖拽调整时间
+
+#### 任务 6.2: 甘特图页面
+- [ ] 创建 `frontend/src/views/project/GanttView.vue`
 - [ ] 实现里程碑标记
+- [ ] 实现时间轴缩放
 
 ---
 
-### 阶段四：里程碑管理 (预计 2 天)
+### 阶段七：里程碑管理 (预计 2 天)
 
-#### 任务 4.1: 后端 API
-- [ ] 创建 `MilestoneController.java` - 里程碑控制器
-- [ ] 实现 MilestoneService - 里程碑服务
-- [ ] 创建 Milestone Entity
+#### 任务 7.1: 后端 API
+- [ ] 创建 `MilestoneController.java`
+- [ ] 创建 `MilestoneService.java`
+- [ ] 创建 `Milestone` 实体
+- [ ] 实现跨项目里程碑
 
-#### 任务 4.2: 前端页面
-- [ ] 创建 `frontend/src/views/project/Milestones.vue` - 里程碑列表页
-- [ ] 创建 `frontend/src/views/project/MilestoneDetail.vue` - 里程碑详情页
-- [ ] 实现里程碑创建/编辑弹窗
-- [ ] 实现任务关联功能
-
----
-
-### 阶段五：跨项目视图 (预计 2 天)
-
-#### 任务 5.1: 统计面板
-- [ ] 创建 `frontend/src/views/project/StatsDashboard.vue` - 统计仪表盘
-- [ ] 实现 KPI 卡片组件
-- [ ] 实现燃尽图组件
-- [ ] 实现 CFD 图表组件
-
-#### 任务 5.2: 项目对比
-- [ ] 创建 `frontend/src/views/project/ProjectCompare.vue` - 项目对比页
-- [ ] 实现雷达图组件
-- [ ] 实现对比表格
-- [ ] 实现热力图组件
-
-#### 任务 5.3: 全局看板
-- [ ] 创建 `frontend/src/views/project/PortfolioBoard.vue` - 项目组合看板
-- [ ] 实现多项目选择器
-- [ ] 实现跨项目统计汇总
+#### 任务 7.2: 前端页面
+- [ ] 创建 `frontend/src/views/project/Milestones.vue`
+- [ ] 创建 `frontend/src/views/project/MilestoneDetail.vue`
+- [ ] 实现里程碑创建/编辑
+- [ ] 实现任务关联 (手动 + 基于 Sprint 自动)
 
 ---
 
-### 阶段六：工时审批 (预计 1 天)
+### 阶段八：跨项目视图 (预计 2 天)
 
-#### 任务 6.1: 后端审批流
+#### 任务 8.1: 统计面板
+- [ ] 创建 `frontend/src/views/project/StatsDashboard.vue`
+- [ ] 创建 KPI 卡片组件
+- [ ] 创建燃尽图、雷达图等图表组件
+
+#### 任务 8.2: 项目对比 & 全局看板
+- [ ] 创建 `frontend/src/views/project/ProjectCompare.vue`
+- [ ] 创建 `frontend/src/views/project/PortfolioBoard.vue`
+
+---
+
+### 阶段九：工时审批 (预计 1 天)
+
+#### 任务 9.1: 审批流程
 - [ ] 扩展 TimesheetController - 添加审批 API
 - [ ] 实现项目经理审批逻辑
 
-#### 任务 6.2: 前端审批页面
-- [ ] 创建 `frontend/src/views/timesheet/Approval.vue` - 审批页面
-- [ ] 实现审批列表
-- [ ] 实现通过/驳回功能
+#### 任务 9.2: 前端审批页面
+- [ ] 创建 `frontend/src/views/timesheet/Approval.vue`
+- [ ] 实现审批列表、通过/驳回
 
 ---
 
-### 阶段七：站内通知 (预计 1 天)
+### 阶段十：站内通知 (预计 1 天)
 
-#### 任务 7.1: 通知系统
-- [ ] 创建 `NotificationController.java` - 通知控制器
-- [ ] 实现通知服务
-- [ ] 创建 `frontend/src/views/notification/NotificationCenter.vue` - 通知中心
+#### 任务 10.1: 通知系统
+- [ ] 创建 `NotificationController.java`
+- [ ] 创建 `NotificationService.java`
+- [ ] 创建 `Notification` 实体
+- [ ] 实现通知触发逻辑
+
+#### 任务 10.2: 前端通知中心
+- [ ] 创建 `frontend/src/views/notification/NotificationCenter.vue`
 - [ ] 实现通知图标徽章
+- [ ] 实现通知列表
 
 ---
 
-### 阶段八：集成与测试 (预计 2 天)
+### 阶段十一：评论与附件 (预计 1 天)
 
-#### 任务 8.1: 页面集成
-- [ ] 更新 `frontend/src/router/index.js` - 路由配置
-- [ ] 更新侧边栏导航菜单
+#### 任务 11.1: 任务评论
+- [ ] 创建 `Comment` 实体
+- [ ] 实现 @提及 解析
+- [ ] 前端: 评论组件
 
-#### 任务 8.2: 测试
-- [ ] 看板拖拽功能测试
+#### 任务 11.2: 任务附件
+- [ ] 集成文件上传服务
+- [ ] 创建附件存储逻辑
+- [ ] 前端: 附件上传/预览组件
+
+---
+
+### 阶段十二：集成测试 (预计 2 天)
+
+#### 任务 12.1: 页面集成
+- [ ] 更新路由配置
+- [ ] 更新侧边栏菜单
+
+#### 任务 12.2: 功能测试
+- [ ] 看板拖拽测试
 - [ ] 甘特图交互测试
 - [ ] 审批流程测试
 - [ ] 通知触发测试
@@ -150,24 +228,45 @@
 
 ## 二、文件清单
 
-### 新建文件
+### 后端新建文件
 
 ```
 backend/src/main/java/com/sme/pm/
 ├── entity/
-│   └── Milestone.java
+│   ├── Milestone.java
+│   ├── ProjectTemplate.java
+│   ├── TaskStatus.java
+│   ├── StatusTransition.java
+│   ├── TaskDependency.java
+│   └── Notification.java
 ├── mapper/
-│   └── MilestoneMapper.java
+│   ├── MilestoneMapper.java
+│   ├── ProjectTemplateMapper.java
+│   ├── TaskStatusMapper.java
+│   ├── StatusTransitionMapper.java
+│   ├── TaskDependencyMapper.java
+│   └── NotificationMapper.java
 ├── service/
 │   ├── MilestoneService.java
-│   └── impl/MilestoneServiceImpl.java
-├── controller/
-│   ├── MilestoneController.java
-│   └── NotificationController.java
-└── dto/
-    ├── MilestoneDTO.java
-    └── NotificationDTO.java
+│   ├── ProjectTemplateService.java
+│   ├── TaskStatusService.java
+│   ├── NotificationService.java
+│   └── impl/
+│       ├── MilestoneServiceImpl.java
+│       ├── ProjectTemplateServiceImpl.java
+│       ├── TaskStatusServiceImpl.java
+│       └── NotificationServiceImpl.java
+└── controller/
+    ├── MilestoneController.java
+    ├── ProjectTemplateController.java
+    ├── TaskStatusController.java
+    ├── NotificationController.java
+    └── CommentController.java
+```
 
+### 前端新建文件
+
+```
 frontend/src/
 ├── components/
 │   ├── layout/
@@ -189,7 +288,9 @@ frontend/src/
 │   │   └── HeatmapChart.vue
 │   └── common/
 │       ├── StatCard.vue
-│       └── MilestoneCard.vue
+│       ├── PriorityBadge.vue
+│       ├── StatusTag.vue
+│       └── CommentList.vue
 ├── views/project/
 │   ├── MyBoard.vue
 │   ├── ProjectBoard.vue
@@ -201,97 +302,75 @@ frontend/src/
 │   ├── MilestoneDetail.vue
 │   ├── StatsDashboard.vue
 │   ├── ProjectCompare.vue
-│   └── PortfolioBoard.vue
+│   ├── PortfolioBoard.vue
+│   └── Settings/
+│       ├── ProjectSettings.vue
+│       ├── MemberRoles.vue
+│       ├── StatusConfig.vue
+│       └── SprintSettings.vue
 ├── views/timesheet/
 │   └── Approval.vue
 ├── views/notification/
 │   └── NotificationCenter.vue
+├── views/admin/
+│   └── ProjectTemplates.vue
 ├── styles/
 │   ├── variables.css
 │   └── project-managment.css
 └── api/
     ├── milestone.js
-    └── notification.js
-```
-
-### 修改文件
-
-```
-frontend/src/
-├── router/index.js - 添加路由
-├── views/project/List.vue - 项目列表增强
-├── views/project/Detail.vue - 项目详情重构
-├── App.vue - 布局调整
-└── components/Layout.vue - 添加通知入口
-
-backend/src/main/java/com/sme/pm/
-├── entity/Project.java - 添加字段
-├── service/ProjectService.java - 添加统计方法
-└── controller/ProjectController.java - 添加统计 API
+    ├── template.js
+    ├── task-status.js
+    ├── notification.js
+    └── comment.js
 ```
 
 ---
 
-## 三、技术实现细节
+## 三、技术栈
 
-### 3.1 拖拽实现
-使用 `vuedraggable` 库实现看板拖拽：
-```bash
-npm install vuedraggable@next
-```
-
-### 3.2 图表实现
-使用 `Chart.js` + `vue-chartjs`：
-```bash
-npm install chart.js vue-chartjs
-```
-
-### 3.3 甘特图实现
-使用 `vue-ganttastic` 或自研：
-```bash
-npm install vue-ganttastic
-```
-
-### 3.4 状态管理
-使用 Pinia store 管理看板状态：
-```javascript
-// stores/kanban.js
-export const useKanbanStore = defineStore('kanban', {
-  state: () => ({
-    columns: [],
-    tasks: [],
-    swimlaneMode: 'none'
-  })
-})
-```
+| 用途 | 技术 |
+|------|------|
+| 看板拖拽 | `vuedraggable@next` |
+| 图表 | `Chart.js` + `vue-chartjs` |
+| 甘特图 | `vue-ganttastic` 或自研 |
+| 状态管理 | Pinia |
+| 文件上传 | Element Plus upload |
 
 ---
 
 ## 四、优先级建议
 
-**第一优先级** (MVP):
-1. 项目看板 + 任务卡片
-2. 冲刺看板 + 燃尽图
-3. 我的看板
-4. 甘特图基础版
+**第一优先级 (MVP)**:
+1. 项目模板管理
+2. 项目看板 + 任务卡片
+3. 冲刺看板 + 燃尽图
+4. 任务状态自定义
+5. 任务优先级
 
 **第二优先级**:
-1. 里程碑管理
-2. 跨项目统计
-3. 工时审批
-4. 站内通知
+1. 甘特图
+2. 里程碑管理
+3. 跨项目统计
+4. Sprint 设置
 
 **第三优先级**:
-1. 团队看板
-2. Backlog 看板
+1. 工时审批
+2. 站内通知
+3. 团队看板
+4. Backlog 看板
+
+**第四优先级**:
+1. 任务评论 + @提及
+2. 任务附件
 3. 项目对比
-4. 热力图
 
 ---
 
-## 五、风险与注意事项
+**总预计工时**: 约 20 个工作日
 
-1. **性能**: 大量任务时需实现虚拟滚动
-2. **冲突**: 多人同时拖拽时需处理冲突
-3. **数据**: 统计指标需后端聚合计算
-4. **响应式**: 移动端看板体验需专门优化
+---
+
+**文档版本历史**
+- v1.0 (2026-05-22): 初始版本
+- v1.1 (2026-05-22): 增加完整功能清单（模板、角色、状态、工时、通知、附件）
