@@ -7,6 +7,7 @@ import com.sme.pm.event.TaskAssignedEvent;
 import com.sme.pm.event.TaskCommentEvent;
 import com.sme.pm.event.TaskStatusChangedEvent;
 import com.sme.pm.mapper.UserMapper;
+import com.sme.pm.service.IProjectRoleService;
 import com.sme.pm.service.INotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,11 +32,14 @@ class NotificationEventListenerTest {
     @Mock
     private UserMapper userMapper;
 
+    @Mock
+    private IProjectRoleService projectRoleService;
+
     private NotificationEventListener listener;
 
     @BeforeEach
     void setUp() {
-        listener = new NotificationEventListener(notificationService, userMapper);
+        listener = new NotificationEventListener(notificationService, userMapper, projectRoleService);
     }
 
     @Test

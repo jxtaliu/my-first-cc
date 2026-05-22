@@ -20,6 +20,8 @@ public class Sprint {
 
     private Integer status;  // 1: planning, 2: active, 3: completed
 
+    private Long milestoneId;  // Optional link to milestone
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 

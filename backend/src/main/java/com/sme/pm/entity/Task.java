@@ -39,6 +39,8 @@ public class Task {
 
     private Integer progress;  // 0-100
 
+    private Long milestoneId;  // Auto-linked from sprint when task is added
+
     private LocalDate startDate;
 
     private LocalDate dueDate;

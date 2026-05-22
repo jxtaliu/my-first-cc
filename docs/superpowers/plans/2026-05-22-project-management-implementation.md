@@ -12,217 +12,217 @@
 ### 阶段一：基础设施 (预计 2 天)
 
 #### 任务 1.1: 设计规范落地
-- [ ] 创建 `frontend/src/styles/variables.css` - CSS 变量定义
-- [ ] 创建 `frontend/src/styles/project-managment.css` - 项目管理专用样式
-- [ ] 更新 `frontend/src/styles/common.css` - 全局样式适配
+- [x] 创建 `frontend/src/styles/variables.css` - CSS 变量定义
+- [x] 创建 `frontend/src/styles/project-managment.css` - 项目管理专用样式
+- [x] 更新 `frontend/src/styles/common.css` - 全局样式适配
 
 #### 任务 1.2: 布局组件
-- [ ] 创建 `frontend/src/components/layout/ProjectLayout.vue` - 项目页面布局
-- [ ] 创建 `frontend/src/components/layout/Sidebar.vue` - 项目侧边栏
+- [x] 创建 `frontend/src/components/layout/ProjectLayout.vue` - 项目页面布局
+- [x] 创建 `frontend/src/components/layout/Sidebar.vue` - 项目侧边栏
 
 #### 任务 1.3: 看板组件库
-- [ ] 创建 `frontend/src/components/kanban/KanbanBoard.vue` - 看板主容器
-- [ ] 创建 `frontend/src/components/kanban/KanbanColumn.vue` - 看板列
-- [ ] 创建 `frontend/src/components/kanban/TaskCard.vue` - 任务卡片
-- [ ] 创建 `frontend/src/components/kanban/Swimlane.vue` - 泳道组件
+- [x] 创建 `frontend/src/components/kanban/KanbanBoard.vue` - 看板主容器
+- [x] 创建 `frontend/src/components/kanban/KanbanColumn.vue` - 看板列
+- [x] 创建 `frontend/src/components/kanban/TaskCard.vue` - 任务卡片
+- [x] 创建 `frontend/src/components/kanban/Swimlane.vue` - 泳道组件
 
 ---
 
 ### 阶段二：项目核心管理 (预计 2 天)
 
 #### 任务 2.1: 项目模板管理
-- [ ] 创建 `ProjectTemplateController.java` - 项目模板 API
-- [ ] 创建 `ProjectTemplateService.java` - 模板服务
-- [ ] 创建 `ProjectTemplateMapper.java` - 模板 Mapper
-- [ ] 前端: `frontend/src/views/admin/ProjectTemplates.vue` - 模板管理页面
-- [ ] 实现模板 CRUD
-- [ ] 实现模板应用到项目
+- [x] 创建 `ProjectTemplateController.java` - 项目模板 API
+- [x] 创建 `ProjectTemplateService.java` - 模板服务
+- [x] 创建 `ProjectTemplateMapper.java` - 模板 Mapper
+- [x] 前端: `frontend/src/views/admin/ProjectTemplates.vue` - 模板管理页面
+- [x] 实现模板 CRUD
+- [x] 实现模板应用到项目
 
 #### 任务 2.2: 项目角色管理
-- [ ] 扩展 `ProjectMember` - 添加角色字段 (项目负责人/项目经理/开发负责人/开发者/访客)
-- [ ] 创建 `ProjectRole` 枚举/实体
-- [ ] 实现角色权限校验
-- [ ] 前端: 项目设置页面 - 成员角色管理
+- [x] 扩展 `ProjectMember` - 添加角色字段 (项目负责人/项目经理/开发负责人/开发者/访客)
+- [x] 创建 `ProjectRole` 枚举/实体
+- [x] 实现角色权限校验
+- [x] 前端: 项目设置页面 - 成员角色管理
 
 #### 任务 2.3: 项目状态管理
-- [ ] 添加项目状态枚举 (规划中/启动中/进行中/已完成/暂停/已归档)
-- [ ] 实现状态流转校验
-- [ ] 前端: 项目状态选择器
+- [x] 添加项目状态枚举 (规划中/启动中/进行中/已完成/暂停/已归档)
+- [x] 实现状态流转校验
+- [x] 前端: 项目状态选择器
 
 ---
 
 ### 阶段三：任务管理增强 (预计 3 天)
 
 #### 任务 3.1: 任务状态自定义
-- [ ] 创建 `TaskStatus` 实体 - 可配置的任务状态
-- [ ] 创建 `StatusTransition` 实体 - 状态流转规则
-- [ ] 实现状态流转校验逻辑
-- [ ] 前端: 状态管理页面 - 添加/编辑/删除状态
-- [ ] 前端: 状态流转规则配置页面
+- [x] 创建 `TaskStatus` 实体 - 可配置的任务状态
+- [x] 创建 `StatusTransition` 实体 - 状态流转规则
+- [x] 实现状态流转校验逻辑
+- [x] 前端: 状态管理页面 - 添加/编辑/删除状态
+- [x] 前端: 状态流转规则配置页面
 
 #### 任务 3.2: 任务优先级
-- [ ] 添加 `Task` 优先级字段 (P0/P1/P2/P3)
-- [ ] 实现优先级筛选和排序
-- [ ] 前端: 优先级选择器组件
-- [ ] 前端: 看板列按优先级筛选
+- [x] 添加 `Task` 优先级字段 (P0/P1/P2/P3)
+- [x] 实现优先级筛选和排序
+- [x] 前端: 优先级选择器组件
+- [x] 前端: 看板列按优先级筛选
 
 #### 任务 3.3: 任务依赖关系
-- [ ] 创建 `TaskDependency` 实体 - 任务依赖
-- [ ] 实现依赖类型 (FS/SS/FF/SF)
-- [ ] 实现依赖校验 (删除/移动时检查)
-- [ ] 前端: 任务详情 - 添加依赖弹窗
-- [ ] 前端: 甘特图 - 依赖线可视化
+- [x] 创建 `TaskDependency` 实体 - 任务依赖
+- [x] 实现依赖类型 (FS/SS/FF/SF)
+- [x] 实现依赖校验 (删除/移动时检查)
+- [x] 前端: 任务详情 - 添加依赖弹窗
+- [x] 前端: 甘特图 - 依赖线可视化
 
 #### 任务 3.4: 任务工时
-- [ ] 添加 `remainingHours` 字段到 `Task`
-- [ ] 实现工时更新逻辑
-- [ ] 前端: 任务详情 - 工时编辑
-- [ ] 前端: 任务卡片显示预估/剩余/实际工时
+- [x] 添加 `remainingHours` 字段到 `Task`
+- [x] 实现工时更新逻辑
+- [x] 前端: 任务详情 - 工时编辑
+- [x] 前端: 任务卡片显示预估/剩余/实际工时
 
 ---
 
 ### 阶段四：Sprint 管理 (预计 2 天)
 
 #### 任务 4.1: Sprint 基础功能
-- [ ] 完善 `SprintService` - Sprint CRUD
-- [ ] 实现 Sprint 规划 - 从 Backlog 添加到 Sprint
-- [ ] 前端: Sprint 列表页面
-- [ ] 前端: Sprint 创建/编辑弹窗
+- [x] 完善 `SprintService` - Sprint CRUD
+- [x] 实现 Sprint 规划 - 从 Backlog 添加到 Sprint
+- [x] 前端: Sprint 列表页面
+- [x] 前端: Sprint 创建/编辑弹窗
 
 #### 任务 4.2: Sprint 设置
-- [ ] 添加 Sprint 目标、长度配置
-- [ ] 实现 Sprint 提醒功能
-- [ ] 前端: Sprint 设置页面
-- [ ] 前端: Sprint 目标编辑
+- [x] 添加 Sprint 目标、长度配置
+- [x] 实现 Sprint 提醒功能
+- [x] 前端: Sprint 设置页面
+- [x] 前端: Sprint 目标编辑
 
 #### 任务 4.3: Sprint 预估
-- [ ] 实现团队速率计算
-- [ ] 实现容量计算
-- [ ] 实现完成预测
-- [ ] 前端: Sprint 统计面板
+- [x] 实现团队速率计算
+- [x] 实现容量计算
+- [x] 实现完成预测
+- [x] 前端: Sprint 统计面板
 
 ---
 
 ### 阶段五：看板视图 (预计 3 天)
 
 #### 任务 5.1: 我的看板
-- [ ] 创建 `frontend/src/views/project/MyBoard.vue` - 我的看板页面
-- [ ] 实现跨项目任务筛选
-- [ ] 实现 WIP 限制
-- [ ] 实现泳道切换
+- [x] 创建 `frontend/src/views/project/MyBoard.vue` - 我的看板页面
+- [x] 实现跨项目任务筛选
+- [x] 实现 WIP 限制
+- [x] 实现泳道切换
 
 #### 任务 5.2: 项目看板
-- [ ] 创建 `frontend/src/views/project/ProjectBoard.vue` - 项目看板
-- [ ] 实现快速添加任务
-- [ ] 实现拖拽校验 (状态流转规则)
+- [x] 创建 `frontend/src/views/project/ProjectBoard.vue` - 项目看板
+- [x] 实现快速添加任务
+- [x] 实现拖拽校验 (状态流转规则)
 
 #### 任务 5.3: 冲刺看板
-- [ ] 创建 `frontend/src/views/project/SprintBoard.vue` - 冲刺看板
-- [ ] 实现 Sprint 选择器
-- [ ] 实现 Sprint 燃尽图
+- [x] 创建 `frontend/src/views/project/SprintBoard.vue` - 冲刺看板
+- [x] 实现 Sprint 选择器
+- [x] 实现 Sprint 燃尽图
 
 #### 任务 5.4: 团队看板 & Backlog
-- [ ] 创建 `frontend/src/views/project/TeamBoard.vue` - 团队看板
-- [ ] 创建 `frontend/src/views/project/BacklogBoard.vue` - Backlog
+- [x] 创建 `frontend/src/views/project/TeamBoard.vue` - 团队看板
+- [x] 创建 `frontend/src/views/project/BacklogBoard.vue` - Backlog
 
 ---
 
 ### 阶段六：甘特图 (预计 2 天)
 
 #### 任务 6.1: 甘特图组件
-- [ ] 创建 `frontend/src/components/gantt/GanttChart.vue`
-- [ ] 创建 `frontend/src/components/gantt/GanttTask.vue`
-- [ ] 实现任务依赖线可视化
-- [ ] 实现拖拽调整时间
+- [x] 创建 `frontend/src/components/gantt/GanttChart.vue`
+- [x] 创建 `frontend/src/components/gantt/GanttTask.vue`
+- [x] 实现任务依赖线可视化
+- [x] 实现拖拽调整时间
 
 #### 任务 6.2: 甘特图页面
-- [ ] 创建 `frontend/src/views/project/GanttView.vue`
-- [ ] 实现里程碑标记
-- [ ] 实现时间轴缩放
+- [x] 创建 `frontend/src/views/project/GanttView.vue`
+- [x] 实现里程碑标记
+- [x] 实现时间轴缩放
 
 ---
 
 ### 阶段七：里程碑管理 (预计 2 天)
 
 #### 任务 7.1: 后端 API
-- [ ] 创建 `MilestoneController.java`
-- [ ] 创建 `MilestoneService.java`
-- [ ] 创建 `Milestone` 实体
-- [ ] 实现跨项目里程碑
+- [x] 创建 `MilestoneController.java`
+- [x] 创建 `MilestoneService.java`
+- [x] 创建 `Milestone` 实体
+- [x] 实现跨项目里程碑
 
 #### 任务 7.2: 前端页面
-- [ ] 创建 `frontend/src/views/project/Milestones.vue`
-- [ ] 创建 `frontend/src/views/project/MilestoneDetail.vue`
-- [ ] 实现里程碑创建/编辑
-- [ ] 实现任务关联 (手动 + 基于 Sprint 自动)
+- [x] 创建 `frontend/src/views/project/Milestones.vue`
+- [x] 创建 `frontend/src/views/project/MilestoneDetail.vue`
+- [x] 实现里程碑创建/编辑
+- [x] 实现任务关联 (手动 + 基于 Sprint 自动)
 
 ---
 
 ### 阶段八：跨项目视图 (预计 2 天)
 
 #### 任务 8.1: 统计面板
-- [ ] 创建 `frontend/src/views/project/StatsDashboard.vue`
-- [ ] 创建 KPI 卡片组件
-- [ ] 创建燃尽图、雷达图等图表组件
+- [x] 创建 `frontend/src/views/project/StatsDashboard.vue`
+- [x] 创建 KPI 卡片组件
+- [x] 创建燃尽图、雷达图等图表组件
 
 #### 任务 8.2: 项目对比 & 全局看板
-- [ ] 创建 `frontend/src/views/project/ProjectCompare.vue`
-- [ ] 创建 `frontend/src/views/project/PortfolioBoard.vue`
+- [x] 创建 `frontend/src/views/project/ProjectCompare.vue`
+- [x] 创建 `frontend/src/views/project/PortfolioBoard.vue`
 
 ---
 
 ### 阶段九：工时审批 (预计 1 天)
 
 #### 任务 9.1: 审批流程
-- [ ] 扩展 TimesheetController - 添加审批 API
-- [ ] 实现项目经理审批逻辑
+- [x] 扩展 TimesheetController - 添加审批 API
+- [x] 实现项目经理审批逻辑
 
 #### 任务 9.2: 前端审批页面
-- [ ] 创建 `frontend/src/views/timesheet/Approval.vue`
-- [ ] 实现审批列表、通过/驳回
+- [x] 创建 `frontend/src/views/timesheet/Approval.vue`
+- [x] 实现审批列表、通过/驳回
 
 ---
 
 ### 阶段十：站内通知 (预计 1 天)
 
 #### 任务 10.1: 通知系统
-- [ ] 创建 `NotificationController.java`
-- [ ] 创建 `NotificationService.java`
-- [ ] 创建 `Notification` 实体
-- [ ] 实现通知触发逻辑
+- [x] 创建 `NotificationController.java`
+- [x] 创建 `NotificationService.java`
+- [x] 创建 `Notification` 实体
+- [x] 实现通知触发逻辑
 
 #### 任务 10.2: 前端通知中心
-- [ ] 创建 `frontend/src/views/notification/NotificationCenter.vue`
-- [ ] 实现通知图标徽章
-- [ ] 实现通知列表
+- [x] 创建 `frontend/src/views/notification/NotificationCenter.vue`
+- [x] 实现通知图标徽章
+- [x] 实现通知列表
 
 ---
 
 ### 阶段十一：评论与附件 (预计 1 天)
 
 #### 任务 11.1: 任务评论
-- [ ] 创建 `Comment` 实体
-- [ ] 实现 @提及 解析
-- [ ] 前端: 评论组件
+- [x] 创建 `Comment` 实体
+- [x] 实现 @提及 解析
+- [x] 前端: 评论组件
 
 #### 任务 11.2: 任务附件
-- [ ] 集成文件上传服务
-- [ ] 创建附件存储逻辑
-- [ ] 前端: 附件上传/预览组件
+- [x] 集成文件上传服务
+- [x] 创建附件存储逻辑
+- [x] 前端: 附件上传/预览组件
 
 ---
 
 ### 阶段十二：集成测试 (预计 2 天)
 
 #### 任务 12.1: 页面集成
-- [ ] 更新路由配置
-- [ ] 更新侧边栏菜单
+- [x] 更新路由配置
+- [x] 更新侧边栏菜单
 
 #### 任务 12.2: 功能测试
-- [ ] 看板拖拽测试
-- [ ] 甘特图交互测试
-- [ ] 审批流程测试
-- [ ] 通知触发测试
+- [x] 看板拖拽测试
+- [x] 甘特图交互测试
+- [x] 审批流程测试
+- [x] 通知触发测试
 
 ---
 

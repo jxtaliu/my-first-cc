@@ -121,35 +121,65 @@
                   >
                     🔺
                   </div>
-                  <!-- Dependency arrows -->
-                  <svg v-if="task.dependencies?.length" class="gantt-dependency-svg">
-                    <defs>
-                      <marker
-                        id="arrowhead"
-                        markerWidth="10"
-                        markerHeight="7"
-                        refX="9"
-                        refY="3.5"
-                        orient="auto"
-                      >
-                        <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280" />
-                      </marker>
-                    </defs>
-                    <line
-                      v-for="dep in getDependencyLines(task)"
-                      :key="dep.id"
-                      :x1="dep.x1"
-                      :y1="dep.y1"
-                      :x2="dep.x2"
-                      :y2="dep.y2"
-                      stroke="#6B7280"
-                      stroke-width="1.5"
-                      marker-end="url(#arrowhead)"
-                    />
-                  </svg>
                 </div>
               </template>
             </div>
+
+            <!-- Dependency lines SVG overlay -->
+            <svg
+              v-if="dependencyPaths.length"
+              class="gantt-dependency-overlay"
+              :style="{ width: timelineWidth + 'px', height: timelineBodyHeight + 'px' }"
+            >
+              <defs>
+                <marker
+                  v-for="(color, type) in dependencyColors"
+                  :key="'arrow-' + type"
+                  :id="'arrow-' + type"
+                  markerWidth="10"
+                  markerHeight="7"
+                  refX="9"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <polygon points="0 0, 10 3.5, 0 7" :fill="color" />
+                </marker>
+              </defs>
+              <g class="dependency-lines">
+                <path
+                  v-for="dep in dependencyPaths"
+                  :key="dep.id"
+                  :d="dep.path"
+                  :stroke="dep.color"
+                  stroke-width="1.5"
+                  fill="none"
+                  :marker-end="'url(#arrow-' + dep.type + ')'"
+                  class="dependency-line"
+                  @mouseenter="hoveredDependency = dep"
+                  @mouseleave="hoveredDependency = null"
+                />
+              </g>
+              <!-- Tooltip -->
+              <g v-if="hoveredDependency" class="dependency-tooltip">
+                <rect
+                  :x="getTooltipX(hoveredDependency)"
+                  :y="getTooltipY(hoveredDependency) - 24"
+                  width="180"
+                  height="20"
+                  rx="4"
+                  fill="rgba(0,0,0,0.8)"
+                />
+                <text
+                  :x="getTooltipX(hoveredDependency) + 90"
+                  :y="getTooltipY(hoveredDependency) - 10"
+                  text-anchor="middle"
+                  fill="white"
+                  font-size="11"
+                >
+                  {{ hoveredDependency.label }}
+                </text>
+              </g>
+            </svg>
           </div>
         </div>
       </div>
@@ -211,11 +241,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
-import { getTasksByProject, updateTask } from '@/api/task'
+import { getTasksByProject, updateTask, getTaskDependencies } from '@/api/task'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -236,6 +266,8 @@ const dragStartX = ref(0)
 const originalWidth = ref(0)
 
 const ganttTasks = ref([])
+const taskDependencies = ref([])
+const hoveredDependency = ref(null)
 
 // Flatten tasks for display
 const flatTasks = computed(() => {
@@ -286,6 +318,25 @@ const timelineWidth = computed(() => {
 const dayWidth = computed(() => {
   return timeScale.value === 'day' ? 40 : timeScale.value === 'week' ? 100 / 7 : 300 / 30
 })
+
+const timelineBodyHeight = computed(() => {
+  return flatTasks.value.length * 40
+})
+
+// Tooltip position helpers
+const getTooltipX = (dep) => {
+  const match = dep.path.match(/M\s+([\d.]+)/)
+  return match ? parseFloat(match[1]) : 0
+}
+
+const getTooltipY = (dep) => {
+  const parts = dep.path.split(/\s+/)
+  const yIndex = parts.findIndex(p => p === 'C') + 3
+  if (yIndex > 0 && parts[yIndex]) {
+    return parseFloat(parts[yIndex])
+  }
+  return 20
+}
 
 const timelinePeriods = computed(() => {
   const periods = []
@@ -400,6 +451,117 @@ const getDependencyLines = (task) => {
   return lines
 }
 
+// Dependency type colors
+const dependencyColors = {
+  FS: '#6B7280', // Finish-Start - gray
+  SS: '#3B82F6', // Start-Start - blue
+  FF: '#10B981', // Finish-Finish - green
+  SF: '#F59E0B'  // Start-Finish - amber
+}
+
+const dependencyLabels = {
+  FS: 'Finish-Start: Predecessor ends, successor starts',
+  SS: 'Start-Start: Both tasks start together',
+  FF: 'Finish-Finish: Both tasks finish together',
+  SF: 'Start-Finish: Predecessor starts, successor finishes'
+}
+
+// Calculate bezier path for dependency line
+const getBezierPath = (dep, fromTask, toTask) => {
+  const allTasks = flatTasks.value
+  const fromIndex = allTasks.findIndex(t => t.id === fromTask.id)
+  const toIndex = allTasks.findIndex(t => t.id === toTask.id)
+
+  const rowHeight = 40
+  const fromY = fromIndex * rowHeight + 20
+  const toY = toIndex * rowHeight + 20
+
+  let startX, startY, endX, endY
+
+  const type = dep.dependencyType || 'FS'
+
+  // Calculate start point based on dependency type
+  switch (type) {
+    case 'FS': // Finish-Start: from right edge to left edge
+      startX = getTaskBarLeft(fromTask) + getTaskBarWidth(fromTask)
+      startY = fromY
+      endX = getTaskBarLeft(toTask)
+      endY = toY
+      break
+    case 'SS': // Start-Start: from left edge to left edge
+      startX = getTaskBarLeft(fromTask)
+      startY = fromY
+      endX = getTaskBarLeft(toTask)
+      endY = toY
+      break
+    case 'FF': // Finish-Finish: from right edge to right edge
+      startX = getTaskBarLeft(fromTask) + getTaskBarWidth(fromTask)
+      startY = fromY
+      endX = getTaskBarLeft(toTask) + getTaskBarWidth(toTask)
+      endY = toY
+      break
+    case 'SF': // Start-Finish: from left edge to right edge
+      startX = getTaskBarLeft(fromTask)
+      startY = fromY
+      endX = getTaskBarLeft(toTask) + getTaskBarWidth(toTask)
+      endY = toY
+      break
+    default:
+      startX = getTaskBarLeft(fromTask) + getTaskBarWidth(fromTask)
+      startY = fromY
+      endX = getTaskBarLeft(toTask)
+      endY = toY
+  }
+
+  // Create bezier curve
+  const dx = Math.abs(endX - startX)
+  const controlOffset = Math.max(30, dx * 0.4)
+
+  // For horizontal connections going right-to-left, use different curve
+  let path
+  if (endX < startX) {
+    // Flowing left
+    const cp1x = startX + controlOffset
+    const cp1y = startY
+    const cp2x = endX - controlOffset
+    const cp2y = endY
+    path = `M ${startX} ${startY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`
+  } else {
+    // Flowing right
+    const midX = (startX + endX) / 2
+    path = `M ${startX} ${startY} C ${startX + controlOffset} ${startY}, ${endX - controlOffset} ${endY}, ${endX} ${endY}`
+  }
+
+  return {
+    path,
+    color: dependencyColors[type] || dependencyColors.FS,
+    type,
+    label: dependencyLabels[type] || dependencyLabels.FS
+  }
+}
+
+// Compute all dependency lines for the timeline SVG
+const dependencyPaths = computed(() => {
+  const paths = []
+
+  for (const dep of taskDependencies.value) {
+    const fromTask = flatTasks.value.find(t => t.id === dep.dependsOnTaskId)
+    const toTask = flatTasks.value.find(t => t.id === dep.taskId)
+
+    if (fromTask && toTask) {
+      const bezier = getBezierPath(dep, fromTask, toTask)
+      paths.push({
+        id: dep.id,
+        taskId: dep.taskId,
+        dependsOnTaskId: dep.dependsOnTaskId,
+        ...bezier
+      })
+    }
+  }
+
+  return paths
+})
+
 const toggleExpand = (taskId) => {
   const idx = expandedTasks.value.indexOf(taskId)
   if (idx >= 0) {
@@ -511,6 +673,7 @@ async function loadTasks() {
   if (!projectId) {
     // Use mock data for demo
     loadMockTasks()
+    loadMockDependencies()
     return
   }
 
@@ -525,12 +688,43 @@ async function loadTasks() {
       depth: 0,
       children: task.children || []
     }))
+
+    // Load dependencies for all tasks
+    await loadDependencies()
   } catch (error) {
     console.error('Failed to load tasks:', error)
     loadMockTasks()
+    loadMockDependencies()
   } finally {
     loading.value = false
   }
+}
+
+// Load task dependencies
+async function loadDependencies() {
+  const allTaskIds = flatTasks.value.map(t => t.id)
+
+  try {
+    const deps = []
+    for (const taskId of allTaskIds) {
+      const res = await getTaskDependencies(taskId)
+      const taskDeps = res.data || res || []
+      deps.push(...taskDeps)
+    }
+    taskDependencies.value = deps
+  } catch (error) {
+    console.error('Failed to load dependencies:', error)
+  }
+}
+
+function loadMockDependencies() {
+  // Mock dependencies for demo
+  taskDependencies.value = [
+    { id: 1, taskId: 11, dependsOnTaskId: 111, dependencyType: 'FS' },
+    { id: 2, taskId: 12, dependsOnTaskId: 11, dependencyType: 'FS' },
+    { id: 3, taskId: 13, dependsOnTaskId: 12, dependencyType: 'SS' },
+    { id: 4, taskId: 3, dependsOnTaskId: 2, dependencyType: 'FF' }
+  ]
 }
 
 function loadMockTasks() {
@@ -619,6 +813,14 @@ onMounted(() => {
   loadTasks()
   expandedTasks.value = [1] // Expand first epic by default
 })
+
+// Reload dependencies when flatTasks changes (e.g., after task update/resize)
+watch(flatTasks, async () => {
+  if (taskDependencies.value.length === 0 && ganttTasks.value.length > 0) {
+    // Initial load of dependencies after tasks are loaded
+    await loadDependencies()
+  }
+}, { deep: true })
 </script>
 
 <style scoped>
@@ -850,6 +1052,29 @@ onMounted(() => {
   height: 100%;
   pointer-events: none;
   z-index: 8;
+}
+
+.gantt-dependency-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 8;
+  overflow: visible;
+}
+
+.dependency-line {
+  pointer-events: stroke;
+  cursor: pointer;
+  transition: stroke-width 0.15s ease;
+}
+
+.dependency-line:hover {
+  stroke-width: 2.5;
+}
+
+.dependency-tooltip {
+  pointer-events: none;
 }
 
 /* Status colors */

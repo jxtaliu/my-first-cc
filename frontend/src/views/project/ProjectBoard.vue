@@ -53,7 +53,14 @@
         />
       </div>
       <div class="filter-right">
-        <span class="task-count">{{ filteredTasks.length }} {{ $t('project.tasks') }}</span>
+        <el-select v-model="selectedPriority" placeholder="优先级" clearable size="default" style="width: 120px">
+          <el-option label="全部" :value="null" />
+          <el-option label="P0 紧急" value="P0" />
+          <el-option label="P1 高" value="P1" />
+          <el-option label="P2 中" value="P2" />
+          <el-option label="P3 低" value="P3" />
+        </el-select>
+        <span class="task-count" :class="{ 'filter-active': selectedPriority }">{{ filteredTasks.length }} {{ $t('project.tasks') }}</span>
       </div>
     </div>
 
@@ -182,6 +189,7 @@ const currentSprintId = ref(null)
 const tasks = ref([])
 const searchQuery = ref('')
 const swimlaneMode = ref('none')
+const selectedPriority = ref(null)
 const currentView = ref('kanban')
 const showTaskDetail = ref(false)
 const editingTask = ref(null)
@@ -210,14 +218,25 @@ const kanbanColumns = computed(() => {
   ]
 })
 
-// Filter tasks based on search
+// Filter tasks based on search and priority
 const filteredTasks = computed(() => {
-  if (!searchQuery.value) return tasks.value
-  const query = searchQuery.value.toLowerCase()
-  return tasks.value.filter(task =>
-    task.title?.toLowerCase().includes(query) ||
-    task.description?.toLowerCase().includes(query)
-  )
+  let result = tasks.value
+
+  // Filter by search query
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(task =>
+      task.title?.toLowerCase().includes(query) ||
+      task.description?.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by priority
+  if (selectedPriority.value) {
+    result = result.filter(task => task.priority === selectedPriority.value)
+  }
+
+  return result
 })
 
 // Load project data from API
@@ -465,6 +484,11 @@ onMounted(() => {
 .task-count {
   font-size: 14px;
   color: var(--pm-text-secondary);
+}
+
+.task-count.filter-active {
+  color: var(--pm-primary);
+  font-weight: 600;
 }
 
 .project-board-content {

@@ -5,6 +5,7 @@ import com.sme.pm.entity.Timesheet;
 import com.sme.pm.event.TimesheetApprovalEvent;
 import com.sme.pm.mapper.ProjectMapper;
 import com.sme.pm.mapper.TimesheetMapper;
+import com.sme.pm.service.IProjectRoleService;
 import com.sme.pm.service.TimesheetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +35,14 @@ class TimesheetServiceImplTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private IProjectRoleService projectRoleService;
+
     private TimesheetService timesheetService;
 
     @BeforeEach
     void setUp() {
-        timesheetService = new TimesheetServiceImpl(timesheetMapper, projectMapper, eventPublisher);
+        timesheetService = new TimesheetServiceImpl(timesheetMapper, projectMapper, eventPublisher, projectRoleService);
     }
 
     @Test

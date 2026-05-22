@@ -165,11 +165,21 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
     @Override
     @Transactional
     public void addTaskToSprint(Long sprintId, Long taskId) {
+        Sprint sprint = sprintMapper.findById(sprintId);
+        if (sprint == null) {
+            throw new IllegalArgumentException("Sprint not found");
+        }
         Task task = taskMapper.findById(taskId);
         if (task == null) {
             throw new IllegalArgumentException("Task not found");
         }
         task.setSprintId(sprintId);
+
+        // Auto-link task to sprint's milestone if sprint has one and task doesn't already have one
+        if (sprint.getMilestoneId() != null && task.getMilestoneId() == null) {
+            task.setMilestoneId(sprint.getMilestoneId());
+        }
+
         taskMapper.updateById(task);
     }
 
