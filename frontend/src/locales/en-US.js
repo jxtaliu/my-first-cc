@@ -50,7 +50,7 @@ export default {
     statusConfig: 'Status Config',
     sprintSettings: 'Sprint Settings',
     milestones: 'Milestones',
-    admin: 'Admin',
+    admin: 'Platform Settings',
     userManagement: 'User Management',
     roleManagement: 'Role Management',
     departmentManagement: 'Department Management',

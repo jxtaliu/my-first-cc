@@ -50,7 +50,7 @@ export default {
     statusConfig: '状态配置',
     sprintSettings: '冲刺设置',
     milestones: '里程碑',
-    admin: '管理',
+    admin: '平台设置',
     userManagement: '用户管理',
     roleManagement: '角色管理',
     departmentManagement: '部门管理',
@@ -647,5 +647,25 @@ export default {
     quickAddProject: '快速创建项目',
     projectNamePlaceholder: '输入项目名称',
     projectDescPlaceholder: '输入项目描述（可选）'
+  },
+
+  // Task
+  task: {
+    title: '标题',
+    status: '状态',
+    priority: '优先级',
+    project: '项目',
+    dueDate: '截止日期',
+    assignee: '负责人',
+    description: '描述',
+    estimateHours: '预估工时',
+    remainingHours: '剩余工时',
+    actualHours: '实际工时',
+    progress: '进度',
+    startDate: '开始日期',
+    endDate: '结束日期',
+    type: '类型',
+    createdAt: '创建时间',
+    updatedAt: '更新时间'
   }
 }
