@@ -48,6 +48,21 @@ const routes = [
         component: () => import('@/views/project/GanttView.vue')
       },
       {
+        path: 'projects/sprint-board/:id',
+        name: 'SprintBoard',
+        component: () => import('@/views/project/SprintBoard.vue')
+      },
+      {
+        path: 'projects/team-board',
+        name: 'TeamBoard',
+        component: () => import('@/views/project/TeamBoard.vue')
+      },
+      {
+        path: 'projects/backlog/:id?',
+        name: 'BacklogBoard',
+        component: () => import('@/views/project/BacklogBoard.vue')
+      },
+      {
         path: 'projects/milestones',
         name: 'Milestones',
         component: () => import('@/views/project/Milestones.vue')
@@ -58,9 +73,49 @@ const routes = [
         component: () => import('@/views/project/StatsDashboard.vue')
       },
       {
+        path: 'projects/compare',
+        name: 'ProjectCompare',
+        component: () => import('@/views/project/ProjectCompare.vue')
+      },
+      {
+        path: 'projects/portfolio',
+        name: 'PortfolioBoard',
+        component: () => import('@/views/project/PortfolioBoard.vue')
+      },
+      {
+        path: 'projects/:id/milestone/:milestoneId',
+        name: 'MilestoneDetail',
+        component: () => import('@/views/project/MilestoneDetail.vue')
+      },
+      {
+        path: 'projects/:id/settings/members',
+        name: 'MemberRoles',
+        component: () => import('@/views/project/Settings/MemberRoles.vue')
+      },
+      {
+        path: 'projects/:id/settings/status',
+        name: 'StatusConfig',
+        component: () => import('@/views/project/Settings/StatusConfig.vue')
+      },
+      {
+        path: 'projects/:id/settings/sprint',
+        name: 'SprintSettings',
+        component: () => import('@/views/project/Settings/SprintSettings.vue')
+      },
+      {
         path: 'timesheet',
         name: 'Timesheet',
         component: () => import('@/views/timesheet/Index.vue')
+      },
+      {
+        path: 'timesheet/approval',
+        name: 'TimesheetApproval',
+        component: () => import('@/views/timesheet/Approval.vue')
+      },
+      {
+        path: 'notification',
+        name: 'NotificationCenter',
+        component: () => import('@/views/notification/NotificationCenter.vue')
       },
       {
         path: 'admin/users',

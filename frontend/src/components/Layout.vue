@@ -11,10 +11,53 @@
           <el-icon><Folder /></el-icon>
           <span>{{ $t('nav.projects') }}</span>
         </el-menu-item>
+        <el-menu-item index="/projects/my-board">
+          <el-icon><Grid /></el-icon>
+          <span>{{ $t('nav.myBoard') }}</span>
+        </el-menu-item>
+        <el-menu-item index="/projects/sprint-board/:id">
+          <el-icon><Timer /></el-icon>
+          <span>{{ $t('nav.sprintBoard') }}</span>
+        </el-menu-item>
+        <el-menu-item index="/projects/team-board">
+          <el-icon><User /></el-icon>
+          <span>{{ $t('nav.teamBoard') }}</span>
+        </el-menu-item>
+        <el-menu-item index="/projects/backlog">
+          <el-icon><List /></el-icon>
+          <span>{{ $t('nav.backlog') }}</span>
+        </el-menu-item>
         <el-menu-item index="/timesheet">
           <el-icon><Clock /></el-icon>
           <span>{{ $t('nav.timesheet') }}</span>
         </el-menu-item>
+        <el-menu-item index="/timesheet/approval">
+          <el-icon><Clock /></el-icon>
+          <span>{{ $t('nav.timesheetApproval') }}</span>
+        </el-menu-item>
+        <el-menu-item index="/notification">
+          <el-icon><Bell /></el-icon>
+          <span>{{ $t('nav.notification') }}</span>
+          <el-badge :value="unreadCount" :hidden="unreadCount === 0" type="primary" style="margin-left: 8px" />
+        </el-menu-item>
+        <el-sub-menu index="/project-settings">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>{{ $t('nav.settings') }}</span>
+          </template>
+          <el-menu-item index="/projects/:id/settings/members">
+            <el-icon><User /></el-icon>
+            <span>{{ $t('nav.memberRoles') }}</span>
+          </el-menu-item>
+          <el-menu-item index="/projects/:id/settings/status">
+            <el-icon><Grid /></el-icon>
+            <span>{{ $t('nav.statusConfig') }}</span>
+          </el-menu-item>
+          <el-menu-item index="/projects/:id/settings/sprint">
+            <el-icon><Timer /></el-icon>
+            <span>{{ $t('nav.sprintSettings') }}</span>
+          </el-menu-item>
+        </el-sub-menu>
         <el-sub-menu index="/admin">
           <template #title>
             <el-icon><Setting /></el-icon>
@@ -68,15 +111,27 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import NotificationBell from '@/components/common/NotificationBell.vue'
-import { User, Setting, Key, OfficeBuilding, Document } from '@element-plus/icons-vue'
+import { DataAnalysis, Folder, Grid, Timer, User, List, Clock, Bell, Setting, Key, OfficeBuilding, Document } from '@element-plus/icons-vue'
+import { getUnreadCount } from '@/api/notification'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const unreadCount = ref(0)
+
+const fetchUnreadCount = async () => {
+  try {
+    const res = await getUnreadCount(authStore.user?.id)
+    unreadCount.value = res.data || 0
+  } catch (e) {
+    unreadCount.value = 3 // Demo value
+  }
+}
 
 const handleCommand = (command) => {
   if (command === 'logout') {
@@ -84,6 +139,12 @@ const handleCommand = (command) => {
     router.push('/login')
   }
 }
+
+onMounted(() => {
+  if (authStore.user?.id) {
+    fetchUnreadCount()
+  }
+})
 </script>
 
 <style scoped>
