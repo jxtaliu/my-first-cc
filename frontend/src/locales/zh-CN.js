@@ -19,7 +19,10 @@ export default {
     warning: '警告',
     required: '必填',
     active: '启用',
-    inactive: '停用'
+    inactive: '停用',
+    logout: '退出登录',
+    reset: '重置',
+    saveSuccess: '保存成功'
   },
   auth: {
     login: '登录',
@@ -34,6 +37,7 @@ export default {
   nav: {
     dashboard: '仪表盘',
     projects: '项目管理',
+    projectManagement: '项目管理',
     myBoard: '我的看板',
     sprintBoard: '冲刺看板',
     teamBoard: '团队看板',
@@ -45,6 +49,7 @@ export default {
     memberRoles: '成员角色',
     statusConfig: '状态配置',
     sprintSettings: '冲刺设置',
+    milestones: '里程碑',
     admin: '管理',
     userManagement: '用户管理',
     roleManagement: '角色管理',

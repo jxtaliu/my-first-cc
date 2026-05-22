@@ -10,53 +10,53 @@
         <el-sub-menu index="/project-management">
           <template #title>
             <el-icon><FolderOpened /></el-icon>
-            <span>Project Management</span>
+            <span>{{ $t('nav.projectManagement') }}</span>
           </template>
-          <el-menu-item-group title="My Work">
+          <el-menu-item-group :title="$t('nav.myWork')">
             <el-menu-item index="/projects/my-board">
               <el-icon><Grid /></el-icon>
               <span>{{ $t('nav.myBoard') }}</span>
             </el-menu-item>
             <el-menu-item index="/projects/my-tasks">
               <el-icon><List /></el-icon>
-              <span>My Tasks</span>
+              <span>{{ $t('nav.myTasks') }}</span>
             </el-menu-item>
             <el-menu-item index="/timesheet/my">
               <el-icon><Clock /></el-icon>
-              <span>My Timesheet</span>
+              <span>{{ $t('nav.myTimesheet') }}</span>
             </el-menu-item>
           </el-menu-item-group>
-          <el-menu-item-group title="Project Overview">
+          <el-menu-item-group :title="$t('nav.projectOverview')">
             <el-menu-item index="/projects">
               <el-icon><Folder /></el-icon>
               <span>{{ $t('nav.projects') }}</span>
             </el-menu-item>
             <el-menu-item index="/projects/milestones">
               <el-icon><Flag /></el-icon>
-              <span>Milestones</span>
+              <span>{{ $t('nav.milestones') }}</span>
             </el-menu-item>
             <el-menu-item index="/projects/stats">
               <el-icon><TrendCharts /></el-icon>
-              <span>Project Stats</span>
+              <span>{{ $t('nav.projectStats') }}</span>
             </el-menu-item>
             <el-menu-item index="/projects/gantt">
               <el-icon><Connection /></el-icon>
-              <span>Gantt Chart</span>
+              <span>{{ $t('nav.gantt') }}</span>
             </el-menu-item>
             <el-menu-item index="/projects/backlog">
               <el-icon><List /></el-icon>
-              <span>Backlog</span>
+              <span>{{ $t('nav.backlog') }}</span>
             </el-menu-item>
             <el-menu-item index="/projects/compare">
               <el-icon><DocumentCopy /></el-icon>
-              <span>Project Compare</span>
+              <span>{{ $t('nav.compare') }}</span>
             </el-menu-item>
             <el-menu-item index="/projects/portfolio">
               <el-icon><TrendCharts /></el-icon>
-              <span>Portfolio</span>
+              <span>{{ $t('nav.portfolio') }}</span>
             </el-menu-item>
           </el-menu-item-group>
-          <el-menu-item-group title="Project Settings">
+          <el-menu-item-group :title="$t('nav.projectSettings')">
             <el-menu-item index="/projects/settings/sprint">
               <el-icon><Timer /></el-icon>
               <span>{{ $t('nav.sprintSettings') }}</span>
@@ -71,11 +71,11 @@
             </el-menu-item>
             <el-menu-item index="/projects/settings/templates">
               <el-icon><Document /></el-icon>
-              <span>Project Templates</span>
+              <span>{{ $t('nav.projectTemplates') }}</span>
             </el-menu-item>
             <el-menu-item index="/projects/settings/notifications">
               <el-icon><Bell /></el-icon>
-              <span>Notification Settings</span>
+              <span>{{ $t('nav.notificationSettings') }}</span>
             </el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
@@ -149,7 +149,7 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">Logout</el-dropdown-item>
+                <el-dropdown-item command="logout">{{ $t('common.logout') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

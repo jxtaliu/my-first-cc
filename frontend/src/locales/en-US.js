@@ -19,7 +19,10 @@ export default {
     warning: 'Warning',
     required: 'Required',
     active: 'Active',
-    inactive: 'Inactive'
+    inactive: 'Inactive',
+    logout: 'Logout',
+    reset: 'Reset',
+    saveSuccess: 'Saved successfully'
   },
   auth: {
     login: 'Login',
@@ -34,6 +37,7 @@ export default {
   nav: {
     dashboard: 'Dashboard',
     projects: 'Projects',
+    projectManagement: 'Project Management',
     myBoard: 'My Board',
     sprintBoard: 'Sprint Board',
     teamBoard: 'Team Board',
@@ -45,6 +49,7 @@ export default {
     memberRoles: 'Member Roles',
     statusConfig: 'Status Config',
     sprintSettings: 'Sprint Settings',
+    milestones: 'Milestones',
     admin: 'Admin',
     userManagement: 'User Management',
     roleManagement: 'Role Management',
