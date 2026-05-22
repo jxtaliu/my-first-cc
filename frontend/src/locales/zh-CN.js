@@ -49,7 +49,18 @@ export default {
     userManagement: '用户管理',
     roleManagement: '角色管理',
     departmentManagement: '部门管理',
-    dictManagement: '业务字典'
+    dictManagement: '业务字典',
+    myWork: '我的工作',
+    projectOverview: '项目总览',
+    projectSettings: '项目设置',
+    myTasks: '我的任务',
+    myTimesheet: '我的工时',
+    projectStats: '项目统计',
+    projectTemplates: '项目模板',
+    notificationSettings: '通知设置',
+    gantt: '甘特图',
+    compare: '项目对比',
+    portfolio: 'Portfolio'
   },
   dashboard: {
     projects: '项目数',

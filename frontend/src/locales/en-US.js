@@ -49,7 +49,18 @@ export default {
     userManagement: 'User Management',
     roleManagement: 'Role Management',
     departmentManagement: 'Department Management',
-    dictManagement: 'Business Dict'
+    dictManagement: 'Business Dict',
+    myWork: 'My Work',
+    projectOverview: 'Project Overview',
+    projectSettings: 'Project Settings',
+    myTasks: 'My Tasks',
+    myTimesheet: 'My Timesheet',
+    projectStats: 'Project Stats',
+    projectTemplates: 'Project Templates',
+    notificationSettings: 'Notification Settings',
+    gantt: 'Gantt',
+    compare: 'Compare',
+    portfolio: 'Portfolio'
   },
   dashboard: {
     projects: 'Projects',
