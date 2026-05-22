@@ -426,7 +426,10 @@ onMounted(async () => {
 
 <style scoped>
 .users-page {
-  padding: 20px;
+  padding: 24px;
+  background: #F5F7FA;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -438,26 +441,64 @@ onMounted(async () => {
 
 .page-header h2 {
   margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1D2129;
+}
+
+.page-header :deep(.el-button--primary) {
+  background: linear-gradient(135deg, #409EFF 0%, #337ecc 100%);
+  border: none;
+  padding: 10px 20px;
+  height: auto;
+}
+
+.page-header :deep(.el-button--primary:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
 }
 
 .user-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .avatar-small {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 600;
   flex-shrink: 0;
+}
+
+:deep(.el-card) {
+  border-radius: 12px;
+  border: 1px solid #EBEEF5;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+:deep(.el-table) {
+  --el-table-border-color: #EBEEF5;
+  --el-table-header-bg-color: #FAFBFC;
+}
+
+:deep(.el-table__header th) {
+  background: #FAFBFC;
+  color: #606266;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 14px 0;
+}
+
+:deep(.el-table__row:hover > td) {
+  background: #F5F7FA;
 }
 
 .user-detail {
@@ -471,16 +512,17 @@ onMounted(async () => {
 }
 
 .avatar {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .user-title {
@@ -490,7 +532,8 @@ onMounted(async () => {
 .user-title h3 {
   margin: 0 0 4px 0;
   font-size: 18px;
-  color: #303133;
+  font-weight: 600;
+  color: #1D2129;
 }
 
 .user-title p {
@@ -532,16 +575,72 @@ onMounted(async () => {
   gap: 4px;
 }
 
+.role-tags :deep(.el-tag) {
+  border-radius: 4px;
+  font-size: 12px;
+}
+
 .dept-tag {
   color: #606266;
+  font-size: 13px;
 }
 
 .no-data {
   color: #909399;
+  font-size: 13px;
 }
 
+/* Dialog styling */
+:deep(.el-dialog) {
+  border-radius: 12px;
+}
+
+:deep(.el-dialog__header) {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #EBEEF5;
+  margin: 0;
+}
+
+:deep(.el-dialog__title) {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1D2129;
+}
+
+:deep(.el-dialog__body) {
+  padding: 24px;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 16px 24px 20px;
+  border-top: 1px solid #EBEEF5;
+}
+
+:deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #303133;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+}
+
+:deep(.el-textarea__inner) {
+  border-radius: 8px;
+}
+
+:deep(.el-select) {
+  width: 100%;
+}
+
+/* Fixed column border */
 :deep(.el-table .el-table__body-wrapper .el-table__fixed),
 :deep(.el-table .el-table__body-wrapper .el-table__fixed-right) {
   border-left: 1px solid #EBEEF5;
+}
+
+/* Pagination */
+:deep(.el-pagination) {
+  margin-top: 16px;
 }
 </style>
