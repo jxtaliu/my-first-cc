@@ -71,7 +71,15 @@ public class ProjectController {
     public Result<Void> addMember(@PathVariable String projectId, @RequestBody Map<String, Object> member) {
         Object userIdObj = member.get("userId");
         Long userId = (userIdObj instanceof Number) ? ((Number) userIdObj).longValue() : Long.parseLong(userIdObj.toString());
-        projectService.addMember(projectId, userId);
+        String roleId = (String) member.getOrDefault("roleId", "ROLE_DEVELOPER");
+        projectService.addMember(projectId, userId, roleId);
+        return Result.success();
+    }
+
+    @PutMapping("/{projectId}/members/{userId}")
+    public Result<Void> updateMemberRole(@PathVariable String projectId, @PathVariable Long userId, @RequestBody Map<String, Object> member) {
+        String roleId = (String) member.get("roleId");
+        projectService.updateMemberRole(projectId, userId, roleId);
         return Result.success();
     }
 

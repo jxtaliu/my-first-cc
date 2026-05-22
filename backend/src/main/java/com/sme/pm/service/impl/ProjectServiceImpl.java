@@ -85,8 +85,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void addMember(String projectId, Long userId) {
-        projectMapper.addMember(projectId, userId);
+    public void addMember(String projectId, Long userId, String roleId) {
+        // Check if member already exists
+        List<Long> existingMembers = projectMapper.findMemberIds(projectId);
+        if (existingMembers.contains(userId)) {
+            throw new IllegalArgumentException("用户已是项目成员");
+        }
+        projectMapper.addMember(projectId, userId, roleId);
     }
 
     @Override
@@ -97,7 +102,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<Map<String, Object>> getMembers(String projectId) {
-        return new ArrayList<>();
+        return projectMapper.findMembersByProjectId(projectId);
+    }
+
+    @Override
+    @Transactional
+    public void updateMemberRole(String projectId, Long userId, String roleId) {
+        projectMapper.updateMemberRole(projectId, userId, roleId);
     }
 
     @Override

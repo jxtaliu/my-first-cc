@@ -136,10 +136,11 @@ class ProjectServiceImplTest {
     void addMember_shouldCallAddMember() {
         String projectId = "PRJ_001";
         Long userId = 2L;
+        String roleId = "ROLE_DEVELOPER";
 
-        projectService.addMember(projectId, userId);
+        projectService.addMember(projectId, userId, roleId);
 
-        verify(projectMapper).addMember("PRJ_001", userId);
+        verify(projectMapper).addMember("PRJ_001", userId, roleId);
     }
 
     @Test

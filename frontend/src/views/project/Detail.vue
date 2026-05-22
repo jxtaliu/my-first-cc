@@ -106,18 +106,31 @@
               <el-icon><Plus /></el-icon> {{ $t('project.addMember') }}
             </el-button>
           </div>
-          <el-table :data="members" style="width: 100%">
-            <el-table-column prop="username" :label="$t('project.username')" />
-            <el-table-column prop="email" :label="$t('project.email')" />
-            <el-table-column prop="role" :label="$t('project.role')">
+          <el-table :data="members" style="width: 100%" v-loading="membersLoading">
+            <el-table-column :label="$t('project.member')" min-width="200">
               <template #default="{ row }">
-                <el-select v-model="row.role" @change="handleRoleChange(row)">
-                  <el-option :label="$t('project.admin')" value="ADMIN" />
-                  <el-option :label="$t('project.member')" value="MEMBER" />
+                <div class="member-cell">
+                  <el-avatar :size="28" class="member-cell-avatar">
+                    {{ row.real_name?.charAt(0) || row.username?.charAt(0) || '?' }}
+                  </el-avatar>
+                  <span class="member-cell-name">{{ row.real_name || row.username }}</span>
+                  <span class="member-cell-email">{{ row.email }}</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column :label="$t('project.role')" width="180">
+              <template #default="{ row }">
+                <el-select v-model="row.role_id" @change="handleRoleChange(row)" style="width: 100%">
+                  <el-option v-for="role in roles" :key="role.roleId" :label="role.name" :value="role.roleId" />
                 </el-select>
               </template>
             </el-table-column>
-            <el-table-column :label="$t('project.actions')" width="100">
+            <el-table-column :label="$t('project.joinedAt')" width="120">
+              <template #default="{ row }">
+                {{ formatDate(row.joined_at) }}
+              </template>
+            </el-table-column>
+            <el-table-column :label="$t('project.actions')" width="100" align="center">
               <template #default="{ row }">
                 <el-button text type="danger" @click="handleRemoveMember(row)">{{ $t('project.remove') }}</el-button>
               </template>
@@ -206,15 +219,55 @@
         <el-button type="primary" @click="handleSprintSubmit">{{ $t('common.save') }}</el-button>
       </template>
     </el-dialog>
+
+    <!-- Add Member Dialog -->
+    <el-dialog v-model="showMemberDialog" :title="$t('project.addMember')" width="700px">
+      <div class="member-search">
+        <el-input
+          v-model="memberSearchQuery"
+          :placeholder="$t('project.searchUser')"
+          clearable
+          @input="filterAvailableUsers"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+      </div>
+      <div class="member-list">
+        <el-scrollbar height="350px">
+          <div
+            v-for="user in availableUsers"
+            :key="user.id"
+            class="member-option"
+            @click="toggleUserSelection(user)"
+          >
+            <el-checkbox :model-value="isUserSelected(user.id)" />
+            <el-avatar :size="28" class="member-avatar">
+              {{ user.realName?.charAt(0) || user.username?.charAt(0) || '?' }}
+            </el-avatar>
+            <span class="member-name">{{ user.realName || user.username }}</span>
+            <span class="member-email">{{ user.email }}</span>
+          </div>
+        </el-scrollbar>
+      </div>
+      <div class="selected-count" v-if="selectedUsers.length > 0">
+        {{ $t('project.selected') }}: {{ selectedUsers.length }} {{ $t('project.person') }}
+      </div>
+      <template #footer>
+        <el-button @click="showMemberDialog = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleAddMember" :disabled="selectedUsers.length === 0">{{ $t('common.add') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Grid, Timer, User, Plus } from '@element-plus/icons-vue'
+import { ArrowLeft, Grid, Timer, User, Plus, Search } from '@element-plus/icons-vue'
 import { getProject, getSprints, createSprint } from '@/api/project'
 import { getTasksByProject, createTask, updateTask, moveTask } from '@/api/task'
 import request from '@/api/request'
@@ -236,6 +289,18 @@ const draggedTask = ref(null)
 const taskStatuses = ref([])
 const taskTypes = ref([])
 const priorities = ref([])
+
+// Member management
+const allUsers = ref([])
+const availableUsers = ref([])
+const selectedUsers = ref([])
+const roles = ref([])
+const memberSearchQuery = ref('')
+const membersLoading = ref(false)
+const memberForm = reactive({
+  roleId: 'ROLE_DEVELOPER'
+})
+const memberFormRef = ref()
 
 const taskForm = reactive({
   taskId: '',
@@ -361,7 +426,6 @@ const fetchProject = async () => {
   try {
     const res = await getProject(route.params.id)
     project.value = res.data || {}
-    members.value = res.data?.members || []
     if (project.value.sprintMode === 'SCRUM') {
       fetchSprints()
     }
@@ -471,11 +535,109 @@ const handleSprintSubmit = async () => {
 }
 
 const handleRoleChange = async (member) => {
-  ElMessage.success(t('project.roleUpdated'))
+  try {
+    await request.put(`/projects/${project.value.projectId}/members/${member.user_id}`, { roleId: member.role_id })
+    ElMessage.success(t('project.roleUpdated'))
+  } catch (e) {
+    // Revert on error
+    fetchMembers()
+  }
 }
 
 const handleRemoveMember = async (member) => {
-  ElMessage.success(t('project.memberRemoved'))
+  try {
+    await request.delete(`/projects/${project.value.projectId}/members/${member.user_id}`)
+    ElMessage.success(t('project.memberRemoved'))
+    fetchMembers()
+  } catch (e) {
+    // Handle error
+  }
+}
+
+const handleAddMember = async () => {
+  if (selectedUsers.value.length === 0) return
+  try {
+    for (const user of selectedUsers.value) {
+      await request.post(`/projects/${project.value.projectId}/members`, {
+        userId: user.id,
+        roleId: 'ROLE_DEVELOPER'
+      })
+    }
+    ElMessage.success(t('project.memberAdded'))
+    showMemberDialog.value = false
+    selectedUsers.value = []
+    memberSearchQuery.value = ''
+    fetchMembers()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.message || t('project.addMemberFailed'))
+  }
+}
+
+const fetchMembers = async () => {
+  membersLoading.value = true
+  try {
+    const res = await request.get(`/projects/${project.value.projectId}/members`)
+    members.value = res.data || []
+  } catch (e) {
+    members.value = []
+  } finally {
+    membersLoading.value = false
+  }
+}
+
+const fetchUsersAndRoles = async () => {
+  try {
+    const [usersRes, rolesRes] = await Promise.all([
+      request.get('/users'),
+      request.get('/roles')
+    ])
+    allUsers.value = usersRes.data || []
+    filterAvailableUsers()
+    roles.value = rolesRes.data || []
+  } catch (e) {
+    allUsers.value = []
+    availableUsers.value = []
+    roles.value = []
+  }
+}
+
+// Watch for dialog open to refresh available users
+watch(showMemberDialog, (newVal) => {
+  if (newVal) {
+    filterAvailableUsers()
+  }
+})
+
+const filterAvailableUsers = () => {
+  // Filter out users already in the project
+  const available = allUsers.value.filter(user => !isUserInProject(user.id))
+  if (!memberSearchQuery.value) {
+    availableUsers.value = available
+  } else {
+    const query = memberSearchQuery.value.toLowerCase()
+    availableUsers.value = available.filter(user =>
+      (user.username?.toLowerCase() || '').includes(query) ||
+      (user.email?.toLowerCase() || '').includes(query) ||
+      (user.realName?.toLowerCase() || '').includes(query)
+    )
+  }
+}
+
+const isUserInProject = (userId) => {
+  return members.value.some(m => m.user_id === userId)
+}
+
+const isUserSelected = (userId) => {
+  return selectedUsers.value.some(u => u.id === userId)
+}
+
+const toggleUserSelection = (user) => {
+  if (isUserInProject(user.id)) return
+  if (isUserSelected(user.id)) {
+    selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
+  } else {
+    selectedUsers.value.push(user)
+  }
 }
 
 const handleSettings = () => {
@@ -493,6 +655,8 @@ onMounted(async () => {
   fetchPriorities()
   await fetchProject()
   fetchTasks()
+  fetchMembers()
+  fetchUsersAndRoles()
 })
 </script>
 
@@ -662,6 +826,98 @@ onMounted(async () => {
 
 .sprint-stats {
   font-size: 13px;
+  color: var(--theme-text-secondary);
+}
+
+/* Member Management Styles */
+.member-search {
+  margin-bottom: 16px;
+}
+
+.member-list {
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.member-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.member-option:last-child {
+  border-bottom: none;
+}
+
+.member-option:hover:not(.disabled) {
+  background: var(--theme-border);
+}
+
+.member-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.member-avatar {
+  background: var(--el-color-primary);
+  color: white;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.member-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-name {
+  font-weight: 500;
+  color: var(--theme-text-primary);
+  margin-right: 4px;
+}
+
+.member-email {
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+}
+
+.selected-count {
+  text-align: center;
+  color: var(--theme-text-secondary);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.member-form {
+  margin-top: 16px;
+}
+
+.member-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-cell-avatar {
+  background: var(--el-color-primary);
+  color: white;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.member-cell-name {
+  font-weight: 500;
+  color: var(--theme-text-primary);
+  margin-right: 4px;
+}
+
+.member-cell-email {
+  font-size: 12px;
   color: var(--theme-text-secondary);
 }
 </style>

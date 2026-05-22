@@ -5,6 +5,7 @@ import com.sme.pm.entity.Project;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface ProjectMapper extends BaseMapper<Project> {
@@ -24,12 +25,23 @@ public interface ProjectMapper extends BaseMapper<Project> {
     @Select("SELECT COUNT(*) FROM project WHERE deleted = 0")
     int countAll();
 
-    @Insert("INSERT INTO project_member (project_id, user_id, joined_at) VALUES (#{projectId}, #{userId}, NOW())")
-    void addMember(@Param("projectId") String projectId, @Param("userId") Long userId);
+    @Insert("INSERT INTO project_member (project_id, user_id, role_id, joined_at) VALUES (#{projectId}, #{userId}, #{roleId}, NOW())")
+    void addMember(@Param("projectId") String projectId, @Param("userId") Long userId, @Param("roleId") String roleId);
 
     @Delete("DELETE FROM project_member WHERE project_id = #{projectId} AND user_id = #{userId}")
     void removeMember(@Param("projectId") String projectId, @Param("userId") Long userId);
 
     @Select("SELECT user_id FROM project_member WHERE project_id = #{projectId}")
     List<Long> findMemberIds(@Param("projectId") String projectId);
+
+    @Select("SELECT pm.user_id, pm.role_id, pm.joined_at, u.username, u.email, u.real_name, r.name as role_name " +
+            "FROM project_member pm " +
+            "LEFT JOIN sys_user u ON pm.user_id = u.id " +
+            "LEFT JOIN sys_role r ON pm.role_id = r.role_id " +
+            "WHERE pm.project_id = #{projectId} " +
+            "ORDER BY pm.joined_at DESC")
+    List<Map<String, Object>> findMembersByProjectId(@Param("projectId") String projectId);
+
+    @Update("UPDATE project_member SET role_id = #{roleId} WHERE project_id = #{projectId} AND user_id = #{userId}")
+    void updateMemberRole(@Param("projectId") String projectId, @Param("userId") Long userId, @Param("roleId") String roleId);
 }

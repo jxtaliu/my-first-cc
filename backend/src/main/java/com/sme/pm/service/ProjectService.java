@@ -14,8 +14,9 @@ public interface ProjectService {
     List<Project> listByStatus(String status);
     void archive(Long id);
     void restore(Long id);
-    void addMember(String projectId, Long userId);
+    void addMember(String projectId, Long userId, String roleId);
     void removeMember(String projectId, Long userId);
     List<Map<String, Object>> getMembers(String projectId);
+    void updateMemberRole(String projectId, Long userId, String roleId);
     Map<String, Object> getStats(String projectId);
 }
