@@ -9,19 +9,20 @@ export function useKanban() {
   // Status mappings
   const statusIdToCode = computed(() => {
     const map = {}
-    taskStatuses.value.forEach(s => { map[s.id] = s.code })
+    taskStatuses.value.forEach(s => { map[s.id] = s.code.toLowerCase() })
     return map
   })
 
   const statusCodeToId = computed(() => {
     const map = {}
-    taskStatuses.value.forEach(s => { map[s.code] = s.id })
+    taskStatuses.value.forEach(s => { map[s.code.toLowerCase()] = s.id })
     return map
   })
 
   async function loadTaskStatuses(projectId) {
     loading.value = true
     try {
+      // 直接从 task_status 表获取项目状态
       let statuses = []
       if (projectId) {
         const projectRes = await getTaskStatusesByProject(projectId)
@@ -33,13 +34,17 @@ export function useKanban() {
         statuses = systemRes.data || systemRes
       }
       taskStatuses.value = Array.isArray(statuses) ? statuses : []
-      columns.value = taskStatuses.value.map(s => ({
-        id: s.code,
-        status: s.code,
-        title: s.name,
-        color: s.color || '#94A3B8',
-        statusId: s.id
-      }))
+      // 直接使用 task_status 表数据生成列
+      if (statuses.length > 0) {
+        columns.value = statuses.map(s => ({
+          id: s.code.toLowerCase(),
+          status: s.code.toLowerCase(),
+          title: s.name,
+          color: s.color || '#94A3B8',
+          statusId: s.id,
+          sortOrder: s.sortOrder
+        }))
+      }
     } finally {
       loading.value = false
     }
