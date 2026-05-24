@@ -87,6 +87,16 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
         }
     }
 
+    @Override
+    public void reorder(List<Long> statusIds) {
+        for (int i = 0; i < statusIds.size(); i++) {
+            TaskStatus status = new TaskStatus();
+            status.setId(statusIds.get(i));
+            status.setSortOrder(i + 1);
+            taskStatusMapper.updateById(status);
+        }
+    }
+
     private String getCategoryByCode(String code) {
         if (code == null) return "todo";
         String upper = code.toUpperCase();

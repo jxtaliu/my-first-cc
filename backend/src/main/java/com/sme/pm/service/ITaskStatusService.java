@@ -15,4 +15,10 @@ public interface ITaskStatusService extends IService<TaskStatus> {
      * @param projectId 项目ID
      */
     void initializeFromDict(String projectId);
+
+    /**
+     * 批量更新任务状态排序
+     * @param statusIds 状态ID列表，顺序即为新的排序顺序
+     */
+    void reorder(List<Long> statusIds);
 }

@@ -51,4 +51,16 @@ public class TaskStatusController {
         taskStatusService.removeById(id);
         return Result.success();
     }
+
+    @PostMapping("/init/{projectId}")
+    public Result<Void> initializeFromDict(@PathVariable String projectId) {
+        taskStatusService.initializeFromDict(projectId);
+        return Result.success();
+    }
+
+    @PutMapping("/reorder")
+    public Result<Void> reorder(@RequestBody List<Long> statusIds) {
+        taskStatusService.reorder(statusIds);
+        return Result.success();
+    }
 }
