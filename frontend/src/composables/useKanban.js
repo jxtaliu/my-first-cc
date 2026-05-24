@@ -40,10 +40,10 @@ export function useKanban() {
           id: s.code.toLowerCase(),
           status: s.code.toLowerCase(),
           title: s.nameEn || s.name || s.code,
-          titleZh: s.nameZh || '',
+          ...(s.nameZh && { titleZh: s.nameZh }),
           color: s.color || '#94A3B8',
           statusId: s.id,
-          sortOrder: s.sortOrder
+          ...(s.sortOrder != null && { sortOrder: s.sortOrder })
         }))
       }
     } finally {

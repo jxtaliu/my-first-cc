@@ -143,6 +143,7 @@ export default {
     archived: 'Archived',
     noDescription: 'No description',
     tasks: 'tasks',
+    noTasks: 'No tasks',
     members: 'members',
     created: 'Created',
     scrum: 'Scrum',

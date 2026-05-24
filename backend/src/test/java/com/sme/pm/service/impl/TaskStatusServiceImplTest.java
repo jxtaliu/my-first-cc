@@ -209,7 +209,6 @@ class TaskStatusServiceImplTest {
         verify(taskStatusMapper).insert(captor.capture());
 
         TaskStatus savedStatus = captor.getValue();
-        assertEquals("todo", savedStatus.getCategory());
         assertEquals("PRJ_TEST", savedStatus.getProjectId());
     }
 }

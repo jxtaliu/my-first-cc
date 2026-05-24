@@ -236,12 +236,12 @@ class TaskServiceImplTest {
 
         TaskStatus currentStatus = new TaskStatus();
         currentStatus.setId(oldStatusId.longValue());
-        currentStatus.setCategory("todo");
+        currentStatus.setCode("TODO");
 
         TaskStatus newStatus = new TaskStatus();
         newStatus.setId(newStatusId);
         newStatus.setName("In Progress");
-        newStatus.setCategory("IN_PROGRESS");
+        newStatus.setCode("IN_PROGRESS");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
         when(taskStatusMapper.selectById(any())).thenAnswer(invocation -> {
@@ -283,12 +283,12 @@ class TaskServiceImplTest {
 
         TaskStatus currentStatus = new TaskStatus();
         currentStatus.setId(oldStatusId.longValue());
-        currentStatus.setCategory("TODO");
+        currentStatus.setCode("TODO");
 
         TaskStatus newStatus = new TaskStatus();
         newStatus.setId(newStatusId);
         newStatus.setName("In Progress");
-        newStatus.setCategory("IN_PROGRESS");
+        newStatus.setCode("IN_PROGRESS");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
         when(taskStatusMapper.selectById(any())).thenAnswer(invocation -> {
@@ -324,12 +324,12 @@ class TaskServiceImplTest {
 
         TaskStatus currentStatus = new TaskStatus();
         currentStatus.setId(oldStatusId.longValue());
-        currentStatus.setCategory("IN_PROGRESS");
+        currentStatus.setCode("IN_PROGRESS");
 
         TaskStatus newStatus = new TaskStatus();
         newStatus.setId(newStatusId);
         newStatus.setName("Done");
-        newStatus.setCategory("DONE");
+        newStatus.setCode("DONE");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
         when(taskStatusMapper.selectById(any())).thenAnswer(invocation -> {

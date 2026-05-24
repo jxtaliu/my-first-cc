@@ -108,9 +108,9 @@ public class NotificationScheduler {
         // Exclude completed tasks - we need to find tasks not in "done" status
         List<Task> overdueTasks = taskMapper.selectList(taskWrapper);
 
-        // Get done status category
+        // Get done status code
         LambdaQueryWrapper<TaskStatus> statusWrapper = new LambdaQueryWrapper<>();
-        statusWrapper.eq(TaskStatus::getCategory, "done");
+        statusWrapper.eq(TaskStatus::getCode, "DONE");
         List<TaskStatus> doneStatuses = taskStatusMapper.selectList(statusWrapper);
 
         for (Task task : overdueTasks) {

@@ -10,7 +10,7 @@ public class TaskStatus {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String projectId; // References project.project_id  // NULL means system default
+    private String projectId; // References project.project_id
 
     private String code;  // TODO, IN_PROGRESS, etc.
 

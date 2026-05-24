@@ -157,14 +157,14 @@ public class TaskServiceImpl implements TaskService {
         }
 
         TaskStatus currentStatus = taskStatusMapper.selectById(task.getStatus());
-        if (currentStatus != null && "DONE".equals(currentStatus.getCategory()) && !"DONE".equals(newStatus.getCategory())) {
+        if (currentStatus != null && "DONE".equals(currentStatus.getCode()) && !"DONE".equals(newStatus.getCode())) {
             task.setCompletionDate(null);
             task.setInProgressSince(LocalDateTime.now());
-        } else if (!"DONE".equals(currentStatus.getCategory()) && "DONE".equals(newStatus.getCategory())) {
+        } else if (!"DONE".equals(currentStatus.getCode()) && "DONE".equals(newStatus.getCode())) {
             task.setCompletionDate(LocalDateTime.now());
             task.setInProgressSince(null);
             task.setProgress(100);
-        } else if ("IN_PROGRESS".equals(newStatus.getCategory()) && task.getInProgressSince() == null) {
+        } else if ("IN_PROGRESS".equals(newStatus.getCode()) && task.getInProgressSince() == null) {
             task.setInProgressSince(LocalDateTime.now());
         }
 

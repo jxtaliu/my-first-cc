@@ -48,7 +48,7 @@ public class TaskDependencyServiceImpl extends ServiceImpl<TaskDependencyMapper,
             return false;
         }
         TaskStatus targetStatus = taskStatusMapper.selectById(targetStatusId);
-        if (targetStatus == null || !"DONE".equals(targetStatus.getCategory())) {
+        if (targetStatus == null || !"DONE".equals(targetStatus.getCode())) {
             return true;
         }
         LambdaQueryWrapper<TaskDependency> wrapper = new LambdaQueryWrapper<>();
@@ -58,7 +58,7 @@ public class TaskDependencyServiceImpl extends ServiceImpl<TaskDependencyMapper,
         for (TaskDependency dep : deps) {
             if (dep.getDependsOnTaskId() != null) {
                 TaskStatus depStatus = taskStatusMapper.selectById(dep.getDependsOnTaskId());
-                if (depStatus != null && !"DONE".equals(depStatus.getCategory())) {
+                if (depStatus != null && !"DONE".equals(depStatus.getCode())) {
                     return false;
                 }
             }

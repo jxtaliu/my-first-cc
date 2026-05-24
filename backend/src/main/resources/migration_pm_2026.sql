@@ -443,3 +443,74 @@ INSERT IGNORE INTO project (project_id, name, description, project_type, status,
 ('PRJ008', '文档管理系统', '企业级文档存储、检索、权限管理', 'DOCUMENT', 'COMPLETED', 'KANBAN', 1, NOW()),
 ('PRJ009', '第三方支付集成', '对接支付宝、微信支付、银联', 'INTEGRATION', 'PAUSED', 'SCRUM', 1, NOW()),
 ('PRJ010', '旧官网改版', '企业官网全新设计改版项目', 'WEB', 'ARCHIVED', 'KANBAN', 1, NOW());
+
+-- 为每个初始项目初始化任务状态（从业务字典 task_status 复制）
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ001', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ002', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ003', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ004', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ005', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ006', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ007', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ008', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ009', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
+
+INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)
+SELECT 'PRJ010', d.code, d.name_en, d.name_zh,
+       JSON_EXTRACT(d.extra, '$.color') as color, d.sort_order
+FROM sys_dict_code d
+JOIN sys_dict_type t ON d.dict_type_id = t.id
+WHERE t.code = 'task_status';
