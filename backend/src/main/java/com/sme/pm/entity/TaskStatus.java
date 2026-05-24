@@ -14,13 +14,9 @@ public class TaskStatus {
 
     private String code;  // TODO, IN_PROGRESS, etc.
 
-    private String name;
-
     private String nameEn;
 
     private String nameZh;
-
-    private String category;  // todo, doing, done, alert
 
     private String color;
 

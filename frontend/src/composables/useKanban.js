@@ -39,7 +39,8 @@ export function useKanban() {
         columns.value = statuses.map(s => ({
           id: s.code.toLowerCase(),
           status: s.code.toLowerCase(),
-          title: s.name,
+          title: s.nameEn || s.name || s.code,
+          titleZh: s.nameZh || '',
           color: s.color || '#94A3B8',
           statusId: s.id,
           sortOrder: s.sortOrder

@@ -67,11 +67,9 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
             TaskStatus taskStatus = new TaskStatus();
             taskStatus.setProjectId(projectId);
             taskStatus.setCode(dictCode.getCode());
-            taskStatus.setName(dictCode.getName());
             taskStatus.setNameEn(dictCode.getNameEn());
             taskStatus.setNameZh(dictCode.getNameZh());
             taskStatus.setSortOrder(dictCode.getSortOrder());
-            taskStatus.setCategory(getCategoryByCode(dictCode.getCode()));
 
             // Extract color from extra JSON field using Jackson
             if (dictCode.getExtra() != null) {
@@ -103,23 +101,11 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
         }
     }
 
-    private String getCategoryByCode(String code) {
-        if (code == null) return "todo";
-        String upper = code.toUpperCase();
-        if (upper.contains("DONE") || upper.contains("COMPLETED")) return "done";
-        if (upper.contains("REVIEW") || upper.contains("TEST")) return "alert";
-        if (upper.contains("PROGRESS") || upper.contains("DEVELOPMENT")) return "doing";
-        return "todo";
-    }
-
     @Override
     public boolean updateStatus(TaskStatus taskStatus) {
         LambdaUpdateWrapper<TaskStatus> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(TaskStatus::getId, taskStatus.getId());
 
-        if (taskStatus.getName() != null) {
-            wrapper.set(TaskStatus::getName, taskStatus.getName());
-        }
         if (taskStatus.getNameEn() != null) {
             wrapper.set(TaskStatus::getNameEn, taskStatus.getNameEn());
         }
@@ -131,9 +117,6 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
         }
         if (taskStatus.getSortOrder() != null) {
             wrapper.set(TaskStatus::getSortOrder, taskStatus.getSortOrder());
-        }
-        if (taskStatus.getCategory() != null) {
-            wrapper.set(TaskStatus::getCategory, taskStatus.getCategory());
         }
 
         return update(wrapper);

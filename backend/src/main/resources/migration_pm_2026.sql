@@ -409,21 +409,6 @@ ON DUPLICATE KEY UPDATE name = VALUES(name), name_en = VALUES(name_en), name_zh 
 -- 第三部分: PM 表数据
 -- =============================================================================
 
--- Insert default task statuses
-INSERT IGNORE INTO task_status (project_id, code, name, name_en, name_zh, category, color, sort_order) VALUES
-(NULL, 'TODO', 'Todo', 'Todo', '待办', 'todo', '#94A3B8', 1),
-(NULL, 'IN_PROGRESS', 'In Progress', 'In Progress', '进行中', 'doing', '#3B82F6', 2),
-(NULL, 'DEVELOPMENT', 'Dev Done', 'Development Done', '开发完成', 'doing', '#8B5CF6', 3),
-(NULL, 'TESTING', 'Testing', 'Testing', '测试中', 'doing', '#F59E0B', 4),
-(NULL, 'DONE', 'Done', 'Done', '已完成', 'done', '#10B981', 5),
-(NULL, 'BLOCKED', 'Blocked', 'Blocked', '已阻塞', 'alert', '#EF4444', 6);
-
--- Insert default status transitions
-INSERT IGNORE INTO status_transition (project_id, from_status_id, to_status_id) VALUES
-(NULL, 1, 2), (NULL, 1, 6), (NULL, 2, 1), (NULL, 2, 3), (NULL, 2, 6),
-(NULL, 3, 2), (NULL, 3, 4), (NULL, 3, 6), (NULL, 4, 3), (NULL, 4, 5),
-(NULL, 4, 6), (NULL, 6, 1), (NULL, 6, 2);
-
 -- Insert project templates
 INSERT IGNORE INTO project_template (name, description, sprint_duration, enable_priority, task_types) VALUES
 ('敏捷开发模板', '标准的Scrum敏捷开发流程，2周Sprint', 14, 1, 'EPIC,FEATURE,STORY,TASK,BUG,SUBTASK'),
