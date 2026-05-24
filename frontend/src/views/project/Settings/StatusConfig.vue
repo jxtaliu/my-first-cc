@@ -12,48 +12,50 @@
       </el-button>
     </div>
 
-    <!-- Status Categories -->
-    <el-tabs v-model="activeCode" class="status-tabs">
-      <el-tab-pane
-        v-for="status in statuses"
-        :key="status.code"
-        :label="status.nameEn || status.nameZh || status.code"
-        :name="status.code"
-      >
-        <template #label>
-          <span class="category-label">
-            <span class="status-dot" :style="{ backgroundColor: status.color }"></span>
-            {{ status.nameEn || status.nameZh || status.code }}
-          </span>
-        </template>
-      </el-tab-pane>
-    </el-tabs>
-
     <!-- Status Table -->
     <el-card class="status-card" shadow="never" v-loading="loading">
-      <el-table ref="statusTableRef" :data="filteredStatuses" style="width: 100%" row-key="id">
+      <el-table ref="statusTableRef" :data="statuses" style="width: 100%" row-key="id">
+        <!-- Drag Handle -->
         <el-table-column width="50">
-          <template #default>
-            <el-icon class="drag-handle"><Rank /></el-icon>
+          <template #default="{ row }">
+            <span :data-status-id="row.id"><el-icon class="drag-handle"><Rank /></el-icon></span>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('settings.statusName')" min-width="150">
+
+        <!-- Status Name (Chinese + English) -->
+        <el-table-column :label="$t('settings.statusName')" min-width="180">
           <template #default="{ row }">
             <div class="status-name-cell">
-              <span class="status-color" :style="{ backgroundColor: row.color }"></span>
-              <span>{{ row.nameEn || row.nameZh || row.code }}</span>
+              <span class="status-color-dot" :style="{ backgroundColor: row.color }"></span>
+              <span class="status-name">{{ row.nameZh || '' }} {{ row.nameEn ? `(${row.nameEn})` : '' }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="code" :label="$t('settings.statusCode')" width="120" />
-        <el-table-column prop="taskCount" :label="$t('settings.taskCount')" width="100" align="center" />
+
+        <!-- Status Code -->
+        <el-table-column prop="code" :label="$t('settings.statusCode')" width="140">
+          <template #default="{ row }">
+            <el-tag size="small" type="info">{{ row.code }}</el-tag>
+          </template>
+        </el-table-column>
+
+        <!-- Color Preview -->
+        <el-table-column :label="$t('settings.statusColor')" width="100" align="center">
+          <template #default="{ row }">
+            <span class="color-preview" :style="{ backgroundColor: row.color }"></span>
+          </template>
+        </el-table-column>
+
+        <!-- Sort Order -->
+        <el-table-column prop="sortOrder" :label="$t('settings.sortOrder')" width="100" align="center" />
+
+        <!-- Actions -->
         <el-table-column :label="$t('admin.actions')" width="140" fixed="right">
           <template #default="{ row }">
             <el-button text size="small" @click="handleEditStatus(row)">
               {{ $t('common.edit') }}
             </el-button>
             <el-button
-              v-if="!row.isSystem"
               text
               type="danger"
               size="small"
@@ -75,21 +77,32 @@
     >
       <el-form :model="statusForm" :rules="statusRules" ref="statusFormRef" label-width="100px">
         <el-form-item :label="$t('settings.statusCode')" prop="code">
-          <el-input v-model="statusForm.code" :placeholder="$t('settings.enterStatusCode')" :disabled="!!editingStatus?.id" />
+          <el-input
+            v-model="statusForm.code"
+            :placeholder="$t('settings.enterStatusCode')"
+            :disabled="!!editingStatus?.id"
+          />
+        </el-form-item>
+        <el-form-item :label="$t('settings.statusNameEn')" prop="nameEn">
+          <el-input v-model="statusForm.nameEn" :placeholder="$t('settings.enterStatusNameEn')" />
+        </el-form-item>
+        <el-form-item :label="$t('settings.statusNameZh')" prop="nameZh">
+          <el-input v-model="statusForm.nameZh" :placeholder="$t('settings.enterStatusNameZh')" />
         </el-form-item>
         <el-form-item :label="$t('settings.statusColor')" prop="color">
-          <div class="color-picker">
+          <div class="color-picker-row">
             <el-color-picker v-model="statusForm.color" />
             <span class="color-value">{{ statusForm.color }}</span>
-            <div class="color-presets">
-              <span
-                v-for="c in colorPresets"
-                :key="c"
-                class="color-preset"
-                :style="{ backgroundColor: c }"
-                @click="statusForm.color = c"
-              ></span>
-            </div>
+          </div>
+          <div class="color-presets">
+            <span
+              v-for="c in colorPresets"
+              :key="c"
+              class="color-preset"
+              :class="{ active: statusForm.color === c }"
+              :style="{ backgroundColor: c }"
+              @click="statusForm.color = c"
+            ></span>
           </div>
         </el-form-item>
       </el-form>
@@ -102,14 +115,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Rank } from '@element-plus/icons-vue'
 import Sortable from 'sortablejs'
-import { getTaskStatusesByProject, createTaskStatus, updateTaskStatus, deleteTaskStatus, reorderTaskStatuses } from '@/api/taskStatus'
 import { getTaskCountByStatus } from '@/api/task'
+import { useTaskStatusStore } from '@/stores/taskStatus'
 
 const props = defineProps({
   projectId: {
@@ -121,20 +134,44 @@ const props = defineProps({
 const route = useRoute()
 const { t } = useI18n()
 
-// Use prop if provided, otherwise fall back to route params
-const effectiveProjectId = computed(() => {
-  return props.projectId || route.params.id
+const taskStatusStore = useTaskStatusStore()
+
+// Project ID from props or route
+const projectIdSource = computed(() => props.projectId || route.params.id)
+
+// Resolved business ID (cached after first resolution)
+const resolvedBusinessId = ref(props.projectId)
+
+// Get actual business ID for API calls (resolves numeric ID to business ID)
+const getBusinessIdForApi = async () => {
+  const id = projectIdSource.value
+  if (!id) return null
+  // If it looks like a business ID (contains letters), return as-is
+  if (/^[A-Z]/.test(id)) {
+    resolvedBusinessId.value = id
+    return id
+  }
+  // Otherwise resolve numeric ID to business ID
+  const businessId = await taskStatusStore.getProjectBusinessId(id)
+  resolvedBusinessId.value = businessId
+  return businessId
+}
+
+// Use store's statuses (reactive) - use resolved business ID as key
+const statuses = computed(() => {
+  return taskStatusStore.getStatusesByProjectId(resolvedBusinessId.value) || []
 })
 
+const loading = computed(() => taskStatusStore.loading)
+
 const statusTableRef = ref()
-const loading = ref(false)
-const statuses = ref([])
-const activeCode = ref('')
 const showStatusDialog = ref(false)
 const editingStatus = ref(null)
 
 const statusForm = ref({
   code: '',
+  nameEn: '',
+  nameZh: '',
   color: '#409eff'
 })
 
@@ -149,30 +186,19 @@ const colorPresets = [
   '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#6366f1'
 ]
 
-const filteredStatuses = computed(() => {
-  if (!activeCode.value) return statuses.value
-  return statuses.value.filter(s => s.code === activeCode.value)
-})
-
+// Fetch statuses on mount and when project changes
 const fetchStatuses = async () => {
-  loading.value = true
-  try {
-    const res = await getTaskStatusesByProject(effectiveProjectId.value)
-    statuses.value = res.data || []
-    if (statuses.value.length > 0 && !activeCode.value) {
-      activeCode.value = statuses.value[0].code
-    }
-  } catch (e) {
-    statuses.value = []
-  } finally {
-    loading.value = false
-  }
+  const businessId = await getBusinessIdForApi()
+  if (!businessId) return
+  await taskStatusStore.fetchStatuses(businessId)
 }
 
 const handleAddStatus = () => {
   editingStatus.value = null
   statusForm.value = {
     code: '',
+    nameEn: '',
+    nameZh: '',
     color: '#409eff'
   }
   showStatusDialog.value = true
@@ -182,7 +208,9 @@ const handleEditStatus = (status) => {
   editingStatus.value = status
   statusForm.value = {
     code: status.code,
-    color: status.color
+    nameEn: status.nameEn || '',
+    nameZh: status.nameZh || '',
+    color: status.color || '#409eff'
   }
   showStatusDialog.value = true
 }
@@ -192,15 +220,18 @@ const handleSaveStatus = async () => {
   if (!valid) return
 
   try {
+    const businessId = await getBusinessIdForApi()
     if (editingStatus.value?.id) {
-      await updateTaskStatus(editingStatus.value.id, statusForm.value)
+      await taskStatusStore.updateStatus(editingStatus.value.id, statusForm.value)
+      // Update cache optimistically
+      taskStatusStore.updateStatusInCache(businessId, editingStatus.value.id, statusForm.value)
       ElMessage.success(t('settings.statusUpdated'))
     } else {
-      await createTaskStatus({ ...statusForm.value, projectId: effectiveProjectId.value })
+      await taskStatusStore.createStatus(businessId, statusForm.value)
       ElMessage.success(t('settings.statusCreated'))
     }
     showStatusDialog.value = false
-    fetchStatuses()
+    // Store already updated via actions, no need to refetch
   } catch (e) {
     ElMessage.error(t('common.failed'))
   }
@@ -216,22 +247,55 @@ const handleDeleteStatus = async (status) => {
       return
     }
     await ElMessageBox.confirm(
-      t('settings.confirmDeleteStatus', { name: status.nameEn || status.nameZh || status.code }),
+      t('settings.confirmDeleteStatus', { name: status.nameZh || status.nameEn || status.code }),
       t('common.warning'),
       { confirmButtonText: t('common.confirm'), cancelButtonText: t('common.cancel'), type: 'warning' }
     )
-    await deleteTaskStatus(status.id)
+    const businessId = await getBusinessIdForApi()
+    await taskStatusStore.deleteStatus(status.id)
+    // Remove from cache optimistically
+    taskStatusStore.removeStatusFromCache(businessId, status.id)
     ElMessage.success(t('settings.statusDeleted'))
-    fetchStatuses()
   } catch (e) {
     // Cancelled or error
   }
 }
 
 const onDragEnd = async () => {
-  const statusIds = filteredStatuses.value.map(s => s.id)
+  const businessId = await getBusinessIdForApi()
+  if (!businessId) return
+
+  // Get new order from DOM (Sortable.js has moved DOM elements)
+  const table = statusTableRef.value?.$el
+  if (!table) return
+
+  const rows = table.querySelectorAll('.el-table__body-wrapper tbody tr')
+  const newOrderIds = Array.from(rows).map(row => {
+    const span = row.querySelector('[data-status-id]')
+    const key = span ? span.getAttribute('data-status-id') : null
+    return key ? parseInt(key) : null
+  }).filter(id => id !== null)
+
+  if (newOrderIds.length === 0) return
+
   try {
-    await reorderTaskStatuses(statusIds)
+    // Update local statuses order to match DOM order
+    const newOrderStatuses = []
+    for (const id of newOrderIds) {
+      const status = statuses.value.find(s => s.id === id)
+      if (status) newOrderStatuses.push(status)
+    }
+    // Update sortOrder based on new positions
+    newOrderStatuses.forEach((status, index) => {
+      status.sortOrder = index + 1
+    })
+
+    // Call API to persist the new order
+    await taskStatusStore.reorderStatuses(businessId, newOrderIds)
+
+    // Update store cache with new statuses and sort orders
+    taskStatusStore.statusesByProject[businessId] = newOrderStatuses
+
     ElMessage.success(t('project.statusReordered'))
   } catch (e) {
     ElMessage.error(t('common.failed'))
@@ -258,7 +322,13 @@ const initSortable = () => {
 }
 
 onMounted(async () => {
-  fetchStatuses()
+  await fetchStatuses()
+  await nextTick()
+  initSortable()
+})
+
+// Re-init sortable when statuses change
+watch(() => statuses.value.length, async () => {
   await nextTick()
   initSortable()
 })
@@ -266,7 +336,7 @@ onMounted(async () => {
 
 <style scoped>
 .status-config-page {
-  max-width: 1000px;
+  max-width: 900px;
 }
 
 .page-header {
@@ -286,22 +356,6 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-.status-tabs {
-  margin-bottom: 16px;
-}
-
-.category-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
 .status-card {
   margin-bottom: 16px;
 }
@@ -314,20 +368,33 @@ onMounted(async () => {
 .status-name-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.status-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+.status-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
-.color-picker {
+.status-name {
+  font-size: 14px;
+}
+
+.color-preview {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.color-picker-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-bottom: 10px;
 }
 
 .color-value {
@@ -337,19 +404,26 @@ onMounted(async () => {
 
 .color-presets {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .color-preset {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 4px;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, transform 0.2s;
 }
 
 .color-preset:hover {
   border-color: var(--pm-text-secondary);
+  transform: scale(1.1);
+}
+
+.color-preset.active {
+  border-color: var(--pm-text-primary);
+  box-shadow: 0 0 0 2px var(--pm-bg-color);
 }
 </style>

@@ -240,7 +240,7 @@ class TaskServiceImplTest {
 
         TaskStatus newStatus = new TaskStatus();
         newStatus.setId(newStatusId);
-        newStatus.setName("In Progress");
+        newStatus.setNameEn("In Progress");
         newStatus.setCode("IN_PROGRESS");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
@@ -287,7 +287,7 @@ class TaskServiceImplTest {
 
         TaskStatus newStatus = new TaskStatus();
         newStatus.setId(newStatusId);
-        newStatus.setName("In Progress");
+        newStatus.setNameEn("In Progress");
         newStatus.setCode("IN_PROGRESS");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
@@ -328,7 +328,7 @@ class TaskServiceImplTest {
 
         TaskStatus newStatus = new TaskStatus();
         newStatus.setId(newStatusId);
-        newStatus.setName("Done");
+        newStatus.setNameEn("Done");
         newStatus.setCode("DONE");
 
         when(taskMapper.findById(taskId)).thenReturn(task);

@@ -180,7 +180,7 @@ public class TaskServiceImpl implements TaskService {
                 oldStatusId,
                 statusId,
                 "Task Status Changed",
-                "Task \"" + task.getTitle() + "\" status changed to " + newStatus.getName(),
+                "Task \"" + task.getTitle() + "\" status changed to " + (newStatus.getNameEn() != null ? newStatus.getNameEn() : newStatus.getCode()),
                 task.getProjectId()
         );
         eventPublisher.publishEvent(event);

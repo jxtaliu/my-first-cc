@@ -59,13 +59,13 @@ class TaskStatusServiceImplTest {
         status1.setId(1L);
         status1.setProjectId(projectId);
         status1.setCode("TODO");
-        status1.setName("To Do");
+        status1.setNameEn("To Do");
 
         TaskStatus status2 = new TaskStatus();
         status2.setId(2L);
         status2.setProjectId(projectId);
         status2.setCode("DONE");
-        status2.setName("Done");
+        status2.setNameEn("Done");
 
         when(taskStatusMapper.selectList(any(LambdaQueryWrapper.class)))
             .thenReturn(Arrays.asList(status1, status2));
@@ -95,7 +95,7 @@ class TaskStatusServiceImplTest {
         status1.setId(1L);
         status1.setProjectId(null);
         status1.setCode("TODO");
-        status1.setName("To Do");
+        status1.setNameEn("To Do");
 
         when(taskStatusMapper.selectList(any(LambdaQueryWrapper.class)))
             .thenReturn(Collections.singletonList(status1));
@@ -115,7 +115,7 @@ class TaskStatusServiceImplTest {
         status.setId(1L);
         status.setProjectId(projectId);
         status.setCode(code);
-        status.setName("To Do");
+        status.setNameEn("To Do");
 
         // Use doReturn for selectOne to avoid argument mismatch with boolean second param
         doReturn(status).when(taskStatusMapper).selectOne(any(LambdaQueryWrapper.class), anyBoolean());

@@ -1,50 +1,118 @@
-import { ref, computed } from 'vue'
-import { getTaskStatusesByProject, getSystemTaskStatuses } from '@/api/taskStatus'
+import { ref, computed, watch } from 'vue'
+import { getSystemTaskStatuses } from '@/api/taskStatus'
+import { useTaskStatusStore } from '@/stores/taskStatus'
 
 export function useKanban() {
+  const taskStatusStore = useTaskStatusStore()
+
   const columns = ref([])
   const taskStatuses = ref([])
   const loading = ref(false)
+  const currentProjectId = ref(null)
 
-  // Status mappings
+  // Status mappings - use store getters if available, otherwise use local data
   const statusIdToCode = computed(() => {
-    const map = {}
-    taskStatuses.value.forEach(s => { map[s.id] = s.code.toLowerCase() })
-    return map
+    if (!currentProjectId.value) {
+      // For system statuses, build from local taskStatuses
+      const map = {}
+      taskStatuses.value.forEach(s => { map[s.id] = s.code?.toLowerCase() })
+      return map
+    }
+    return taskStatusStore.getStatusIdToCode(currentProjectId.value)
   })
 
   const statusCodeToId = computed(() => {
-    const map = {}
-    taskStatuses.value.forEach(s => { map[s.code.toLowerCase()] = s.id })
-    return map
+    if (!currentProjectId.value) {
+      // For system statuses, build from local taskStatuses
+      const map = {}
+      taskStatuses.value.forEach(s => { map[s.code?.toLowerCase()] = s.id })
+      return map
+    }
+    return taskStatusStore.getStatusCodeToId(currentProjectId.value)
   })
 
+  // Build columns from statuses
+  function buildColumns(statuses) {
+    if (!statuses || statuses.length === 0) {
+      columns.value = []
+      return
+    }
+
+    columns.value = statuses.map(s => ({
+      id: s.code?.toLowerCase(),
+      status: s.code?.toLowerCase(),
+      title: s.nameEn || s.code,
+      titleZh: s.nameZh || '',
+      color: s.color || '#94A3B8',
+      statusId: s.id,
+      sortOrder: s.sortOrder
+    }))
+  }
+
+  // Rebuild columns whenever taskStatuses changes
+  watch(
+    () => JSON.stringify(taskStatuses.value.map(s => s.id)),
+    () => {
+      if (taskStatuses.value.length > 0) {
+        buildColumns(taskStatuses.value)
+      }
+    }
+  )
+
+  // Watch for store changes - rebuild when store's statuses for current project are updated
+  // Use a deep watch on the specific project entry to catch reorder changes
+  watch(
+    () => {
+      if (!currentProjectId.value) return null
+      // Return JSON string to track both content AND order changes
+      const statuses = taskStatusStore.statusesByProject[currentProjectId.value]
+      return statuses ? JSON.stringify(statuses.map(s => ({ id: s.id, sortOrder: s.sortOrder }))) : null
+    },
+    (newVal, oldVal) => {
+      if (!newVal || !currentProjectId.value) return
+      const storeStatuses = taskStatusStore.statusesByProject[currentProjectId.value]
+      if (storeStatuses && storeStatuses.length > 0) {
+        taskStatuses.value = storeStatuses
+        buildColumns(storeStatuses)
+      }
+    }
+  )
+
   async function loadTaskStatuses(projectId) {
+    if (!projectId) {
+      // Load system statuses (no project)
+      currentProjectId.value = null
+      loading.value = true
+      try {
+        const systemRes = await getSystemTaskStatuses()
+        taskStatuses.value = systemRes.data || []
+        buildColumns(taskStatuses.value)
+      } finally {
+        loading.value = false
+      }
+      return
+    }
+
+    // Resolve numeric ID to business ID if needed
+    let businessId = projectId
+    if (!/^[A-Z]/.test(projectId)) {
+      businessId = await taskStatusStore.getProjectBusinessId(projectId)
+    }
+
+    currentProjectId.value = businessId
+
     loading.value = true
     try {
-      // 直接从 task_status 表获取项目状态
-      let statuses = []
-      if (projectId) {
-        const projectRes = await getTaskStatusesByProject(projectId)
-        statuses = projectRes.data || projectRes
-      }
-      // Fallback to system statuses if project has no custom statuses
-      if (!statuses || !Array.isArray(statuses) || statuses.length === 0) {
+      // Always fetch fresh data to ensure we have latest (e.g., after reorder)
+      const statuses = await taskStatusStore.fetchStatuses(businessId)
+      if (statuses && statuses.length > 0) {
+        taskStatuses.value = statuses
+        buildColumns(taskStatuses.value)
+      } else {
+        // Fallback to system statuses if project has none
         const systemRes = await getSystemTaskStatuses()
-        statuses = systemRes.data || systemRes
-      }
-      taskStatuses.value = Array.isArray(statuses) ? statuses : []
-      // 直接使用 task_status 表数据生成列
-      if (statuses.length > 0) {
-        columns.value = statuses.map(s => ({
-          id: s.code.toLowerCase(),
-          status: s.code.toLowerCase(),
-          title: s.nameEn || s.name || s.code,
-          ...(s.nameZh && { titleZh: s.nameZh }),
-          color: s.color || '#94A3B8',
-          statusId: s.id,
-          ...(s.sortOrder != null && { sortOrder: s.sortOrder })
-        }))
+        taskStatuses.value = systemRes.data || []
+        buildColumns(taskStatuses.value)
       }
     } finally {
       loading.value = false
@@ -79,5 +147,13 @@ export function useKanban() {
     }
   }
 
-  return { columns, taskStatuses, loading, statusIdToCode, statusCodeToId, loadTaskStatuses, normalizeTask }
+  return {
+    columns,
+    taskStatuses,
+    loading,
+    statusIdToCode,
+    statusCodeToId,
+    loadTaskStatuses,
+    normalizeTask
+  }
 }
