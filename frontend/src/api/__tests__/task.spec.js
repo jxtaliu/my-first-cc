@@ -149,4 +149,15 @@ describe('Task API', () => {
       expect(mockRequest.post).toHaveBeenCalledWith('/tasks/1/comments', commentData)
     })
   })
+
+  describe('getTaskCountByStatus', () => {
+    it('should call GET /v1/tasks/count with statusId param', async () => {
+      mockRequest.get.mockResolvedValue({ data: 5 })
+
+      const result = await taskApi.getTaskCountByStatus(1)
+
+      expect(mockRequest.get).toHaveBeenCalledWith('/v1/tasks/count', { params: { statusId: 1 } })
+      expect(result.data).toBe(5)
+    })
+  })
 })
