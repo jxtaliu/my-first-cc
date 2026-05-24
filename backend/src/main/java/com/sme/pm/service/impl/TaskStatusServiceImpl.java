@@ -98,7 +98,7 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
             TaskStatus status = new TaskStatus();
             status.setId(statusIds.get(i));
             status.setSortOrder(i + 1);
-            taskStatusMapper.updateById(status);
+            baseMapper.updateById(status);
         }
     }
 
