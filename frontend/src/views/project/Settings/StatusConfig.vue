@@ -42,7 +42,7 @@
 
     <!-- Status Table -->
     <el-card class="status-card" shadow="never" v-loading="loading">
-      <el-table :data="filteredStatuses" style="width: 100%" row-draggable>
+      <el-table ref="statusTableRef" :data="filteredStatuses" style="width: 100%" row-key="id">
         <el-table-column width="50">
           <template #default>
             <el-icon class="drag-handle"><Rank /></el-icon>
@@ -139,12 +139,14 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Rank } from '@element-plus/icons-vue'
-import { getTaskStatusesByProject, createTaskStatus, updateTaskStatus, deleteTaskStatus } from '@/api/taskStatus'
+import Sortable from 'sortablejs'
+import { getTaskStatusesByProject, createTaskStatus, updateTaskStatus, deleteTaskStatus, reorderTaskStatuses } from '@/api/taskStatus'
 
 const route = useRoute()
 const { t } = useI18n()
 
 const projectId = ref(parseInt(route.params.id) || 1)
+const statusTableRef = ref()
 const loading = ref(false)
 const statuses = ref([])
 const activeCategory = ref('TODO')
@@ -274,8 +276,33 @@ const handleDeleteStatus = async (status) => {
   }
 }
 
+const onDragEnd = async () => {
+  const statusIds = statuses.value.map(s => s.id)
+  try {
+    await reorderTaskStatuses(statusIds)
+    ElMessage.success(t('project.statusReordered'))
+  } catch (e) {
+    ElMessage.error(t('common.failed'))
+    fetchStatuses()
+  }
+}
+
+const initSortable = () => {
+  const table = statusTableRef.value?.$el
+  if (!table) return
+
+  const el = table.querySelector('.el-table__body-wrapper tbody')
+  if (!el) return
+
+  Sortable.create(el, {
+    handle: '.drag-handle',
+    onEnd: onDragEnd
+  })
+}
+
 onMounted(() => {
   fetchStatuses()
+  setTimeout(initSortable, 100)
 })
 </script>
 

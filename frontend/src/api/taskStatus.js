@@ -23,3 +23,7 @@ export function updateTaskStatus(id, data) {
 export function deleteTaskStatus(id) {
   return request.delete(`/v1/task-statuses/${id}`)
 }
+
+export function reorderTaskStatuses(statusIds) {
+  return request.put('/v1/task-statuses/reorder', statusIds)
+}
