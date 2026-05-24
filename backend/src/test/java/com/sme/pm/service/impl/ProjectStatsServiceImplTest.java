@@ -53,8 +53,8 @@ class ProjectStatsServiceImplTest {
         testSprint.setId(1L);
         testSprint.setProjectId("PRJ_001");
         testSprint.setName("Sprint 1");
-        testSprint.setStartDate(LocalDateTime.now().minusDays(7));
-        testSprint.setEndDate(LocalDateTime.now().plusDays(7));
+        testSprint.setStartDate(LocalDate.now().minusDays(7));
+        testSprint.setEndDate(LocalDate.now().plusDays(7));
 
         completedTask = new Task();
         completedTask.setId(1L);

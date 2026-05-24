@@ -263,4 +263,9 @@ public class TaskServiceImpl implements TaskService {
     public int countBlockingDependencies(Long taskId) {
         return taskDependencyService.countBlockingDependencies(taskId);
     }
+
+    @Override
+    public int countByStatusId(Integer statusId) {
+        return taskMapper.countByStatusId(statusId);
+    }
 }

@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS sprint (
     goal VARCHAR(500) COMMENT 'Sprint goal',
     start_date DATE,
     end_date DATE,
-    status TINYINT DEFAULT 1,
+    status VARCHAR(20) DEFAULT 'PLANNING' COMMENT 'PLANNING/ACTIVE/COMPLETED/ARCHIVED',
     capacity_hours INT COMMENT 'Total team capacity in hours',
     velocity INT COMMENT 'Story points completed last sprint',
     start_reminder_sent TINYINT DEFAULT 0,

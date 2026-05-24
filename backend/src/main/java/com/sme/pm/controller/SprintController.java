@@ -8,7 +8,6 @@ import com.sme.pm.mapper.TaskMapper;
 import com.sme.pm.service.ISprintService;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +28,7 @@ public class SprintController {
     @PostMapping
     public Result<Sprint> create(@PathVariable String projectId, @RequestBody Sprint sprint) {
         sprint.setProjectId(projectId);
-        sprintMapper.insert(sprint);
+        sprintService.create(sprint);
         return Result.success(sprint);
     }
 
@@ -46,38 +45,24 @@ public class SprintController {
     @PutMapping("/{id}")
     public Result<Sprint> update(@PathVariable Long id, @RequestBody Sprint sprint) {
         sprint.setId(id);
-        sprintMapper.updateById(sprint);
+        sprintService.update(sprint);
         return Result.success(sprint);
     }
 
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        sprintMapper.deleteById(id);
+        sprintService.delete(id);
         return Result.success();
     }
 
     @PutMapping("/{id}/start")
     public Result<Sprint> startSprint(@PathVariable Long id) {
-        Sprint sprint = sprintMapper.findById(id);
-        if (sprint == null) {
-            return Result.error("Sprint not found");
-        }
-        sprint.setStatus(2); // ACTIVE
-        sprint.setStartDate(LocalDateTime.now());
-        sprintMapper.updateById(sprint);
-        return Result.success(sprint);
+        return Result.success(sprintService.startSprint(id));
     }
 
     @PutMapping("/{id}/complete")
     public Result<Sprint> completeSprint(@PathVariable Long id) {
-        Sprint sprint = sprintMapper.findById(id);
-        if (sprint == null) {
-            return Result.error("Sprint not found");
-        }
-        sprint.setStatus(3); // COMPLETED
-        sprint.setEndDate(LocalDateTime.now());
-        sprintMapper.updateById(sprint);
-        return Result.success(sprint);
+        return Result.success(sprintService.completeSprint(id));
     }
 
     @GetMapping("/{id}/tasks")

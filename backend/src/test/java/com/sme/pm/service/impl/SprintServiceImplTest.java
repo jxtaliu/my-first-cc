@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,9 +50,10 @@ class SprintServiceImplTest {
         testSprint.setId(1L);
         testSprint.setProjectId("PRJ_001");
         testSprint.setName("Sprint 1");
-        testSprint.setStatus(1);
-        testSprint.setStartDate(LocalDateTime.now());
-        testSprint.setEndDate(LocalDateTime.now().plusDays(14));
+        testSprint.setStatus("PLANNING");
+        testSprint.setStartDate(LocalDate.now());
+        testSprint.setEndDate(LocalDate.now().plusDays(14));
+        testSprint.setCapacityHours(80);
 
         testTask1 = new Task();
         testTask1.setId(1L);
@@ -90,19 +92,15 @@ class SprintServiceImplTest {
     }
 
     @Test
-    void testCalculateCapacity_shouldCalculateBasedOnTeamSize() {
+    void testCalculateCapacity_shouldReturnSprintCapacityHours() {
         // Arrange
         when(sprintMapper.findById(1L)).thenReturn(testSprint);
-        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
-        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(Arrays.asList(1L, 2L, 3L));
 
         // Act
         int capacity = sprintService.calculateCapacity(1L);
 
-        // Assert
-        // teamSize=3, durationDays=14, workingHoursPerDay=8
-        // capacity = 3 * 14 * 8 = 336
-        assertEquals(336, capacity);
+        // Assert - returns sprint's capacityHours field directly
+        assertEquals(80, capacity);
     }
 
     @Test
@@ -111,8 +109,6 @@ class SprintServiceImplTest {
         List<Task> tasks = Arrays.asList(testTask1, testTask2);
         when(taskMapper.findBySprintId(1L)).thenReturn(tasks);
         when(sprintMapper.findById(1L)).thenReturn(testSprint);
-        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
-        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(Arrays.asList(1L, 2L));
 
         // Act
         Map<String, Object> stats = sprintService.getSprintStats(1L);
@@ -240,19 +236,6 @@ class SprintServiceImplTest {
     }
 
     @Test
-    void testCalculateCapacity_shouldReturnZero_whenProjectNotFound() {
-        // Arrange
-        when(sprintMapper.findById(1L)).thenReturn(testSprint);
-        when(projectMapper.findById(1L)).thenReturn(null);
-
-        // Act
-        int capacity = sprintService.calculateCapacity(1L);
-
-        // Assert
-        assertEquals(0, capacity);
-    }
-
-    @Test
     void testGetSprintStats_shouldHandleNullProgress() {
         // Arrange
         Task taskWithNullProgress = new Task();
@@ -264,8 +247,6 @@ class SprintServiceImplTest {
 
         when(taskMapper.findBySprintId(1L)).thenReturn(Collections.singletonList(taskWithNullProgress));
         when(sprintMapper.findById(1L)).thenReturn(testSprint);
-        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
-        when(projectMapper.findMemberIds("PRJ_001")).thenReturn(Collections.singletonList(1L));
 
         // Act
         Map<String, Object> stats = sprintService.getSprintStats(1L);

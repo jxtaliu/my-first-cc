@@ -1,8 +1,11 @@
 <template>
   <div class="sprint-board-page pm-page">
     <!-- Page Header -->
-    <div class="pm-page-header">
+    <div class="sprint-board-header">
       <div class="sprint-board-header-left">
+        <el-button text @click="goBack">
+          <el-icon><ArrowLeft /></el-icon>
+        </el-button>
         <div class="sprint-selector-wrapper">
           <span class="sprint-label">{{ $t('project.sprint') }}:</span>
           <el-select
@@ -29,17 +32,6 @@
         </div>
       </div>
       <div class="sprint-board-header-right">
-        <el-button-group>
-          <el-button
-            v-for="view in viewOptions"
-            :key="view.value"
-            :type="currentView === view.value ? 'primary' : 'default'"
-            @click="currentView = view.value"
-          >
-            <el-icon v-if="view.icon"><component :is="view.icon" /></el-icon>
-            {{ view.label }}
-          </el-button>
-        </el-button-group>
         <el-button type="primary" @click="onCreateTask">
           <el-icon><Plus /></el-icon>
           {{ $t('project.createTask') }}
@@ -57,10 +49,7 @@
         <div class="sprint-dates">
           <span class="sprint-date-item">
             <el-icon><Calendar /></el-icon>
-            {{ formatDate(currentSprint.startDate) }} - {{ formatDate(currentSprint.endDate) }}
-          </span>
-          <span class="sprint-status-badge" :class="getSprintStatusClass(currentSprint.status)">
-            {{ getSprintStatusText(currentSprint.status) }}
+            {{ formatDate(currentSprint.startDate) }} ~ {{ formatDate(currentSprint.endDate) }}
           </span>
         </div>
       </div>
@@ -84,58 +73,26 @@
       </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="sprint-board-filters">
-      <div class="filter-left">
-        <el-select v-model="swimlaneMode" :placeholder="$t('project.swimlaneMode')" style="width: 140px">
-          <el-option :label="$t('project.noSwimlane')" value="none" />
-          <el-option :label="$t('project.byAssignee')" value="assignee" />
-          <el-option :label="$t('project.byPriority')" value="priority" />
-          <el-option :label="$t('project.byType')" value="type" />
-        </el-select>
-        <el-input
-          v-model="searchQuery"
-          :placeholder="$t('project.searchTasks')"
-          prefix-icon="Search"
-          clearable
-          style="width: 200px"
-        />
-      </div>
-      <div class="filter-right">
-        <span class="task-count">{{ filteredTasks.length }} {{ $t('project.tasks') }}</span>
-      </div>
-    </div>
-
-    <!-- Kanban Board or Swimlanes -->
+    <!-- Kanban Board -->
     <div class="sprint-board-content" v-loading="loading">
-      <!-- Swimlanes View -->
-      <template v-if="swimlaneMode !== 'none'">
-        <Swimlane
-          v-for="swimlane in swimlanes"
-          :key="swimlane.key"
-          :label="swimlane.label"
-          :group-key="swimlane.key"
-          :tasks="swimlane.tasks"
-          :columns="kanbanColumns"
+      <!-- Standard Kanban View -->
+      <div class="pm-kanban-board-compact">
+        <KanbanColumn
+          v-for="column in kanbanColumns"
+          :key="column.id"
+          :id="column.id"
+          :title="column.title"
+          :status="column.status"
+          :status-color="column.color"
+          :tasks="getTasksByStatus(column.status)"
+          :wip-limit="column.wipLimit"
           :show-progress="true"
+          :allow-add="true"
           @task-click="onTaskClick"
           @task-drop="onTaskDrop"
-          @expand="onExpandSwimlane"
+          @add-task="onAddTask"
         />
-      </template>
-
-      <!-- Standard Kanban View -->
-      <KanbanBoard
-        v-else
-        ref="kanbanBoardRef"
-        :tasks="filteredTasks"
-        :columns="kanbanColumns"
-        :show-progress="true"
-        :allow-add="true"
-        @task-click="onTaskClick"
-        @task-drop="onTaskDrop"
-        @add-task="onAddTask"
-      />
+      </div>
     </div>
 
     <!-- Task Detail Dialog -->
@@ -164,10 +121,10 @@
             </el-form-item>
             <el-form-item :label="$t('project.priority')" class="form-col">
               <el-select v-model="editingTask.priority" style="width: 100%">
-                <el-option label="P0 紧急" value="P0" />
-                <el-option label="P1 高" value="P1" />
-                <el-option label="P2 中" value="P2" />
-                <el-option label="P3 低" value="P3" />
+                <el-option :label="$t('project.p0')" value="P0" />
+                <el-option :label="$t('project.p1')" value="P1" />
+                <el-option :label="$t('project.p2')" value="P2" />
+                <el-option :label="$t('project.p3')" value="P3" />
               </el-select>
             </el-form-item>
           </div>
@@ -209,13 +166,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
-import { Plus, Grid, List, Calendar } from '@element-plus/icons-vue'
-import { useRoute } from 'vue-router'
-import KanbanBoard from '@/components/kanban/KanbanBoard.vue'
-import Swimlane from '@/components/kanban/Swimlane.vue'
+import { Plus, Calendar, ArrowLeft } from '@element-plus/icons-vue'
+import { useRoute, useRouter } from 'vue-router'
+import KanbanColumn from '@/components/kanban/KanbanColumn.vue'
 import QuickAddDialog from '@/components/kanban/QuickAddDialog.vue'
 import { useKanban } from '@/composables/useKanban'
 import { getProject, getSprints, getSprintTasks } from '@/api/project'
@@ -223,43 +179,38 @@ import { moveTask as apiMoveTask, createTask as apiCreateTask, updateTask as api
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
+
+const goBack = () => {
+  router.push(`/projects/${route.params.id}/sprints`)
+}
 
 // Kanban composable
 const { columns: kanbanColumnsFromApi, loadTaskStatuses, normalizeTask, statusCodeToId, statusIdToCode } = useKanban()
 
 // Refs
-const kanbanBoardRef = ref(null)
 const project = ref(null)
 const sprints = ref([])
 const currentSprintId = ref(null)
 const currentSprint = ref(null)
 const tasks = ref([])
-const searchQuery = ref('')
-const swimlaneMode = ref('none')
-const currentView = ref('kanban')
 const showTaskDetail = ref(false)
 const editingTask = ref(null)
 const loading = ref(false)
 const showQuickAdd = ref(false)
 const quickAddStatus = ref('todo')
 
-// View options
-const viewOptions = [
-  { label: '看板', value: 'kanban', icon: 'Grid' },
-  { label: '列表', value: 'list', icon: 'List' }
-]
-
 // Kanban columns
 const kanbanColumns = computed(() => {
   if (kanbanColumnsFromApi.value.length > 0) {
     return kanbanColumnsFromApi.value
   }
+  // 如果没有从 API 获取到数据，显示默认的 4 个状态
   return [
-    { id: 'todo', title: '待办', status: 'todo', color: '#94A3B8' },
-    { id: 'in_progress', title: '进行中', status: 'in_progress', color: '#3B82F6', wipLimit: 5 },
-    { id: 'development', title: '开发完成', status: 'development', color: '#8B5CF6', wipLimit: 3 },
-    { id: 'testing', title: '测试中', status: 'testing', color: '#F59E0B', wipLimit: 3 },
-    { id: 'done', title: '已完成', status: 'done', color: '#10B981' }
+    { id: 'todo', title: t('project.todo'), status: 'todo', color: '#94A3B8' },
+    { id: 'in_progress', title: t('project.inProgress'), status: 'in_progress', color: '#3B82F6', wipLimit: 5 },
+    { id: 'in_review', title: t('project.inReview'), status: 'in_review', color: '#8B5CF6', wipLimit: 3 },
+    { id: 'done', title: t('project.done'), status: 'done', color: '#10B981' }
   ]
 })
 
@@ -269,54 +220,10 @@ const completedTasks = computed(() => tasks.value.filter(t => t.status === 'done
 const remainingTasks = computed(() => totalTasks.value - completedTasks.value)
 const totalHours = computed(() => tasks.value.reduce((sum, t) => sum + (t.estimateHours || 0), 0))
 
-// Filter tasks based on search
-const filteredTasks = computed(() => {
-  if (!searchQuery.value) return tasks.value
-  const query = searchQuery.value.toLowerCase()
-  return tasks.value.filter(task =>
-    task.title?.toLowerCase().includes(query) ||
-    task.description?.toLowerCase().includes(query)
-  )
-})
-
-// Swimlanes grouping
-const swimlanes = computed(() => {
-  if (swimlaneMode.value === 'none') return []
-
-  const groups = {}
-  tasks.value.forEach(task => {
-    let key, label
-    switch (swimlaneMode.value) {
-      case 'assignee':
-        key = task.assignee || 'unassigned'
-        label = task.assigneeName || task.assignee || 'Unassigned'
-        break
-      case 'priority':
-        key = task.priority || 'P3'
-        label = task.priority || 'P3'
-        break
-      case 'type':
-        key = task.type || 'task'
-        label = getTypeLabel(task.type)
-        break
-      default:
-        key = 'other'
-        label = 'Other'
-    }
-    if (!groups[key]) {
-      groups[key] = { key, label, tasks: [] }
-    }
-    groups[key].tasks.push(task)
-  })
-
-  return Object.values(groups).sort((a, b) => {
-    if (swimlaneMode.value === 'priority') {
-      const priorityOrder = { P0: 0, P1: 1, P2: 2, P3: 3 }
-      return (priorityOrder[a.key] || 4) - (priorityOrder[b.key] || 4)
-    }
-    return a.label.localeCompare(b.label)
-  })
-})
+// Get tasks by status for kanban column
+const getTasksByStatus = (status) => {
+  return tasks.value.filter(task => task.status === status)
+}
 
 // Sprint status helpers
 const getSprintStatusClass = (status) => {
@@ -330,9 +237,9 @@ const getSprintStatusClass = (status) => {
 
 const getSprintStatusText = (status) => {
   const map = {
-    'PLANNING': '规划中',
-    'ACTIVE': '进行中',
-    'COMPLETED': '已完成'
+    'PLANNING': t('project.planning'),
+    'ACTIVE': t('project.active'),
+    'COMPLETED': t('project.completed')
   }
   return map[status] || status
 }
@@ -346,29 +253,17 @@ const getSprintBannerClass = (status) => {
   return map[status] || 'banner-planning'
 }
 
-const getTypeLabel = (type) => {
-  const map = {
-    'epic': 'Epic',
-    'feature': 'Feature',
-    'story': 'Story',
-    'task': 'Task',
-    'bug': 'Bug',
-    'subtask': 'Sub-task'
-  }
-  return map[type] || type
-}
-
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
 // Load project data
 async function loadProjectData() {
   const projectId = route.params.id
   if (!projectId) {
-    ElMessage.error('Project ID is required')
+    ElMessage.error(t('project.projectIdRequired'))
     return
   }
 
@@ -389,7 +284,7 @@ async function loadProjectData() {
     }
   } catch (error) {
     console.error('Failed to load project data:', error)
-    ElMessage.error('Failed to load project data')
+    ElMessage.error(t('project.loadProjectFailed'))
   } finally {
     loading.value = false
   }
@@ -412,7 +307,7 @@ async function loadSprintTasks() {
     currentSprint.value = sprints.value.find(s => s.id === currentSprintId.value)
   } catch (error) {
     console.error('Failed to load sprint tasks:', error)
-    ElMessage.error('Failed to load tasks')
+    ElMessage.error(t('project.loadTasksFailed'))
   } finally {
     loading.value = false
   }
@@ -446,7 +341,7 @@ const onTaskDrop = async ({ taskId, targetStatus }) => {
     ElMessage.success(t('project.taskStatusUpdated'))
   } catch (error) {
     console.error('Failed to move task:', error)
-    ElMessage.error('Failed to update task status')
+    ElMessage.error(t('project.updateTaskStatusFailed'))
   }
 }
 
@@ -473,7 +368,7 @@ const onQuickAddSubmit = async ({ title, type, priority, status }) => {
     showQuickAdd.value = false
   } catch (error) {
     console.error('Failed to create task:', error)
-    ElMessage.error('Failed to create task')
+    ElMessage.error(t('project.createTaskFailed'))
   }
 }
 
@@ -508,12 +403,8 @@ const onSaveTask = async () => {
     showTaskDetail.value = false
   } catch (error) {
     console.error('Failed to save task:', error)
-    ElMessage.error('Failed to save task')
+    ElMessage.error(t('project.saveTaskFailed'))
   }
-}
-
-const onExpandSwimlane = ({ groupKey, label }) => {
-  ElMessage.info(`Expand swimlane: ${label}`)
 }
 
 onMounted(() => {
@@ -527,11 +418,21 @@ onMounted(() => {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  padding: var(--pm-space-lg);
+  gap: var(--pm-space-md);
+}
+
+.sprint-board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .sprint-board-header-left {
   display: flex;
   align-items: center;
+  gap: var(--pm-space-lg);
 }
 
 .sprint-selector-wrapper {
@@ -547,7 +448,7 @@ onMounted(() => {
 }
 
 .sprint-select {
-  width: 180px;
+  width: 160px;
 }
 
 .sprint-option {
@@ -561,7 +462,7 @@ onMounted(() => {
 }
 
 .sprint-option-status {
-  font-size: 11px;
+  font-size: 10px;
   padding: 2px 6px;
   border-radius: var(--pm-radius-xs);
 }
@@ -584,18 +485,19 @@ onMounted(() => {
 .sprint-board-header-right {
   display: flex;
   align-items: center;
-  gap: var(--pm-space-lg);
+  gap: var(--pm-space-md);
 }
 
+/* Sprint Info Banner - Compact */
 .sprint-info-banner {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  padding: var(--pm-space-xl);
+  align-items: center;
+  padding: var(--pm-space-md) var(--pm-space-xl);
   border-radius: var(--pm-radius-lg);
-  margin-bottom: var(--pm-space-lg);
   background: var(--pm-card);
   border: 1px solid var(--pm-border);
+  flex-shrink: 0;
 }
 
 .sprint-info-banner.banner-active {
@@ -612,13 +514,13 @@ onMounted(() => {
 
 .sprint-info-main {
   display: flex;
-  flex-direction: column;
-  gap: var(--pm-space-md);
+  align-items: center;
+  gap: var(--pm-space-xl);
 }
 
 .sprint-goal {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--pm-space-sm);
 }
 
@@ -631,12 +533,16 @@ onMounted(() => {
 .sprint-goal-text {
   font-size: 14px;
   color: var(--pm-text-primary);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sprint-dates {
   display: flex;
   align-items: center;
-  gap: var(--pm-space-lg);
+  gap: var(--pm-space-md);
 }
 
 .sprint-date-item {
@@ -647,44 +553,23 @@ onMounted(() => {
   color: var(--pm-text-muted);
 }
 
-.sprint-status-badge {
-  padding: 4px 10px;
-  border-radius: var(--pm-radius-sm);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.sprint-status-badge.planning {
-  background: rgba(148, 163, 184, 0.2);
-  color: var(--pm-text-secondary);
-}
-
-.sprint-status-badge.active {
-  background: rgba(16, 185, 129, 0.2);
-  color: var(--pm-status-done);
-}
-
-.sprint-status-badge.completed {
-  background: rgba(59, 130, 246, 0.2);
-  color: var(--pm-status-in-progress);
-}
-
 .sprint-stats {
   display: flex;
-  gap: var(--pm-space-xl);
+  gap: var(--pm-space-2xl);
 }
 
 .sprint-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--pm-space-xs);
+  gap: 2px;
 }
 
 .sprint-stat-value {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--pm-text-primary);
+  line-height: 1.2;
 }
 
 .sprint-stat-value.completed {
@@ -700,35 +585,60 @@ onMounted(() => {
 }
 
 .sprint-stat-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--pm-text-muted);
 }
 
-.sprint-board-filters {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--pm-space-lg);
-}
-
-.filter-left {
-  display: flex;
-  gap: var(--pm-space-md);
-}
-
-.filter-right {
-  display: flex;
-  align-items: center;
-}
-
-.task-count {
-  font-size: 14px;
-  color: var(--pm-text-secondary);
-}
-
+/* Kanban Board - Fit 6 columns */
 .sprint-board-content {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pm-kanban-board-compact {
+  display: flex;
+  gap: var(--pm-space-md);
+  flex: 1;
+  overflow: hidden;
+}
+
+.pm-kanban-board-compact :deep(.pm-kanban-column) {
+  flex: 1;
+  min-width: 0;
+  max-height: 100%;
+  width: auto;
+}
+
+.pm-kanban-board-compact :deep(.pm-kanban-column-header) {
+  padding: var(--pm-space-md);
+}
+
+.pm-kanban-board-compact :deep(.pm-kanban-column-title) {
+  font-size: 13px;
+}
+
+.pm-kanban-board-compact :deep(.pm-kanban-column-count) {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
+.pm-kanban-board-compact :deep(.pm-kanban-column-body) {
+  padding: var(--pm-space-sm);
+  min-height: 80px;
+}
+
+.pm-kanban-board-compact :deep(.pm-kanban-column-footer) {
+  padding: var(--pm-space-sm) var(--pm-space-md);
+}
+
+.pm-kanban-board-compact :deep(.pm-kanban-add-btn) {
+  font-size: 12px;
+}
+
+.pm-kanban-board-compact :deep(.pm-kanban-column-wip) {
+  padding: var(--pm-space-xs) var(--pm-space-md);
 }
 
 .task-detail-dialog :deep(.el-dialog__body) {

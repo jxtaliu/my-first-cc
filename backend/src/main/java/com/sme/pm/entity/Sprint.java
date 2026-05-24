@@ -2,6 +2,7 @@ package com.sme.pm.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -14,13 +15,23 @@ public class Sprint {
 
     private String name;
 
-    private LocalDateTime startDate;
+    private String goal; // Sprint goal
 
-    private LocalDateTime endDate;
+    private LocalDate startDate;
 
-    private Integer status;  // 1: planning, 2: active, 3: completed
+    private LocalDate endDate;
 
-    private Long milestoneId;  // Optional link to milestone
+    private String status; // PLANNING, ACTIVE, COMPLETED, ARCHIVED
+
+    private Integer capacityHours; // Team capacity in hours
+
+    private Integer velocity; // Story points completed
+
+    private Long milestoneId; // Optional link to milestone
+
+    private Integer startReminderSent;
+
+    private Integer endReminderSent;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

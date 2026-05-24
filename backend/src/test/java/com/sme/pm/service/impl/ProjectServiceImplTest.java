@@ -40,6 +40,7 @@ class ProjectServiceImplTest {
         project.setDescription("Test Description");
         project.setProjectType("SCRUM");
         project.setOwnerId(1L);
+        project.setProjectId("PRJ_TEST");
 
         when(projectMapper.insert(any(Project.class))).thenReturn(1);
 
@@ -47,7 +48,9 @@ class ProjectServiceImplTest {
 
         assertNotNull(result);
         assertEquals("Test Project", result.getName());
+        assertEquals("PRJ_TEST", result.getProjectId());
         verify(projectMapper).insert(project);
+        verify(taskStatusService).initializeFromDict("PRJ_TEST");
     }
 
     @Test

@@ -141,6 +141,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Rank } from '@element-plus/icons-vue'
 import Sortable from 'sortablejs'
 import { getTaskStatusesByProject, createTaskStatus, updateTaskStatus, deleteTaskStatus, reorderTaskStatuses } from '@/api/taskStatus'
+import { getTaskCountByStatus } from '@/api/task'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -263,6 +264,13 @@ const handleSaveStatus = async () => {
 
 const handleDeleteStatus = async (status) => {
   try {
+    // Check if there are tasks using this status
+    const res = await getTaskCountByStatus(status.id)
+    const count = res.data || res
+    if (count > 0) {
+      ElMessage.warning(t('project.cannotDeleteStatusWithTasks', { count }))
+      return
+    }
     await ElMessageBox.confirm(
       t('settings.confirmDeleteStatus', { name: status.name }),
       t('common.warning'),
@@ -272,7 +280,7 @@ const handleDeleteStatus = async (status) => {
     ElMessage.success(t('settings.statusDeleted'))
     fetchStatuses()
   } catch (e) {
-    // Cancelled
+    // Cancelled or error
   }
 }
 

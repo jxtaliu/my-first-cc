@@ -30,4 +30,5 @@ public interface TaskService {
     void addDependency(Long taskId, TaskDependency dependency);
     void removeDependency(Long dependencyId);
     int countBlockingDependencies(Long taskId);
+    int countByStatusId(Integer statusId);
 }

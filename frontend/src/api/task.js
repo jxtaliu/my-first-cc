@@ -87,3 +87,7 @@ export function addTaskDependency(taskId, data) {
 export function removeTaskDependency(dependencyId) {
   return request.delete(`/v1/tasks/dependencies/${dependencyId}`)
 }
+
+export function getTaskCountByStatus(statusId) {
+  return request.get('/v1/tasks/count', { params: { statusId } })
+}

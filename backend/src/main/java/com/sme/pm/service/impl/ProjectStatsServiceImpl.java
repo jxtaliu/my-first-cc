@@ -171,17 +171,17 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
         }
 
         // Calculate sprint duration in days
-        LocalDateTime startDate = sprint.getStartDate();
-        LocalDateTime endDate = sprint.getEndDate();
+        LocalDate startDate = sprint.getStartDate();
+        LocalDate endDate = sprint.getEndDate();
 
         if (startDate == null) {
-            startDate = LocalDateTime.now();
+            startDate = LocalDate.now();
         }
         if (endDate == null) {
             endDate = startDate.plusDays(14); // Default 2 weeks
         }
 
-        long totalDays = ChronoUnit.DAYS.between(startDate.toLocalDate(), endDate.toLocalDate());
+        long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
         if (totalDays <= 0) {
             totalDays = 14;
         }
@@ -192,7 +192,7 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
 
         for (int i = 0; i <= totalDays; i++) {
             Map<String, Object> point = new HashMap<>();
-            LocalDate date = startDate.toLocalDate().plusDays(i);
+            LocalDate date = startDate.plusDays(i);
             point.put("date", date.toString());
             point.put("remainingHours", totalEstimateHours - (i * dailyBurnRate));
             idealData.add(point);
@@ -211,7 +211,7 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
 
         int cumulativeCompleted = 0;
         for (int i = 0; i <= totalDays; i++) {
-            LocalDate date = startDate.toLocalDate().plusDays(i);
+            LocalDate date = startDate.plusDays(i);
             Map<String, Object> point = new HashMap<>();
             point.put("date", date.toString());
 

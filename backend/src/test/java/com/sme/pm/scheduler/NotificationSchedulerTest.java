@@ -78,9 +78,9 @@ class NotificationSchedulerTest {
         sprint.setId(1L);
         sprint.setProjectId("PRJ_001");
         sprint.setName("Sprint 1");
-        sprint.setStatus(1); // Planning status
-        sprint.setStartDate(LocalDateTime.now().plusHours(12)); // Starting within 24h
-        sprint.setEndDate(LocalDateTime.now().plusDays(14));
+        sprint.setStatus("PLANNING"); // Planning status
+        sprint.setStartDate(LocalDate.now().plusDays(1)); // Starting tomorrow
+        sprint.setEndDate(LocalDate.now().plusDays(14));
 
         List<Long> memberIds = Arrays.asList(100L, 200L);
 
@@ -113,9 +113,9 @@ class NotificationSchedulerTest {
         sprint.setId(2L);
         sprint.setProjectId("PRJ_001");
         sprint.setName("Sprint 2");
-        sprint.setStatus(2); // Active status
-        sprint.setStartDate(LocalDateTime.now().minusDays(13));
-        sprint.setEndDate(LocalDateTime.now().plusHours(12)); // Ending within 24h
+        sprint.setStatus("ACTIVE"); // Active status
+        sprint.setStartDate(LocalDate.now().minusDays(13));
+        sprint.setEndDate(LocalDate.now().plusDays(1)); // Ending tomorrow
 
         List<Long> memberIds = Arrays.asList(100L, 200L);
 

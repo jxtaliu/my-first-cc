@@ -172,7 +172,7 @@ const onClick = () => {
   background: var(--pm-card);
   border: 1px solid var(--pm-border);
   border-radius: var(--pm-radius-md);
-  padding: var(--pm-space-lg);
+  padding: var(--pm-space-md);
   cursor: grab;
   transition: all var(--pm-transition-normal);
   position: relative;
@@ -181,7 +181,7 @@ const onClick = () => {
 
 .pm-task-card:hover {
   box-shadow: var(--pm-shadow-card-hover);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .pm-task-card.dragging {
@@ -218,50 +218,59 @@ const onClick = () => {
 
 .pm-task-card-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--pm-space-sm);
   margin-bottom: var(--pm-space-sm);
 }
 
 .pm-task-card-title {
   flex: 1;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--pm-text-primary);
-  line-height: 1.4;
+  line-height: 1.3;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .pm-task-card-tags {
   display: flex;
   flex-wrap: wrap;
   gap: var(--pm-space-xs);
-  margin-bottom: var(--pm-space-md);
+  margin-bottom: var(--pm-space-sm);
 }
 
 .pm-task-card-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--pm-space-md);
+  margin-bottom: var(--pm-space-sm);
 }
 
 .pm-task-card-assignee {
   display: flex;
   align-items: center;
-  gap: var(--pm-space-sm);
+  gap: var(--pm-space-xs);
 }
 
 .pm-task-card-assignee-name {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--pm-text-secondary);
+}
+
+.pm-task-card-estimate {
+  font-size: 11px;
+  color: var(--pm-text-muted);
 }
 
 .pm-task-card-progress {
   display: flex;
   align-items: center;
   gap: var(--pm-space-sm);
-  margin-bottom: var(--pm-space-md);
+  margin-bottom: var(--pm-space-sm);
 }
 
 .pm-task-card-progress .pm-progress {
@@ -272,19 +281,19 @@ const onClick = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: var(--pm-space-md);
+  padding-top: var(--pm-space-sm);
   border-top: 1px solid var(--pm-border-light);
 }
 
 .pm-task-card-info {
   display: flex;
   gap: var(--pm-space-md);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--pm-text-muted);
 }
 
 .pm-task-card-duration {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--pm-text-muted);
 }
 </style>

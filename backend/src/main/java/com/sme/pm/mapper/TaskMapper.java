@@ -32,4 +32,7 @@ public interface TaskMapper extends BaseMapper<Task> {
 
     @Select("SELECT * FROM task WHERE assignee_id = #{assigneeId} AND deleted = 0 ORDER BY created_at")
     List<Task> findByAssigneeId(@Param("assigneeId") Long assigneeId);
+
+    @Select("SELECT COUNT(*) FROM task WHERE status = #{statusId} AND deleted = 0")
+    int countByStatusId(@Param("statusId") Integer statusId);
 }

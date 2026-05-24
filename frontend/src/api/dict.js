@@ -42,6 +42,11 @@ export function deleteDictItem(id) {
   return request.delete(`/dicts/items/${id}`)
 }
 
+// Get dictionary codes by type code (e.g., 'task_status')
+export function getDictCodesByType(type) {
+  return request.get(`/dicts/codes/${type}`)
+}
+
 // Utility
 export function refreshDictCache() {
   return request.post('/dicts/refresh')

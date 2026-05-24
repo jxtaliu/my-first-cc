@@ -12,6 +12,7 @@ import com.sme.pm.service.ISprintService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
     @Override
     @Transactional
     public Sprint create(Sprint sprint) {
-        sprint.setStatus(1); // Planning status
+        sprint.setStatus("PLANNING");
         sprintMapper.insert(sprint);
         return sprint;
     }
@@ -69,8 +70,8 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
         if (sprint == null) {
             throw new IllegalArgumentException("Sprint not found");
         }
-        sprint.setStatus(2); // ACTIVE
-        sprint.setStartDate(LocalDateTime.now());
+        sprint.setStatus("ACTIVE");
+        sprint.setStartDate(LocalDate.now());
         sprintMapper.updateById(sprint);
         return sprint;
     }
@@ -82,8 +83,8 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
         if (sprint == null) {
             throw new IllegalArgumentException("Sprint not found");
         }
-        sprint.setStatus(3); // COMPLETED
-        sprint.setEndDate(LocalDateTime.now());
+        sprint.setStatus("COMPLETED");
+        sprint.setEndDate(LocalDate.now());
         sprintMapper.updateById(sprint);
         return sprint;
     }
@@ -108,29 +109,7 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
         if (sprint == null) {
             return 0;
         }
-
-        // Calculate based on sprint duration and team size
-        Project project = projectMapper.findByProjectId(sprint.getProjectId());
-        if (project == null) {
-            return 0;
-        }
-
-        // Get team member count from project_member table
-        List<Long> memberIds = projectMapper.findMemberIds(sprint.getProjectId());
-        int teamSize = memberIds.size();
-
-        // Calculate sprint duration in days
-        long durationDays = 0;
-        if (sprint.getStartDate() != null && sprint.getEndDate() != null) {
-            durationDays = ChronoUnit.DAYS.between(sprint.getStartDate(), sprint.getEndDate());
-        } else {
-            // Default to 14 days (2 weeks) if dates not set
-            durationDays = 14;
-        }
-
-        // Assume 8 working hours per day per team member
-        int workingHoursPerDay = 8;
-        return (int) (teamSize * durationDays * workingHoursPerDay);
+        return sprint.getCapacityHours() != null ? sprint.getCapacityHours() : 0;
     }
 
     @Override

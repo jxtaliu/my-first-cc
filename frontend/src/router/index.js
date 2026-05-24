@@ -98,6 +98,16 @@ const routes = [
         component: () => import('@/views/project/MilestoneDetail.vue')
       },
       {
+        path: 'projects/:id/sprints',
+        name: 'SprintList',
+        component: () => import('@/views/project/SprintList.vue')
+      },
+      {
+        path: 'projects/:id/sprints/:sprintId',
+        name: 'SprintDetail',
+        component: () => import('@/views/project/SprintBoard.vue')
+      },
+      {
         path: 'projects/:id/settings/members',
         name: 'MemberRoles',
         component: () => import('@/views/project/Settings/MemberRoles.vue')
@@ -121,6 +131,11 @@ const routes = [
         path: 'projects/settings/notifications',
         name: 'NotificationSettings',
         component: () => import('@/views/project/Settings/NotificationSettings.vue')
+      },
+      {
+        path: 'projects/settings/sprint',
+        name: 'GlobalSprintSettings',
+        component: () => import('@/views/project/Settings/SprintSettings.vue')
       },
       {
         path: 'timesheet',

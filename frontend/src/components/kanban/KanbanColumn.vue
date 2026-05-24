@@ -13,20 +13,6 @@
         <span>{{ title }}</span>
         <span class="pm-kanban-column-count">{{ tasks.length }}</span>
       </div>
-      <div class="pm-kanban-column-actions">
-        <el-dropdown trigger="click" @command="handleCommand">
-          <el-button text size="small" circle>
-            <el-icon><MoreFilled /></el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="add">{{ $t('project.addTask') }}</el-dropdown-item>
-              <el-dropdown-item command="filter">{{ $t('project.filterTasks') }}</el-dropdown-item>
-              <el-dropdown-item command="sort">{{ $t('project.sortTasks') }}</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
     </div>
 
     <!-- WIP Limit Warning -->
@@ -80,7 +66,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { MoreFilled, Plus } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import TaskCard from './TaskCard.vue'
 
 const props = defineProps({
@@ -120,19 +106,12 @@ const props = defineProps({
 
 const emit = defineEmits(['task-click', 'task-drag-start', 'task-drag-end', 'task-drop', 'add-task'])
 
-const columnBody = ref(null)
 const isDragOver = ref(false)
 
 const isWipExceeded = computed(() => {
   if (!props.wipLimit) return false
   return props.tasks.length >= props.wipLimit
 })
-
-const handleCommand = (command) => {
-  if (command === 'add') {
-    onQuickAdd()
-  }
-}
 
 const onTaskClick = (task) => {
   emit('task-click', task)
@@ -179,14 +158,12 @@ const onQuickAdd = () => {
 
 <style scoped>
 .pm-kanban-column {
-  width: var(--pm-kanban-column-width);
-  min-width: var(--pm-kanban-column-min-width);
   background: var(--pm-background);
   border-radius: var(--pm-radius-lg);
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 200px);
   transition: all var(--pm-transition-fast);
+  border: 1px solid var(--pm-border);
 }
 
 .pm-kanban-column.pm-wip-exceeded {
@@ -200,13 +177,14 @@ const onQuickAdd = () => {
 }
 
 .pm-kanban-column-header {
-  padding: var(--pm-space-lg);
+  padding: var(--pm-space-md) var(--pm-space-lg);
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--pm-border);
   background: var(--pm-card);
   border-radius: var(--pm-radius-lg) var(--pm-radius-lg) 0 0;
+  flex-shrink: 0;
 }
 
 .pm-kanban-column-title {
@@ -234,8 +212,9 @@ const onQuickAdd = () => {
 }
 
 .pm-kanban-column-wip {
-  padding: var(--pm-space-sm) var(--pm-space-lg);
+  padding: var(--pm-space-xs) var(--pm-space-md);
   background: var(--pm-border-light);
+  flex-shrink: 0;
 }
 
 .pm-wip-limit {
@@ -254,11 +233,11 @@ const onQuickAdd = () => {
 .pm-kanban-column-body {
   flex: 1;
   overflow-y: auto;
-  padding: var(--pm-space-md);
+  padding: var(--pm-space-sm);
   display: flex;
   flex-direction: column;
-  gap: var(--pm-space-md);
-  min-height: 100px;
+  gap: var(--pm-space-sm);
+  min-height: 60px;
 }
 
 .pm-kanban-column-empty {
@@ -266,7 +245,7 @@ const onQuickAdd = () => {
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: var(--pm-space-xl);
+  padding: var(--pm-space-lg);
 }
 
 .pm-kanban-column-dropzone {
@@ -285,10 +264,11 @@ const onQuickAdd = () => {
 }
 
 .pm-kanban-column-footer {
-  padding: var(--pm-space-md);
+  padding: var(--pm-space-sm) var(--pm-space-md);
   border-top: 1px solid var(--pm-border-light);
   background: var(--pm-card);
   border-radius: 0 0 var(--pm-radius-lg) var(--pm-radius-lg);
+  flex-shrink: 0;
 }
 
 .pm-kanban-add-btn {
