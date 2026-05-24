@@ -24,6 +24,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
     public Project create(Project project) {
         // Check for duplicate project_id
         Project existing = projectMapper.findByProjectId(project.getProjectId());
