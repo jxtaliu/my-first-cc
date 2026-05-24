@@ -3,7 +3,6 @@
     <!-- Page Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">{{ $t('settings.statusConfig') }}</h1>
         <p class="page-desc">{{ $t('settings.statusConfigDesc') }}</p>
       </div>
       <el-button type="primary" @click="handleAddStatus">
@@ -336,7 +335,7 @@ watch(() => statuses.value.length, async () => {
 
 <style scoped>
 .status-config-page {
-  max-width: 900px;
+  width: 100%;
 }
 
 .page-header {

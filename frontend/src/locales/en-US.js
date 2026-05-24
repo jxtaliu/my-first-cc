@@ -616,7 +616,7 @@ export default {
 
     // Status Config
     statusConfig: 'Status Configuration',
-    statusConfigDesc: 'Configure task statuses for this project',
+    statusConfigDesc: 'Configure task workflow statuses for this project. Task statuses define different stages in a task lifecycle, such as "To Do", "In Progress", "In Review", "Done", etc. Drag to reorder statuses. Status names can be customized in both Chinese and English.',
     addStatus: 'Add Status',
     editStatus: 'Edit Status',
     statusName: 'Status Name',

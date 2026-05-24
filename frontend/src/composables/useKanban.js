@@ -1,9 +1,13 @@
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getSystemTaskStatuses } from '@/api/taskStatus'
 import { useTaskStatusStore } from '@/stores/taskStatus'
 
 export function useKanban() {
   const taskStatusStore = useTaskStatusStore()
+  const i18n = useI18n()
+  // Fallback to 'en-US' if locale is not available (e.g., in tests)
+  const currentLocale = computed(() => i18n.locale?.value || i18n.locale || 'en-US')
 
   const columns = ref([])
   const taskStatuses = ref([])
@@ -31,18 +35,18 @@ export function useKanban() {
     return taskStatusStore.getStatusCodeToId(currentProjectId.value)
   })
 
-  // Build columns from statuses
+  // Build columns from statuses - title based on locale
   function buildColumns(statuses) {
     if (!statuses || statuses.length === 0) {
       columns.value = []
       return
     }
 
+    const isZh = currentLocale.value === 'zh-CN'
     columns.value = statuses.map(s => ({
       id: s.code?.toLowerCase(),
       status: s.code?.toLowerCase(),
-      title: s.nameEn || s.code,
-      titleZh: s.nameZh || '',
+      title: isZh ? (s.nameZh || s.nameEn || s.code) : (s.nameEn || s.code),
       color: s.color || '#94A3B8',
       statusId: s.id,
       sortOrder: s.sortOrder
@@ -52,6 +56,16 @@ export function useKanban() {
   // Rebuild columns whenever taskStatuses changes
   watch(
     () => JSON.stringify(taskStatuses.value.map(s => s.id)),
+    () => {
+      if (taskStatuses.value.length > 0) {
+        buildColumns(taskStatuses.value)
+      }
+    }
+  )
+
+  // Rebuild columns when locale changes
+  watch(
+    () => currentLocale.value,
     () => {
       if (taskStatuses.value.length > 0) {
         buildColumns(taskStatuses.value)

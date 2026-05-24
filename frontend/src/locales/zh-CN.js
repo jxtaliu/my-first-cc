@@ -616,7 +616,7 @@ export default {
 
     // Status Config
     statusConfig: '状态配置',
-    statusConfigDesc: '配置项目的任务状态',
+    statusConfigDesc: '配置项目中任务的流转状态。任务状态定义了任务在生命周期中的不同阶段，如"待办"、"进行中"、"审核中"、"已完成"等。拖拽可调整状态顺序，状态名称中英文均可自定义。',
     addStatus: '添加状态',
     editStatus: '编辑状态',
     statusName: '状态名称',

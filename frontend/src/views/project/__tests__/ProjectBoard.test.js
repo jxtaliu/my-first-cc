@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useKanban } from '@/composables/useKanban'
 
+// Mock vue-i18n
+vi.mock('vue-i18n', () => ({
+  useI18n: vi.fn(() => ({
+    locale: { value: 'en-US' }
+  }))
+}))
+
 // Mock the API modules
 vi.mock('@/api/taskStatus', () => ({
   getTaskStatusesByProject: vi.fn(),

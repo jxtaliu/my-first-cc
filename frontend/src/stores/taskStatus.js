@@ -61,7 +61,8 @@ export const useTaskStatusStore = defineStore('taskStatus', {
       this.loading = true
       try {
         const res = await getTaskStatusesByProject(projectId)
-        const statuses = res.data || []
+        // Handle both wrapped (res.data) and unwrapped (res is array) responses
+        const statuses = Array.isArray(res) ? res : (res?.data || [])
         this.statusesByProject[projectId] = statuses
         return statuses
       } catch (e) {

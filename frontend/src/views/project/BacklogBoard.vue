@@ -271,7 +271,7 @@ import { useKanban } from '@/composables/useKanban'
 import { getProjects, getSprints, updateSprint, getSprintTasks } from '@/api/project'
 import { getTasksByProject, createTask as apiCreateTask, updateTask as apiUpdateTask, deleteTask as apiDeleteTask } from '@/api/task'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 
 // Kanban composable
@@ -302,9 +302,9 @@ const kanbanColumns = computed(() => {
     return kanbanColumnsFromApi.value
   }
   return [
-    { id: 'todo', title: '待办', status: 'todo', color: '#94A3B8' },
-    { id: 'in_progress', title: '进行中', status: 'in_progress', color: '#3B82F6' },
-    { id: 'done', title: '已完成', status: 'done', color: '#10B981' }
+    { id: 'todo', title: locale.value === 'zh-CN' ? '待办' : 'To Do', status: 'todo', color: '#94A3B8' },
+    { id: 'in_progress', title: locale.value === 'zh-CN' ? '进行中' : 'In Progress', status: 'in_progress', color: '#3B82F6' },
+    { id: 'done', title: locale.value === 'zh-CN' ? '已完成' : 'Done', status: 'done', color: '#10B981' }
   ]
 })
 

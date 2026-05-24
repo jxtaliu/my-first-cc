@@ -65,7 +65,7 @@
                         <el-empty :description="$t('project.noSprints')" />
                       </div>
                       <div
-                        v-for="sprint in sprints"
+                        v-for="sprint in sortedSprints"
                         :key="sprint.id"
                         :class="['sprint-item', { active: currentSprint?.id === sprint.id }]"
                         @click="selectSprint(sprint)"
@@ -949,10 +949,11 @@ const goToSprints = () => {
 
 // Sprint board methods
 const sortedSprints = computed(() => {
-  return [...sprints.value].sort((a, b) => {
-    const dateA = new Date(a.startDate)
-    const dateB = new Date(b.startDate)
-    return dateA - dateB
+  const list = sprints.value || []
+  return [...list].sort((a, b) => {
+    const dateA = a.startDate ? new Date(a.startDate).getTime() : 0
+    const dateB = b.startDate ? new Date(b.startDate).getTime() : 0
+    return dateA - dateB  // 升序，从小到大
   })
 })
 

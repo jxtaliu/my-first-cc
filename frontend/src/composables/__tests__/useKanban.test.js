@@ -5,6 +5,13 @@ import { useKanban } from '../useKanban'
 // Mock data storage
 let mockStoreData = {}
 
+// Mock vue-i18n
+vi.mock('vue-i18n', () => ({
+  useI18n: vi.fn(() => ({
+    locale: { value: 'en-US' }
+  }))
+}))
+
 // Mock the API modules
 vi.mock('@/api/taskStatus', () => ({
   getTaskStatusesByProject: vi.fn(),
@@ -79,7 +86,6 @@ describe('useKanban', () => {
         id: 'todo',
         status: 'todo',
         title: 'To Do',
-        titleZh: '',
         color: '#94A3B8',
         statusId: 1
       })
@@ -87,7 +93,6 @@ describe('useKanban', () => {
         id: 'in_progress',
         status: 'in_progress',
         title: 'In Progress',
-        titleZh: '',
         color: '#3B82F6',
         statusId: 2
       })
@@ -95,7 +100,6 @@ describe('useKanban', () => {
         id: 'done',
         status: 'done',
         title: 'Done',
-        titleZh: '',
         color: '#10B981',
         statusId: 3
       })

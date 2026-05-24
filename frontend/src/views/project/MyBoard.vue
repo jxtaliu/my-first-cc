@@ -74,7 +74,7 @@ import { useAuthStore } from '@/stores/auth'
 import { getTasksByAssignee } from '@/api/task'
 import { getProjects } from '@/api/project'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const authStore = useAuthStore()
 
 const kanbanBoardRef = ref(null)
@@ -92,11 +92,11 @@ const kanbanColumns = computed(() => {
     return kanbanColumnsFromApi.value
   }
   return [
-    { id: 'todo', title: '待办', status: 'todo', color: '#94A3B8' },
-    { id: 'in_progress', title: '进行中', status: 'in_progress', color: '#3B82F6', wipLimit: 5 },
-    { id: 'development', title: '开发完成', status: 'development', color: '#8B5CF6', wipLimit: 3 },
-    { id: 'testing', title: '测试中', status: 'testing', color: '#F59E0B', wipLimit: 3 },
-    { id: 'done', title: '已完成', status: 'done', color: '#10B981' }
+    { id: 'todo', title: locale.value === 'zh-CN' ? '待办' : 'To Do', status: 'todo', color: '#94A3B8' },
+    { id: 'in_progress', title: locale.value === 'zh-CN' ? '进行中' : 'In Progress', status: 'in_progress', color: '#3B82F6', wipLimit: 5 },
+    { id: 'development', title: locale.value === 'zh-CN' ? '开发完成' : 'Development', status: 'development', color: '#8B5CF6', wipLimit: 3 },
+    { id: 'testing', title: locale.value === 'zh-CN' ? '测试中' : 'Testing', status: 'testing', color: '#F59E0B', wipLimit: 3 },
+    { id: 'done', title: locale.value === 'zh-CN' ? '已完成' : 'Done', status: 'done', color: '#10B981' }
   ]
 })
 
