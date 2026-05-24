@@ -14,7 +14,7 @@
 
     <!-- Status Categories -->
     <el-tabs v-model="activeCategory" class="status-tabs">
-      <el-tab-pane label="Todo" name="TODO">
+      <el-tab-pane label="Todo" name="todo">
         <template #label>
           <span class="category-label">
             <span class="category-dot todo"></span>
@@ -22,7 +22,7 @@
           </span>
         </template>
       </el-tab-pane>
-      <el-tab-pane label="In Progress" name="IN_PROGRESS">
+      <el-tab-pane label="In Progress" name="doing">
         <template #label>
           <span class="category-label">
             <span class="category-dot in-progress"></span>
@@ -30,7 +30,7 @@
           </span>
         </template>
       </el-tab-pane>
-      <el-tab-pane label="Done" name="DONE">
+      <el-tab-pane label="Done" name="done">
         <template #label>
           <span class="category-label">
             <span class="category-dot done"></span>
@@ -101,9 +101,9 @@
         </el-form-item>
         <el-form-item :label="$t('settings.category')" prop="category">
           <el-select v-model="statusForm.category" style="width: 100%">
-            <el-option :label="$t('settings.todo')" value="TODO" />
-            <el-option :label="$t('settings.inProgress')" value="IN_PROGRESS" />
-            <el-option :label="$t('settings.done')" value="DONE" />
+            <el-option :label="$t('settings.todo')" value="todo" />
+            <el-option :label="$t('settings.inProgress')" value="doing" />
+            <el-option :label="$t('settings.done')" value="done" />
           </el-select>
         </el-form-item>
         <el-form-item :label="$t('settings.statusColor')" prop="color">
@@ -143,21 +143,32 @@ import Sortable from 'sortablejs'
 import { getTaskStatusesByProject, createTaskStatus, updateTaskStatus, deleteTaskStatus, reorderTaskStatuses } from '@/api/taskStatus'
 import { getTaskCountByStatus } from '@/api/task'
 
+const props = defineProps({
+  projectId: {
+    type: [String, Number],
+    default: null
+  }
+})
+
 const route = useRoute()
 const { t } = useI18n()
 
-const projectId = ref(parseInt(route.params.id) || 1)
+// Use prop if provided, otherwise fall back to route params
+const effectiveProjectId = computed(() => {
+  return props.projectId || route.params.id
+})
+
 const statusTableRef = ref()
 const loading = ref(false)
 const statuses = ref([])
-const activeCategory = ref('TODO')
+const activeCategory = ref('todo')
 const showStatusDialog = ref(false)
 const editingStatus = ref(null)
 
 const statusForm = ref({
   name: '',
   code: '',
-  category: 'TODO',
+  category: 'todo',
   color: '#409eff',
   description: ''
 })
@@ -182,7 +193,7 @@ const filteredStatuses = computed(() => {
 const fetchStatuses = async () => {
   loading.value = true
   try {
-    const res = await getTaskStatusesByProject(projectId.value)
+    const res = await getTaskStatusesByProject(effectiveProjectId.value)
     statuses.value = res.data || getMockStatuses()
   } catch (e) {
     statuses.value = getMockStatuses()
@@ -203,18 +214,20 @@ const getMockStatuses = () => [
 
 const getCategoryTagType = (category) => {
   const types = {
-    'TODO': 'info',
-    'IN_PROGRESS': 'primary',
-    'DONE': 'success'
+    'todo': 'info',
+    'doing': 'primary',
+    'done': 'success',
+    'alert': 'warning'
   }
   return types[category] || 'info'
 }
 
 const getCategoryLabel = (category) => {
   const labels = {
-    'TODO': t('settings.todo'),
-    'IN_PROGRESS': t('settings.inProgress'),
-    'DONE': t('settings.done')
+    'todo': t('settings.todo'),
+    'doing': t('settings.inProgress'),
+    'done': t('settings.done'),
+    'alert': t('settings.inReview')
   }
   return labels[category] || category
 }
@@ -252,7 +265,7 @@ const handleSaveStatus = async () => {
       await updateTaskStatus(editingStatus.value.id, statusForm.value)
       ElMessage.success(t('settings.statusUpdated'))
     } else {
-      await createTaskStatus({ ...statusForm.value, projectId: projectId.value })
+      await createTaskStatus({ ...statusForm.value, projectId: effectiveProjectId.value })
       ElMessage.success(t('settings.statusCreated'))
     }
     showStatusDialog.value = false

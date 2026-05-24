@@ -1,6 +1,7 @@
 package com.sme.pm.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -109,5 +110,32 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
         if (upper.contains("REVIEW") || upper.contains("TEST")) return "alert";
         if (upper.contains("PROGRESS") || upper.contains("DEVELOPMENT")) return "doing";
         return "todo";
+    }
+
+    @Override
+    public boolean updateStatus(TaskStatus taskStatus) {
+        LambdaUpdateWrapper<TaskStatus> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(TaskStatus::getId, taskStatus.getId());
+
+        if (taskStatus.getName() != null) {
+            wrapper.set(TaskStatus::getName, taskStatus.getName());
+        }
+        if (taskStatus.getNameEn() != null) {
+            wrapper.set(TaskStatus::getNameEn, taskStatus.getNameEn());
+        }
+        if (taskStatus.getNameZh() != null) {
+            wrapper.set(TaskStatus::getNameZh, taskStatus.getNameZh());
+        }
+        if (taskStatus.getColor() != null) {
+            wrapper.set(TaskStatus::getColor, taskStatus.getColor());
+        }
+        if (taskStatus.getSortOrder() != null) {
+            wrapper.set(TaskStatus::getSortOrder, taskStatus.getSortOrder());
+        }
+        if (taskStatus.getCategory() != null) {
+            wrapper.set(TaskStatus::getCategory, taskStatus.getCategory());
+        }
+
+        return update(wrapper);
     }
 }

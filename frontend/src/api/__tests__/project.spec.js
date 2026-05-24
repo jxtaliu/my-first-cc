@@ -113,69 +113,69 @@ describe('Project API', () => {
   })
 
   describe('getProjectMembers', () => {
-    it('should call GET /projects/:id/members', async () => {
+    it('should call GET /v1/projects/:id/members', async () => {
       const mockMembers = [{ id: 1, name: 'Member 1' }]
       mockRequest.get.mockResolvedValue({ data: mockMembers })
 
       const result = await projectApi.getProjectMembers(1)
 
-      expect(mockRequest.get).toHaveBeenCalledWith('/projects/1/members')
+      expect(mockRequest.get).toHaveBeenCalledWith('/v1/projects/1/members')
       expect(result.data).toEqual(mockMembers)
     })
   })
 
   describe('addProjectMember', () => {
-    it('should call POST /projects/:id/members with data', async () => {
+    it('should call POST /v1/projects/:id/members with data', async () => {
       const memberData = { userId: 2, role: 'DEVELOPER' }
       mockRequest.post.mockResolvedValue({ data: memberData })
 
       await projectApi.addProjectMember(1, memberData)
 
-      expect(mockRequest.post).toHaveBeenCalledWith('/projects/1/members', memberData)
+      expect(mockRequest.post).toHaveBeenCalledWith('/v1/projects/1/members', memberData)
     })
   })
 
   describe('removeProjectMember', () => {
-    it('should call DELETE /projects/:id/members/:userId', async () => {
+    it('should call DELETE /v1/projects/:id/members/:userId', async () => {
       mockRequest.delete.mockResolvedValue({ data: null })
 
       await projectApi.removeProjectMember(1, 2)
 
-      expect(mockRequest.delete).toHaveBeenCalledWith('/projects/1/members/2')
+      expect(mockRequest.delete).toHaveBeenCalledWith('/v1/projects/1/members/2')
     })
   })
 
   describe('getSprints', () => {
-    it('should call GET /projects/:id/sprints', async () => {
+    it('should call GET /v1/projects/:id/sprints', async () => {
       const mockSprints = [{ id: 1, name: 'Sprint 1' }]
       mockRequest.get.mockResolvedValue({ data: mockSprints })
 
       const result = await projectApi.getSprints(1)
 
-      expect(mockRequest.get).toHaveBeenCalledWith('/projects/1/sprints')
+      expect(mockRequest.get).toHaveBeenCalledWith('/v1/projects/1/sprints')
       expect(result.data).toEqual(mockSprints)
     })
   })
 
   describe('createSprint', () => {
-    it('should call POST /projects/:id/sprints with data', async () => {
+    it('should call POST /v1/projects/:id/sprints with data', async () => {
       const sprintData = { name: 'Sprint 1', startDate: '2024-01-01' }
       mockRequest.post.mockResolvedValue({ data: { id: 1, ...sprintData } })
 
       await projectApi.createSprint(1, sprintData)
 
-      expect(mockRequest.post).toHaveBeenCalledWith('/projects/1/sprints', sprintData)
+      expect(mockRequest.post).toHaveBeenCalledWith('/v1/projects/1/sprints', sprintData)
     })
   })
 
   describe('getProjectStats', () => {
-    it('should call GET /projects/:id/stats', async () => {
+    it('should call GET /v1/projects/:id/stats', async () => {
       const mockStats = { totalTasks: 10, completedTasks: 5 }
       mockRequest.get.mockResolvedValue({ data: mockStats })
 
       const result = await projectApi.getProjectStats(1)
 
-      expect(mockRequest.get).toHaveBeenCalledWith('/projects/1/stats')
+      expect(mockRequest.get).toHaveBeenCalledWith('/v1/projects/1/stats')
       expect(result.data).toEqual(mockStats)
     })
   })

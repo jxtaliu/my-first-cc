@@ -214,6 +214,7 @@ export default {
     fetchSprintsFailed: '获取冲刺列表失败',
     createSprintFailed: '创建冲刺失败',
     startSprintFailed: '开始冲刺失败',
+    sprintGantt: '冲刺甘特图',
     addMember: '添加成员',
     searchUser: '搜索用户...',
     title: '标题',
@@ -222,11 +223,11 @@ export default {
     status: '状态',
     sprint: '冲刺',
     assignee: '负责人',
-    name: '名称',
+    itemName: '名称',
     startDate: '开始日期',
     endDate: '结束日期',
     goal: '目标',
-    username: '用户名',
+    userName: '用户名',
     email: '邮箱',
     role: '角色',
     actions: '操作',
@@ -297,7 +298,7 @@ export default {
     actualHours: '实际工时',
     taskStatusConfig: '任务状态配置',
     // View options
-    kanban: '看板',
+    kanbanView: '看板',
     list: '列表',
     // Kanban columns
     todo: '待办',
@@ -311,7 +312,8 @@ export default {
     updateTaskStatusFailed: '更新任务状态失败',
     createTaskFailed: '创建任务失败',
     saveTaskFailed: '保存任务失败',
-    expandSwimlane: '展开泳道'
+    expandSwimlane: '展开泳道',
+    noTasks: '暂无任务'
   },
   admin: {
     description: '角色描述',

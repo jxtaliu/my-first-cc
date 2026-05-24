@@ -21,4 +21,11 @@ public interface ITaskStatusService extends IService<TaskStatus> {
      * @param statusIds 状态ID列表，顺序即为新的排序顺序
      */
     void reorder(List<Long> statusIds);
+
+    /**
+     * 更新任务状态（只更新非null字段）
+     * @param taskStatus 任务状态实体
+     * @return 是否更新成功
+     */
+    boolean updateStatus(TaskStatus taskStatus);
 }

@@ -42,7 +42,7 @@ public class TaskStatusController {
     @PutMapping("/{id}")
     public Result<TaskStatus> update(@PathVariable Long id, @RequestBody TaskStatus status) {
         status.setId(id);
-        taskStatusService.updateById(status);
+        taskStatusService.updateStatus(status);
         return Result.success(status);
     }
 

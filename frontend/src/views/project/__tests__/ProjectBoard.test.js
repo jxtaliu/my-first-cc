@@ -135,7 +135,7 @@ describe('ProjectBoard API Integration', () => {
         task.statusId = newStatusId
       }
 
-      await onTaskDrop({ taskId: 1, targetStatus: 'IN_PROGRESS' })
+      await onTaskDrop({ taskId: 1, targetStatus: 'in_progress' })
 
       expect(apiMoveTask).toHaveBeenCalledWith(1, { statusId: 2, sprintId: 1 })
     })

@@ -24,14 +24,14 @@ describe('Timesheet API', () => {
   })
 
   describe('getTimesheets', () => {
-    it('should call GET /timesheets with params', async () => {
+    it('should call GET /timesheets/weekly with params', async () => {
       const mockTimesheets = [{ id: 1, hours: 8 }]
       mockRequest.get.mockResolvedValue({ data: mockTimesheets })
 
       const params = { startDate: '2024-01-01', endDate: '2024-01-07' }
       const result = await timesheetApi.getTimesheets(params)
 
-      expect(mockRequest.get).toHaveBeenCalledWith('/timesheets', { params })
+      expect(mockRequest.get).toHaveBeenCalledWith('/timesheets/weekly', { params })
       expect(result.data).toEqual(mockTimesheets)
     })
   })

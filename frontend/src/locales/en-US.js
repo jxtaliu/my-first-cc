@@ -214,6 +214,7 @@ export default {
     fetchSprintsFailed: 'Failed to fetch sprints',
     createSprintFailed: 'Failed to create sprint',
     startSprintFailed: 'Failed to start sprint',
+    sprintGantt: 'Sprint Gantt',
     addMember: 'Add Member',
     searchUser: 'Search user...',
     title: 'Title',
@@ -222,11 +223,11 @@ export default {
     status: 'Status',
     sprint: 'Sprint',
     assignee: 'Assignee',
-    name: 'Name',
+    itemName: 'Name',
     startDate: 'Start Date',
     endDate: 'End Date',
     goal: 'Goal',
-    username: 'Username',
+    userName: 'Username',
     email: 'Email',
     role: 'Role',
     actions: 'Actions',
@@ -297,7 +298,7 @@ export default {
     actualHours: 'Actual',
     taskStatusConfig: 'Task Status Config',
     // View options
-    kanban: 'Kanban',
+    kanbanView: 'Kanban',
     list: 'List',
     // Kanban columns
     todo: 'Todo',
@@ -831,5 +832,25 @@ export default {
     quickAddProject: 'Quick Add Project',
     projectNamePlaceholder: 'Enter project name',
     projectDescPlaceholder: 'Enter project description (optional)'
+  },
+
+  // Task
+  task: {
+    title: 'Title',
+    status: 'Status',
+    priority: 'Priority',
+    project: 'Project',
+    dueDate: 'Due Date',
+    assignee: 'Assignee',
+    description: 'Description',
+    estimateHours: 'Estimate Hours',
+    remainingHours: 'Remaining Hours',
+    actualHours: 'Actual Hours',
+    progress: 'Progress',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    type: 'Type',
+    createdAt: 'Created At',
+    updatedAt: 'Updated At'
   }
 }
