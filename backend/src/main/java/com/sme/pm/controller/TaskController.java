@@ -137,4 +137,10 @@ public class TaskController {
         taskService.removeDependency(dependencyId);
         return Result.success();
     }
+
+    @GetMapping("/count")
+    public Result<Long> countByStatus(@RequestParam Long statusId) {
+        long count = taskService.countByStatusId(statusId.intValue());
+        return Result.success(count);
+    }
 }
