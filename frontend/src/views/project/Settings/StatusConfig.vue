@@ -134,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -277,7 +277,7 @@ const handleDeleteStatus = async (status) => {
 }
 
 const onDragEnd = async () => {
-  const statusIds = statuses.value.map(s => s.id)
+  const statusIds = filteredStatuses.value.map(s => s.id)
   try {
     await reorderTaskStatuses(statusIds)
     ElMessage.success(t('project.statusReordered'))
@@ -287,22 +287,28 @@ const onDragEnd = async () => {
   }
 }
 
+let sortableInstance = null
+
 const initSortable = () => {
+  if (sortableInstance) {
+    sortableInstance.destroy()
+  }
   const table = statusTableRef.value?.$el
   if (!table) return
 
   const el = table.querySelector('.el-table__body-wrapper tbody')
   if (!el) return
 
-  Sortable.create(el, {
+  sortableInstance = Sortable.create(el, {
     handle: '.drag-handle',
     onEnd: onDragEnd
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   fetchStatuses()
-  setTimeout(initSortable, 100)
+  await nextTick()
+  initSortable()
 })
 </script>
 
