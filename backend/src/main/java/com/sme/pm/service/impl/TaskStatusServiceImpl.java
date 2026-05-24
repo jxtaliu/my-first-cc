@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -88,7 +89,11 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
     }
 
     @Override
+    @Transactional
     public void reorder(List<Long> statusIds) {
+        if (statusIds == null || statusIds.isEmpty()) {
+            return;
+        }
         for (int i = 0; i < statusIds.size(); i++) {
             TaskStatus status = new TaskStatus();
             status.setId(statusIds.get(i));
