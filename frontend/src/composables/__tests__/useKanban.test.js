@@ -72,7 +72,7 @@ describe('useKanban', () => {
 
       expect(getTaskStatusesByProject).toHaveBeenCalledWith(123)
       expect(columns.value).toHaveLength(4)
-      expect(columns.value[0].id).toBe('BACKLOG')
+      expect(columns.value[0].id).toBe('backlog')
       expect(columns.value[0].statusId).toBe(10)
       expect(taskStatuses.value).toEqual(mockProjectStatuses)
     })
@@ -166,18 +166,18 @@ describe('useKanban', () => {
 
       // Verify statusIdToCode
       expect(statusIdToCode.value).toEqual({
-        10: 'BACKLOG',
-        11: 'IN_DEV',
-        12: 'IN_TEST',
-        13: 'RELEASED'
+        10: 'backlog',
+        11: 'in_dev',
+        12: 'in_test',
+        13: 'released'
       })
 
       // Verify statusCodeToId is the inverse
       expect(statusCodeToId.value).toEqual({
-        'BACKLOG': 10,
-        'IN_DEV': 11,
-        'IN_TEST': 12,
-        'RELEASED': 13
+        'backlog': 10,
+        'in_dev': 11,
+        'in_test': 12,
+        'released': 13
       })
 
       // Verify round-trip
