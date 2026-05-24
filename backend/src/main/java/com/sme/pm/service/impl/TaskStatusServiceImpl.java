@@ -9,6 +9,8 @@ import com.sme.pm.entity.TaskStatus;
 import com.sme.pm.mapper.DictCodeMapper;
 import com.sme.pm.mapper.TaskStatusMapper;
 import com.sme.pm.service.ITaskStatusService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,9 @@ import java.util.List;
 
 @Service
 public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskStatus> implements ITaskStatusService {
+
+    private static final Logger log = LoggerFactory.getLogger(TaskStatusServiceImpl.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private DictCodeMapper dictCodeMapper;
@@ -55,7 +60,6 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
             return; // Already initialized
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
         List<DictCode> dictCodes = dictCodeMapper.findByTypeCode("task_status");
         for (DictCode dictCode : dictCodes) {
             TaskStatus taskStatus = new TaskStatus();
@@ -76,7 +80,7 @@ public class TaskStatusServiceImpl extends ServiceImpl<TaskStatusMapper, TaskSta
                         taskStatus.setColor(colorNode.asText());
                     }
                 } catch (Exception e) {
-                    // ignore parse errors
+                    log.debug("Failed to parse color from extra JSON for dict code: {}", dictCode.getCode(), e);
                 }
             }
             save(taskStatus);
