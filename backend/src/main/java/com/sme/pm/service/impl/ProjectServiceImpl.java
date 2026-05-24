@@ -3,6 +3,7 @@ package com.sme.pm.service.impl;
 import com.sme.pm.entity.Project;
 import com.sme.pm.mapper.ProjectMapper;
 import com.sme.pm.service.ProjectService;
+import com.sme.pm.service.TaskStatusService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +16,11 @@ import java.util.Map;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectMapper projectMapper;
+    private final TaskStatusService taskStatusService;
 
-    public ProjectServiceImpl(ProjectMapper projectMapper) {
+    public ProjectServiceImpl(ProjectMapper projectMapper, TaskStatusService taskStatusService) {
         this.projectMapper = projectMapper;
+        this.taskStatusService = taskStatusService;
     }
 
     @Override
@@ -28,6 +31,8 @@ public class ProjectServiceImpl implements ProjectService {
             throw new IllegalArgumentException("项目ID已存在: " + project.getProjectId());
         }
         projectMapper.insert(project);
+        // Initialize task statuses
+        taskStatusService.initializeFromDict(project.getProjectId());
         return project;
     }
 
