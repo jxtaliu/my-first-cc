@@ -534,6 +534,7 @@ export default {
       taskStatusUpdated: '任务状态已更新',
       taskUpdated: '任务已更新',
       taskCreated: '任务已创建',
+      quickAddTask: '快速添加任务',
 
       // Sprint
       sprint: '冲刺',

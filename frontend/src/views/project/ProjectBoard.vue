@@ -181,15 +181,6 @@ const route = useRoute()
 // Kanban composable
 const { columns: kanbanColumnsFromApi, loadTaskStatuses, normalizeTask, statusCodeToId, statusIdToCode, taskStatuses } = useKanban()
 
-// Debug: log status mapping changes
-watch(taskStatuses, (newVal) => {
-  console.log('[DEBUG] taskStatuses changed:', newVal)
-}, { immediate: true })
-
-watch(statusIdToCode, (newVal) => {
-  console.log('[DEBUG] statusIdToCode changed:', newVal)
-}, { immediate: true, deep: true })
-
 // Refs
 const kanbanBoardRef = ref(null)
 const project = ref(null)
@@ -215,7 +206,6 @@ const viewOptions = computed(() => [
 
 // Kanban columns - use API columns if available, otherwise fallback
 const kanbanColumns = computed(() => {
-  console.log('[DEBUG] kanbanColumns computed, kanbanColumnsFromApi:', kanbanColumnsFromApi.value.length, kanbanColumnsFromApi.value)
   if (kanbanColumnsFromApi.value.length > 0) {
     return kanbanColumnsFromApi.value
   }
@@ -232,16 +222,11 @@ const kanbanColumns = computed(() => {
 const filteredTasks = computed(() => {
   let result = tasks.value
 
-  // DEBUG: log filter condition
-  console.log('[DEBUG filteredTasks] currentView:', currentView.value, 'total tasks:', tasks.value.length)
-
   // Kanban view: only show TASK and SUBTASK
   if (currentView.value === 'kanban') {
-    const before = result.length
     result = result.filter(task =>
       task.type?.toUpperCase() === 'TASK' || task.type?.toUpperCase() === 'SUBTASK'
     )
-    console.log('[DEBUG filteredTasks] filtered from', before, 'to', result.length, 'task types:', [...new Set(tasks.value.map(t => t.type))])
   }
 
   // Filter by search query
@@ -263,7 +248,6 @@ const filteredTasks = computed(() => {
 
 // Load project data from API
 async function loadProjectData() {
-  console.log('[DEBUG] loadProjectData started, route.params:', route.params)
   const projectId = route.params.id
   if (!projectId) {
     ElMessage.error('Project ID is required')
@@ -274,34 +258,17 @@ async function loadProjectData() {
   try {
     // Load project info
     const projectRes = await getProject(projectId)
-    console.log('[DEBUG] getProject response:', projectRes)
-    console.log('[DEBUG] getProject response.data:', projectRes?.data)
     project.value = projectRes.data || projectRes
-    console.log('[DEBUG] project.value after loading:', project.value)
-    console.log('[DEBUG] project.value.projectId:', project.value?.projectId)
-    console.log('[DEBUG] project.value.id:', project.value?.id)
-    console.log('[DEBUG] project.value.name:', project.value?.name)
 
     // Load sprints (use business ID)
-    console.log('[DEBUG] Loading sprints with projectId:', project.value?.projectId)
     const sprintsRes = await getSprints(project.value.projectId)
-    console.log('[DEBUG] sprintsRes:', sprintsRes)
     sprints.value = sprintsRes.data || sprintsRes || []
 
     // Load task statuses for the project (use business ID, not route params)
-    console.log('[DEBUG] Loading task statuses with projectId:', project.value?.projectId, 'full project:', project.value)
     await loadTaskStatuses(project.value.projectId)
-    console.log('[DEBUG] taskStatuses after load:', taskStatuses.value)
-    console.log('[DEBUG] kanbanColumnsFromApi after load:', kanbanColumnsFromApi.value)
 
     // Load all tasks for the project
-    console.log('[DEBUG] About to call loadTasks, project.value:', project.value)
-    try {
-      loadTasks()
-    } catch (e) {
-      console.error('[DEBUG] loadTasks threw error:', e)
-    }
-    console.log('[DEBUG] loadTasks called')
+    loadTasks()
   } catch (error) {
     console.error('Failed to load project data:', error)
     ElMessage.error('Failed to load project data')
@@ -314,26 +281,20 @@ async function loadProjectData() {
 async function loadTasks() {
   // Use business projectId from loaded project, not route params
   const projectId = project.value?.projectId
-  console.log('[DEBUG] loadTasks called, projectId:', projectId, 'project:', project.value)
   if (!projectId) {
-    console.log('[DEBUG] No projectId, setting tasks to empty')
     tasks.value = []
     return
   }
 
   loading.value = true
   try {
-    console.log('[DEBUG] Calling getTasksByProject with:', projectId)
     const res = await getTasksByProject(projectId)
-    console.log('[DEBUG] getTasksByProject response:', res)
     const rawTasks = res.data || res || []
-    console.log('[DEBUG] rawTasks:', rawTasks)
     tasks.value = rawTasks.map(task => {
       const normalized = normalizeTask(task)
       normalized.dependencies = task.dependencies || []
       return normalized
     })
-    console.log('[DEBUG] tasks after mapping:', tasks.value)
   } catch (error) {
     console.error('Failed to load tasks:', error)
     ElMessage.error('Failed to load tasks')
@@ -460,7 +421,6 @@ const onAddDependency = () => {
 }
 
 onMounted(() => {
-  console.log('[DEBUG] onMounted called')
   loadProjectData()
 })
 </script>

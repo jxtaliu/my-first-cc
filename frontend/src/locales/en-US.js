@@ -534,6 +534,7 @@ export default {
       taskStatusUpdated: 'Task status updated',
       taskUpdated: 'Task updated',
       taskCreated: 'Task created',
+      quickAddTask: 'Quick Add Task',
 
       // Sprint
       sprint: 'Sprint',

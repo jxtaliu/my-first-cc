@@ -142,7 +142,6 @@ const onDrop = (e) => {
   e.preventDefault()
   isDragOver.value = false
   const taskId = e.dataTransfer.getData('taskId')
-  console.log('[DEBUG KanbanColumn] onDrop:', { taskId, status: props.status, id: props.id })
   if (taskId) {
     emit('task-drop', {
       taskId,

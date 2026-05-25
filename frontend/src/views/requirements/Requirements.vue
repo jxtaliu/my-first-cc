@@ -274,8 +274,11 @@ const loadProjectMembers = async () => {
   if (!selectedProjectId.value) return
 
   try {
+    console.log('[DEBUG] loadProjectMembers called with projectId:', selectedProjectId.value)
     const res = await getProjectMembers(selectedProjectId.value)
+    console.log('[DEBUG] loadProjectMembers response:', res)
     projectMembers.value = res.data || []
+    console.log('[DEBUG] projectMembers.value after loading:', projectMembers.value)
   } catch (e) {
     console.error('Failed to load project members:', e)
     projectMembers.value = []
@@ -286,7 +289,8 @@ const loadProjectMembers = async () => {
 const getMemberName = (memberId) => {
   if (!memberId || !projectMembers.value.length) return '-'
   const member = projectMembers.value.find(m => String(m.userId) === String(memberId))
-  return member?.userName || memberId
+  // MyBatis maps username to 'username', real_name to 'realName'
+  return member?.realName || member?.username || memberId
 }
 
 // 加载任务状态

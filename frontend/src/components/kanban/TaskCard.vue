@@ -155,7 +155,6 @@ const formatDuration = (days) => {
 const onDragStart = (e) => {
   e.dataTransfer.effectAllowed = 'move'
   e.dataTransfer.setData('taskId', props.task.id)
-  console.log('[DEBUG TaskCard] onDragStart:', props.task.id, props.task.title)
   emit('dragstart', props.task)
 }
 

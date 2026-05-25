@@ -539,16 +539,12 @@ const onBoardTaskClick = (task) => {
 }
 
 const onBoardTaskDrop = async ({ taskId, targetStatus }) => {
-  console.log('[DEBUG] onBoardTaskDrop received:', { taskId, targetStatus, tasksCount: tasks.value.length })
   // Find task by id (taskId might be string or number)
   const task = tasks.value.find(t => t.id === taskId || t.id === parseInt(taskId))
-  console.log('[DEBUG] found task:', task)
   if (!task) return
   try {
     const newStatus = targetStatus.toUpperCase()
-    console.log('[DEBUG] calling moveTask:', { taskId, newStatus, projectId: task.projectId })
-    const res = await moveTask(taskId, { status: newStatus, projectId: task.projectId })
-    console.log('[DEBUG] moveTask response:', res)
+    await moveTask(taskId, { status: newStatus, projectId: task.projectId })
     task.status = targetStatus
     ElMessage.success(t('project.taskStatusUpdated'))
   } catch (e) {
