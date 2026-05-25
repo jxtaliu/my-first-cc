@@ -99,9 +99,16 @@ public class ProjectServiceImpl implements ProjectService {
 
     private void populateProjectStats(Project project) {
         project.setMemberCount(projectMapper.findMemberIds(project.getProjectId()).size());
-        project.setTaskCount(taskMapper.countByProjectId(project.getProjectId()));
-        // Assuming status = 3 means completed (TODO: verify from task_status table)
-        project.setCompletedTaskCount(taskMapper.countByProjectIdAndStatus(project.getProjectId(), 3));
+        // taskCount now only counts TASK type
+        project.setTaskCount(taskMapper.countByProjectIdAndType(project.getProjectId(), "TASK"));
+        project.setCompletedTaskCount(taskMapper.countByProjectIdAndStatus(project.getProjectId(), "DONE"));
+
+        // Task counts by type
+        project.setEpicCount(taskMapper.countByProjectIdAndType(project.getProjectId(), "EPIC"));
+        project.setFeatureCount(taskMapper.countByProjectIdAndType(project.getProjectId(), "FEATURE"));
+        project.setStoryCount(taskMapper.countByProjectIdAndType(project.getProjectId(), "STORY"));
+        project.setBugCount(taskMapper.countByProjectIdAndType(project.getProjectId(), "BUG"));
+        project.setSubtaskCount(taskMapper.countByProjectIdAndType(project.getProjectId(), "SUBTASK"));
     }
 
     @Override

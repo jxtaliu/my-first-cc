@@ -27,6 +27,12 @@
         <el-input v-model="formData.title" :placeholder="$t('requirements.titlePlaceholder')" maxlength="200" show-word-limit />
       </el-form-item>
 
+      <el-form-item :label="$t('requirements.taskId')" :placeholder="$t('requirements.taskIdPlaceholder')">
+        <el-input v-model="formData.taskId" :placeholder="$t('requirements.taskIdPlaceholder')" maxlength="50" clearable>
+          <template #prepend>{{ taskIdPrefix }}</template>
+        </el-input>
+      </el-form-item>
+
       <!-- EPIC/FEATURE/STORY: 描述字段 -->
       <el-form-item :label="$t('requirements.description')" v-if="showDescription">
         <el-input
@@ -268,8 +274,20 @@ const showEstimateHours = computed(() => ['FEATURE', 'STORY', 'TASK', 'SUBTASK']
 const showDueDate = computed(() => ['EPIC', 'FEATURE', 'TASK'].includes(formData.type))
 const showAssignee = computed(() => ['EPIC', 'FEATURE', 'STORY', 'TASK', 'SUBTASK'].includes(formData.type))
 
+// 根据类型获取 taskId 前缀
+const TYPE_PREFIXES = {
+  EPIC: 'EPI',
+  FEATURE: 'FEA',
+  STORY: 'STO',
+  TASK: 'TSK',
+  SUBTASK: 'SUB',
+  BUG: 'BUG'
+}
+const taskIdPrefix = computed(() => TYPE_PREFIXES[formData.type] || 'TSK')
+
 const formData = reactive({
   id: null,
+  taskId: '',
   type: 'STORY',
   title: '',
   description: '',
@@ -313,6 +331,7 @@ watch(() => props.modelValue, (val) => {
 // 重置表单
 const resetForm = () => {
   formData.id = null
+  formData.taskId = ''
   formData.type = 'STORY'
   formData.title = ''
   formData.description = ''
@@ -352,6 +371,7 @@ const handleSubmit = async () => {
     const data = {
       projectId: effectiveProjectId,
       type: formData.type,
+      taskId: formData.taskId || null,
       title: formData.title,
       description: formData.description || null,
       priority: formData.priority,
@@ -383,6 +403,7 @@ const handleSubmit = async () => {
 // 编辑时加载数据
 const setEditData = (item) => {
   formData.id = item.id
+  formData.taskId = item.taskId || ''
   formData.type = item.type
   formData.title = item.title
   formData.description = item.description || ''

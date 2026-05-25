@@ -199,6 +199,14 @@ CREATE TABLE IF NOT EXISTS task (
     INDEX idx_task_id (task_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Task ID Sequence table (for generating unique task_id per project and type)
+CREATE TABLE IF NOT EXISTS task_id_sequence (
+    project_id VARCHAR(50) NOT NULL COMMENT 'References project.project_id',
+    type VARCHAR(20) NOT NULL COMMENT 'EPIC/FEATURE/STORY/TASK/SUBTASK/BUG',
+    current_seq INT NOT NULL DEFAULT 0 COMMENT 'Current sequence number',
+    PRIMARY KEY (project_id, type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Timesheet table
 CREATE TABLE IF NOT EXISTS timesheet (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

@@ -33,7 +33,7 @@ export function getTasksByAssignee(assigneeId) {
 }
 
 export function moveTask(id, data) {
-  return request.put(`/v1/tasks/${id}/move`, data)
+  return request.put(`/v1/tasks/${id}/move`, data, { params: { projectId: data.projectId } })
 }
 
 export function assignTask(id, userId) {

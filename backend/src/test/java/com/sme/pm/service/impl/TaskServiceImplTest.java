@@ -4,6 +4,7 @@ import com.sme.pm.entity.Task;
 import com.sme.pm.entity.TaskStatus;
 import com.sme.pm.event.TaskAssignedEvent;
 import com.sme.pm.event.TaskStatusChangedEvent;
+import com.sme.pm.mapper.TaskIdSequenceMapper;
 import com.sme.pm.mapper.TaskMapper;
 import com.sme.pm.mapper.TaskStatusMapper;
 import com.sme.pm.service.ITaskCommentService;
@@ -35,6 +36,9 @@ class TaskServiceImplTest {
     private TaskStatusMapper taskStatusMapper;
 
     @Mock
+    private TaskIdSequenceMapper taskIdSequenceMapper;
+
+    @Mock
     private ITaskCommentService taskCommentService;
 
     @Mock
@@ -53,6 +57,7 @@ class TaskServiceImplTest {
         taskService = new TaskServiceImpl(
             taskMapper,
             taskStatusMapper,
+            taskIdSequenceMapper,
             taskCommentService,
             taskAttachmentService,
             taskDependencyService,

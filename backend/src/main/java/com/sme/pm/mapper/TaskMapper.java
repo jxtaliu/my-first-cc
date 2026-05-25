@@ -30,6 +30,13 @@ public interface TaskMapper extends BaseMapper<Task> {
     @Select("SELECT * FROM task WHERE project_id = #{projectId} AND deleted = 0 ORDER BY created_at")
     List<Task> findByProjectId(@Param("projectId") String projectId);
 
+    @Select("SELECT t.*, u.username AS assigneeName " +
+            "FROM task t " +
+            "LEFT JOIN sys_user u ON t.assignee_id = u.id " +
+            "WHERE t.project_id = #{projectId} AND t.deleted = 0 " +
+            "ORDER BY t.created_at")
+    List<Task> findByProjectIdWithUser(@Param("projectId") String projectId);
+
     @Select("SELECT * FROM task WHERE assignee_id = #{assigneeId} AND deleted = 0 ORDER BY created_at")
     List<Task> findByAssigneeId(@Param("assigneeId") Long assigneeId);
 
@@ -39,6 +46,9 @@ public interface TaskMapper extends BaseMapper<Task> {
     @Select("SELECT COUNT(*) FROM task WHERE project_id = #{projectId} AND deleted = 0")
     int countByProjectId(@Param("projectId") String projectId);
 
-    @Select("SELECT COUNT(*) FROM task WHERE project_id = #{projectId} AND status = #{status} AND deleted = 0")
-    int countByProjectIdAndStatus(@Param("projectId") String projectId, @Param("status") Integer status);
+    @Select("SELECT COUNT(*) FROM task WHERE project_id = #{projectId} AND status = #{statusCode} AND deleted = 0")
+    int countByProjectIdAndStatus(@Param("projectId") String projectId, @Param("statusCode") String statusCode);
+
+    @Select("SELECT COUNT(*) FROM task WHERE project_id = #{projectId} AND type = #{type} AND deleted = 0")
+    int countByProjectIdAndType(@Param("projectId") String projectId, @Param("type") String type);
 }

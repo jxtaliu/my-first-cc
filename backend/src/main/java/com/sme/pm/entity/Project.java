@@ -41,4 +41,19 @@ public class Project {
 
     @TableField(exist = false)
     private Integer completedTaskCount;
+
+    @TableField(exist = false)
+    private Integer epicCount;
+
+    @TableField(exist = false)
+    private Integer featureCount;
+
+    @TableField(exist = false)
+    private Integer storyCount;
+
+    @TableField(exist = false)
+    private Integer bugCount;
+
+    @TableField(exist = false)
+    private Integer subtaskCount;
 }

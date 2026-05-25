@@ -6,7 +6,6 @@ import { useTaskStatusStore } from '@/stores/taskStatus'
 export function useKanban() {
   const taskStatusStore = useTaskStatusStore()
   const i18n = useI18n()
-  // Fallback to 'en-US' if locale is not available (e.g., in tests)
   const currentLocale = computed(() => i18n.locale?.value || i18n.locale || 'en-US')
 
   const columns = ref([])
@@ -14,10 +13,8 @@ export function useKanban() {
   const loading = ref(false)
   const currentProjectId = ref(null)
 
-  // Status mappings - use store getters if available, otherwise use local data
   const statusIdToCode = computed(() => {
     if (!currentProjectId.value) {
-      // For system statuses, build from local taskStatuses
       const map = {}
       taskStatuses.value.forEach(s => { map[s.id] = s.code?.toLowerCase() })
       return map
@@ -27,7 +24,6 @@ export function useKanban() {
 
   const statusCodeToId = computed(() => {
     if (!currentProjectId.value) {
-      // For system statuses, build from local taskStatuses
       const map = {}
       taskStatuses.value.forEach(s => { map[s.code?.toLowerCase()] = s.id })
       return map
@@ -35,7 +31,6 @@ export function useKanban() {
     return taskStatusStore.getStatusCodeToId(currentProjectId.value)
   })
 
-  // Build columns from statuses - title based on locale
   function buildColumns(statuses) {
     if (!statuses || statuses.length === 0) {
       columns.value = []
@@ -53,7 +48,6 @@ export function useKanban() {
     }))
   }
 
-  // Rebuild columns whenever taskStatuses changes
   watch(
     () => JSON.stringify(taskStatuses.value.map(s => s.id)),
     () => {
@@ -63,7 +57,6 @@ export function useKanban() {
     }
   )
 
-  // Rebuild columns when locale changes
   watch(
     () => currentLocale.value,
     () => {
@@ -73,12 +66,9 @@ export function useKanban() {
     }
   )
 
-  // Watch for store changes - rebuild when store's statuses for current project are updated
-  // Use a deep watch on the specific project entry to catch reorder changes
   watch(
     () => {
       if (!currentProjectId.value) return null
-      // Return JSON string to track both content AND order changes
       const statuses = taskStatusStore.statusesByProject[currentProjectId.value]
       return statuses ? JSON.stringify(statuses.map(s => ({ id: s.id, sortOrder: s.sortOrder }))) : null
     },
@@ -94,7 +84,6 @@ export function useKanban() {
 
   async function loadTaskStatuses(projectId) {
     if (!projectId) {
-      // Load system statuses (no project)
       currentProjectId.value = null
       loading.value = true
       try {
@@ -107,7 +96,6 @@ export function useKanban() {
       return
     }
 
-    // Resolve numeric ID to business ID if needed
     let businessId = projectId
     if (!/^[A-Z]/.test(projectId)) {
       businessId = await taskStatusStore.getProjectBusinessId(projectId)
@@ -117,13 +105,11 @@ export function useKanban() {
 
     loading.value = true
     try {
-      // Always fetch fresh data to ensure we have latest (e.g., after reorder)
       const statuses = await taskStatusStore.fetchStatuses(businessId)
       if (statuses && statuses.length > 0) {
         taskStatuses.value = statuses
         buildColumns(taskStatuses.value)
       } else {
-        // Fallback to system statuses if project has none
         const systemRes = await getSystemTaskStatuses()
         taskStatuses.value = systemRes.data || []
         buildColumns(taskStatuses.value)
@@ -134,7 +120,6 @@ export function useKanban() {
   }
 
   function normalizeTask(apiTask) {
-    // Task.status now directly stores task_status.code (TODO, IN_PROGRESS, etc.)
     const normalizedStatus = apiTask.status ? apiTask.status.toLowerCase() : 'todo'
 
     return {
@@ -145,7 +130,7 @@ export function useKanban() {
       typeName: apiTask.typeName,
       priority: apiTask.priority || 'P3',
       status: normalizedStatus,
-      statusId: apiTask.status, // Now stores code, not id
+      statusId: apiTask.status,
       assignee: apiTask.assigneeId,
       assigneeId: apiTask.assigneeId,
       assigneeName: apiTask.assigneeName || '',

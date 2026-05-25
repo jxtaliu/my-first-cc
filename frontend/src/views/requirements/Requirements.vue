@@ -285,7 +285,7 @@ const loadProjectMembers = async () => {
 // 获取成员名称
 const getMemberName = (memberId) => {
   if (!memberId || !projectMembers.value.length) return '-'
-  const member = projectMembers.value.find(m => m.userId === memberId)
+  const member = projectMembers.value.find(m => String(m.userId) === String(memberId))
   return member?.userName || memberId
 }
 

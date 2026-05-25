@@ -782,3 +782,26 @@ UPDATE task SET status = CASE
     WHEN status = '4' THEN 'DONE'
 END
 WHERE status IN ('1', '2', '3', '4');
+
+-- =============================================================================
+-- Migration: task_id_sequence 表初始化
+-- 为每个项目的每种类型初始化序列值
+-- =============================================================================
+-- 初始化 task_id_sequence 表
+INSERT IGNORE INTO task_id_sequence (project_id, type, current_seq)
+SELECT project_id, 'EPIC', 0 FROM project WHERE deleted = 0;
+
+INSERT IGNORE INTO task_id_sequence (project_id, type, current_seq)
+SELECT project_id, 'FEATURE', 0 FROM project WHERE deleted = 0;
+
+INSERT IGNORE INTO task_id_sequence (project_id, type, current_seq)
+SELECT project_id, 'STORY', 0 FROM project WHERE deleted = 0;
+
+INSERT IGNORE INTO task_id_sequence (project_id, type, current_seq)
+SELECT project_id, 'TASK', 0 FROM project WHERE deleted = 0;
+
+INSERT IGNORE INTO task_id_sequence (project_id, type, current_seq)
+SELECT project_id, 'SUBTASK', 0 FROM project WHERE deleted = 0;
+
+INSERT IGNORE INTO task_id_sequence (project_id, type, current_seq)
+SELECT project_id, 'BUG', 0 FROM project WHERE deleted = 0;

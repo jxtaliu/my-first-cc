@@ -35,7 +35,8 @@ public interface ProjectMapper extends BaseMapper<Project> {
     List<Long> findMemberIds(@Param("projectId") String projectId);
 
     @Select("SELECT pm.user_id AS userId, pm.role_id AS roleId, pm.joined_at AS joinedAt, " +
-            "u.username AS userName, u.email, u.real_name AS realName, r.name AS roleName " +
+            "u.username AS username, u.email AS email, u.real_name AS realName, " +
+            "r.name AS roleName " +
             "FROM project_member pm " +
             "LEFT JOIN sys_user u ON pm.user_id = u.id " +
             "LEFT JOIN sys_role r ON pm.role_id = r.role_id " +

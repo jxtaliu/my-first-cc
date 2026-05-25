@@ -33,8 +33,27 @@
             </span>
           </div>
           <div class="project-stats">
-            <span><el-icon><Document /></el-icon> {{ project.taskCount || 0 }} {{ $t('project.tasks') }}</span>
             <span><el-icon><User /></el-icon> {{ project.memberCount || 0 }} {{ $t('project.members') }}</span>
+          </div>
+          <div class="task-type-stats">
+            <el-tooltip :content="$t('project.epic')" placement="top">
+              <span class="type-stat epic">{{ project.epicCount || 0 }}</span>
+            </el-tooltip>
+            <el-tooltip :content="$t('project.feature')" placement="top">
+              <span class="type-stat feature">{{ project.featureCount || 0 }}</span>
+            </el-tooltip>
+            <el-tooltip :content="$t('project.story')" placement="top">
+              <span class="type-stat story">{{ project.storyCount || 0 }}</span>
+            </el-tooltip>
+            <el-tooltip :content="$t('project.task')" placement="top">
+              <span class="type-stat task">{{ project.taskCount || 0 }}</span>
+            </el-tooltip>
+            <el-tooltip :content="$t('project.subtask')" placement="top">
+              <span class="type-stat subtask">{{ project.subtaskCount || 0 }}</span>
+            </el-tooltip>
+            <el-tooltip :content="$t('project.bug')" placement="top">
+              <span class="type-stat bug">{{ project.bugCount || 0 }}</span>
+            </el-tooltip>
           </div>
           <div class="project-footer">
             <span class="project-date">{{ $t('project.created') }} {{ formatDate(project.createdAt) }}</span>
@@ -411,6 +430,56 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.task-type-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid var(--theme-border);
+}
+
+.type-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.type-stat.epic {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8B5CF6;
+}
+
+.type-stat.feature {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3B82F6;
+}
+
+.type-stat.story {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+}
+
+.type-stat.task {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3B82F6;
+}
+
+.type-stat.subtask {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748B;
+}
+
+.type-stat.bug {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
 }
 
 .project-footer {

@@ -163,6 +163,8 @@ export default {
     editRequirement: 'Edit Requirement',
     selectType: 'Select Type',
     titlePlaceholder: 'Enter requirement title',
+    taskId: 'ID',
+    taskIdPlaceholder: 'Auto-generated, can input manually',
     descriptionPlaceholder: 'Enter requirement description',
     selectPriority: 'Select Priority',
     selectDueDate: 'Select Due Date',

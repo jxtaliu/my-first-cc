@@ -215,6 +215,7 @@ const viewOptions = computed(() => [
 
 // Kanban columns - use API columns if available, otherwise fallback
 const kanbanColumns = computed(() => {
+  console.log('[DEBUG] kanbanColumns computed, kanbanColumnsFromApi:', kanbanColumnsFromApi.value.length, kanbanColumnsFromApi.value)
   if (kanbanColumnsFromApi.value.length > 0) {
     return kanbanColumnsFromApi.value
   }
@@ -230,6 +231,18 @@ const kanbanColumns = computed(() => {
 // Filter tasks based on search and priority
 const filteredTasks = computed(() => {
   let result = tasks.value
+
+  // DEBUG: log filter condition
+  console.log('[DEBUG filteredTasks] currentView:', currentView.value, 'total tasks:', tasks.value.length)
+
+  // Kanban view: only show TASK and SUBTASK
+  if (currentView.value === 'kanban') {
+    const before = result.length
+    result = result.filter(task =>
+      task.type?.toUpperCase() === 'TASK' || task.type?.toUpperCase() === 'SUBTASK'
+    )
+    console.log('[DEBUG filteredTasks] filtered from', before, 'to', result.length, 'task types:', [...new Set(tasks.value.map(t => t.type))])
+  }
 
   // Filter by search query
   if (searchQuery.value) {
@@ -250,6 +263,7 @@ const filteredTasks = computed(() => {
 
 // Load project data from API
 async function loadProjectData() {
+  console.log('[DEBUG] loadProjectData started, route.params:', route.params)
   const projectId = route.params.id
   if (!projectId) {
     ElMessage.error('Project ID is required')
@@ -261,18 +275,33 @@ async function loadProjectData() {
     // Load project info
     const projectRes = await getProject(projectId)
     console.log('[DEBUG] getProject response:', projectRes)
+    console.log('[DEBUG] getProject response.data:', projectRes?.data)
     project.value = projectRes.data || projectRes
     console.log('[DEBUG] project.value after loading:', project.value)
+    console.log('[DEBUG] project.value.projectId:', project.value?.projectId)
+    console.log('[DEBUG] project.value.id:', project.value?.id)
+    console.log('[DEBUG] project.value.name:', project.value?.name)
 
-    // Load sprints
-    const sprintsRes = await getSprints(projectId)
+    // Load sprints (use business ID)
+    console.log('[DEBUG] Loading sprints with projectId:', project.value?.projectId)
+    const sprintsRes = await getSprints(project.value.projectId)
+    console.log('[DEBUG] sprintsRes:', sprintsRes)
     sprints.value = sprintsRes.data || sprintsRes || []
 
-    // Load task statuses for the project
-    await loadTaskStatuses(projectId)
+    // Load task statuses for the project (use business ID, not route params)
+    console.log('[DEBUG] Loading task statuses with projectId:', project.value?.projectId, 'full project:', project.value)
+    await loadTaskStatuses(project.value.projectId)
+    console.log('[DEBUG] taskStatuses after load:', taskStatuses.value)
+    console.log('[DEBUG] kanbanColumnsFromApi after load:', kanbanColumnsFromApi.value)
 
     // Load all tasks for the project
-    loadTasks()
+    console.log('[DEBUG] About to call loadTasks, project.value:', project.value)
+    try {
+      loadTasks()
+    } catch (e) {
+      console.error('[DEBUG] loadTasks threw error:', e)
+    }
+    console.log('[DEBUG] loadTasks called')
   } catch (error) {
     console.error('Failed to load project data:', error)
     ElMessage.error('Failed to load project data')
@@ -324,14 +353,13 @@ const onTaskDrop = async ({ taskId, targetStatus }) => {
   if (!task) return
 
   const oldStatus = task.status
-  const newStatusId = statusCodeToId.value[targetStatus]
-
   if (oldStatus === targetStatus) return
 
   try {
-    await apiMoveTask(taskId, { statusId: newStatusId, sprintId: currentSprintId.value })
+    // Backend now uses statusCode (string) instead of statusId
+    await apiMoveTask(taskId, { status: targetStatus.toUpperCase(), sprintId: currentSprintId.value })
     task.status = targetStatus
-    task.statusId = newStatusId
+    task.statusId = targetStatus.toUpperCase()
     // Recalculate progress based on new status
     if (targetStatus === 'done') {
       task.progress = 100
@@ -350,14 +378,14 @@ const onAddTask = ({ status }) => {
 }
 
 const onQuickAddSubmit = async ({ title, type, priority, status }) => {
-  const projectId = route.params.id
+  const projectId = project.value?.projectId
   try {
     const createData = {
       title,
       type,
       priority,
       statusId: statusCodeToId.value[status],
-      projectId: projectId ? parseInt(projectId) : null,
+      projectId: projectId || null,
       sprintId: currentSprintId.value
     }
     const res = await apiCreateTask(createData)
@@ -432,6 +460,7 @@ const onAddDependency = () => {
 }
 
 onMounted(() => {
+  console.log('[DEBUG] onMounted called')
   loadProjectData()
 })
 </script>

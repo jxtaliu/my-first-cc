@@ -163,6 +163,8 @@ export default {
     editRequirement: '编辑需求',
     selectType: '选择类型',
     titlePlaceholder: '请输入需求标题',
+    taskId: '编号',
+    taskIdPlaceholder: '自动生成，可手动输入',
     descriptionPlaceholder: '请输入需求描述',
     selectPriority: '选择优先级',
     selectDueDate: '选择截止日期',

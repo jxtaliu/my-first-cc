@@ -8,6 +8,7 @@ import com.sme.pm.entity.TaskStatus;
 import com.sme.pm.event.TaskAssignedEvent;
 import com.sme.pm.event.TaskStatusChangedEvent;
 import com.sme.pm.event.TaskDependencyBlockedEvent;
+import com.sme.pm.mapper.TaskIdSequenceMapper;
 import com.sme.pm.mapper.TaskMapper;
 import com.sme.pm.mapper.TaskStatusMapper;
 import com.sme.pm.service.ITaskAttachmentService;
@@ -27,8 +28,18 @@ import java.util.Map;
 public class TaskServiceImpl implements TaskService {
 
     private static final int MAX_DEPTH = 5;
+    private static final Map<String, String> TYPE_PREFIXES = Map.of(
+            "EPIC", "EPI",
+            "FEATURE", "FEA",
+            "STORY", "STO",
+            "TASK", "TSK",
+            "SUBTASK", "SUB",
+            "BUG", "BUG"
+    );
+
     private final TaskMapper taskMapper;
     private final TaskStatusMapper taskStatusMapper;
+    private final TaskIdSequenceMapper taskIdSequenceMapper;
     private final ITaskCommentService taskCommentService;
     private final ITaskAttachmentService taskAttachmentService;
     private final ITaskDependencyService taskDependencyService;
@@ -36,16 +47,29 @@ public class TaskServiceImpl implements TaskService {
 
     public TaskServiceImpl(TaskMapper taskMapper,
                           TaskStatusMapper taskStatusMapper,
+                          TaskIdSequenceMapper taskIdSequenceMapper,
                           ITaskCommentService taskCommentService,
                           ITaskAttachmentService taskAttachmentService,
                           ITaskDependencyService taskDependencyService,
                           ApplicationEventPublisher eventPublisher) {
         this.taskMapper = taskMapper;
         this.taskStatusMapper = taskStatusMapper;
+        this.taskIdSequenceMapper = taskIdSequenceMapper;
         this.taskCommentService = taskCommentService;
         this.taskAttachmentService = taskAttachmentService;
         this.taskDependencyService = taskDependencyService;
         this.eventPublisher = eventPublisher;
+    }
+
+    // Generate task_id based on type prefix and sequence
+    private String generateTaskId(String projectId, String type) {
+        String prefix = TYPE_PREFIXES.getOrDefault(type, "TSK");
+        // Ensure sequence row exists
+        taskIdSequenceMapper.insertIfNotExists(projectId, type);
+        // Increment and get next value
+        taskIdSequenceMapper.incrementSeq(projectId, type);
+        Integer seq = taskIdSequenceMapper.getCurrentSeq(projectId, type);
+        return prefix + String.format("%03d", seq != null ? seq : 1);
     }
 
     @Override
@@ -61,10 +85,9 @@ public class TaskServiceImpl implements TaskService {
             throw new IllegalArgumentException("title不能为空");
         }
 
-        // Generate task_id if not provided
+        // Generate task_id if not provided (using type-specific prefix and sequence)
         if (task.getTaskId() == null || task.getTaskId().isEmpty()) {
-            int count = taskMapper.countAll();
-            task.setTaskId(String.format("TSK%03d", count + 1));
+            task.setTaskId(generateTaskId(task.getProjectId(), task.getType()));
         } else {
             // Check for duplicate task_id
             Task existing = taskMapper.findByTaskId(task.getTaskId());
@@ -137,7 +160,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> listByProject(String projectId) {
-        return taskMapper.findByProjectId(projectId);
+        return taskMapper.findByProjectIdWithUser(projectId);
     }
 
     @Override

@@ -59,6 +59,9 @@ public class Task {
 
     private Integer version;  // Optimistic lock
 
+    @TableField(exist = false)
+    private String assigneeName;  // Joined from sys_user.username
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 

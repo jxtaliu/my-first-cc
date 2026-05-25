@@ -227,14 +227,14 @@
             </el-table-column>
             <el-table-column :label="$t('project.role')" width="180">
               <template #default="{ row }">
-                <el-select v-model="row.role_id" @change="handleRoleChange(row)" style="width: 100%">
+                <el-select v-model="row.roleId" @change="handleRoleChange(row)" style="width: 100%">
                   <el-option v-for="role in roles" :key="role.roleId" :label="role.name" :value="role.roleId" />
                 </el-select>
               </template>
             </el-table-column>
             <el-table-column :label="$t('project.joinedAt')" width="120">
               <template #default="{ row }">
-                {{ formatDate(row.joined_at) }}
+                {{ formatDate(row.joinedAt) }}
               </template>
             </el-table-column>
             <el-table-column :label="$t('project.actions')" width="100" align="center">
@@ -301,7 +301,7 @@
           <el-col :span="12">
             <el-form-item :label="$t('project.assignee')" prop="assigneeId">
               <el-select v-model="taskForm.assigneeId" :placeholder="$t('project.selectAssignee')" style="width: 100%">
-                <el-option v-for="m in members" :key="m.id" :label="m.username" :value="m.id" />
+                <el-option v-for="m in members" :key="m.userId" :label="m.username" :value="m.userId" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -310,7 +310,7 @@
           <el-col :span="12">
             <el-form-item :label="$t('project.assignee')" prop="assigneeId">
               <el-select v-model="taskForm.assigneeId" :placeholder="$t('project.selectAssignee')" style="width: 100%">
-                <el-option v-for="m in members" :key="m.id" :label="m.username" :value="m.id" />
+                <el-option v-for="m in members" :key="m.userId" :label="m.username" :value="m.userId" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -526,7 +526,12 @@ const getTasksByStatus = (status) => {
 
 // Board kanban functions
 const getBoardTasksByStatus = (status) => {
-  return tasks.value.filter(t => t.status === status)
+  // Kanban board should only show TASK and SUBTASK types
+  // Backend returns uppercase status (TODO, IN_PROGRESS), frontend uses lowercase (todo, in_progress)
+  return tasks.value.filter(t =>
+    (t.type?.toUpperCase() === 'TASK' || t.type?.toUpperCase() === 'SUBTASK') &&
+    t.status?.toLowerCase() === status?.toLowerCase()
+  )
 }
 
 const onBoardTaskClick = (task) => {
@@ -534,13 +539,20 @@ const onBoardTaskClick = (task) => {
 }
 
 const onBoardTaskDrop = async ({ taskId, targetStatus }) => {
-  const task = tasks.value.find(t => t.id === taskId)
+  console.log('[DEBUG] onBoardTaskDrop received:', { taskId, targetStatus, tasksCount: tasks.value.length })
+  // Find task by id (taskId might be string or number)
+  const task = tasks.value.find(t => t.id === taskId || t.id === parseInt(taskId))
+  console.log('[DEBUG] found task:', task)
   if (!task) return
   try {
-    await moveTask(taskId, { status: targetStatus })
+    const newStatus = targetStatus.toUpperCase()
+    console.log('[DEBUG] calling moveTask:', { taskId, newStatus, projectId: task.projectId })
+    const res = await moveTask(taskId, { status: newStatus, projectId: task.projectId })
+    console.log('[DEBUG] moveTask response:', res)
     task.status = targetStatus
     ElMessage.success(t('project.taskStatusUpdated'))
   } catch (e) {
+    console.error('Failed to move task:', e)
     ElMessage.error(t('project.updateTaskStatusFailed'))
   }
 }
@@ -661,7 +673,7 @@ const fetchTasks = async () => {
     // Use project.projectId (e.g., "PRJ001") instead of route.params.id (database id)
     const projectId = project.value.projectId || route.params.id
     const res = await getTasksByProject(projectId)
-    tasks.value = res.data || []
+    tasks.value = (res.data || []).map(task => normalizeTask(task))
   } catch (e) {
     // Handle error
   }
@@ -828,7 +840,7 @@ const handleArchiveSprint = async (sprint) => {
 
 const handleRoleChange = async (member) => {
   try {
-    await request.put(`/projects/${project.value.projectId}/members/${member.user_id}`, { roleId: member.role_id })
+    await request.put(`/projects/${project.value.projectId}/members/${member.userId}`, { roleId: member.roleId })
     ElMessage.success(t('project.roleUpdated'))
   } catch (e) {
     // Revert on error
@@ -838,7 +850,7 @@ const handleRoleChange = async (member) => {
 
 const handleRemoveMember = async (member) => {
   try {
-    await request.delete(`/projects/${project.value.projectId}/members/${member.user_id}`)
+    await request.delete(`/projects/${project.value.projectId}/members/${member.userId}`)
     ElMessage.success(t('project.memberRemoved'))
     fetchMembers()
   } catch (e) {
@@ -923,7 +935,7 @@ const filterAvailableUsers = () => {
 }
 
 const isUserInProject = (userId) => {
-  return members.value.some(m => m.user_id === userId)
+  return members.value.some(m => m.userId === userId)
 }
 
 const isUserSelected = (userId) => {

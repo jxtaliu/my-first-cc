@@ -27,7 +27,7 @@
     <div class="pm-task-card-meta">
       <div class="pm-task-card-assignee" v-if="task.assignee">
         <span class="pm-avatar pm-avatar-sm">
-          {{ getAvatarText(task.assignee) }}
+          {{ getAvatarText(task.assigneeName || task.assignee) }}
         </span>
         <span class="pm-task-card-assignee-name">{{ task.assigneeName || task.assignee }}</span>
       </div>
@@ -155,6 +155,7 @@ const formatDuration = (days) => {
 const onDragStart = (e) => {
   e.dataTransfer.effectAllowed = 'move'
   e.dataTransfer.setData('taskId', props.task.id)
+  console.log('[DEBUG TaskCard] onDragStart:', props.task.id, props.task.title)
   emit('dragstart', props.task)
 }
 
