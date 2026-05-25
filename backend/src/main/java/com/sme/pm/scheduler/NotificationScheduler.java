@@ -116,7 +116,7 @@ public class NotificationScheduler {
         for (Task task : overdueTasks) {
             // Check if task is not in done status
             boolean isDone = doneStatuses.stream()
-                    .anyMatch(s -> s.getId().equals(task.getStatus().longValue()));
+                    .anyMatch(s -> s.getCode().equals(task.getStatus()));
             if (!isDone && task.getAssigneeId() != null) {
                 MilestoneDueEvent event = new MilestoneDueEvent(
                         this,

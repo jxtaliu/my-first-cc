@@ -13,6 +13,8 @@ public class MybatisPlusConfig implements MetaObjectHandler {
     public void insertFill(MetaObject metaObject) {
         this.strictInsertFill(metaObject, "createdAt", LocalDateTime.class, LocalDateTime.now());
         this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, LocalDateTime.now());
+        // Default status to TODO (1) if not set
+        this.strictInsertFill(metaObject, "status", Integer.class, 1);
     }
 
     @Override

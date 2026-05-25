@@ -172,14 +172,23 @@ import { useRoute } from 'vue-router'
 import KanbanBoard from '@/components/kanban/KanbanBoard.vue'
 import QuickAddDialog from '@/components/kanban/QuickAddDialog.vue'
 import { useKanban } from '@/composables/useKanban'
-import { getProject, getSprints, getSprintTasks } from '@/api/project'
+import { getProject, getSprints } from '@/api/project'
 import { getTasksByProject, moveTask as apiMoveTask, createTask as apiCreateTask, updateTask as apiUpdateTask } from '@/api/task'
 
 const { t } = useI18n()
 const route = useRoute()
 
 // Kanban composable
-const { columns: kanbanColumnsFromApi, loadTaskStatuses, normalizeTask, statusCodeToId, statusIdToCode } = useKanban()
+const { columns: kanbanColumnsFromApi, loadTaskStatuses, normalizeTask, statusCodeToId, statusIdToCode, taskStatuses } = useKanban()
+
+// Debug: log status mapping changes
+watch(taskStatuses, (newVal) => {
+  console.log('[DEBUG] taskStatuses changed:', newVal)
+}, { immediate: true })
+
+watch(statusIdToCode, (newVal) => {
+  console.log('[DEBUG] statusIdToCode changed:', newVal)
+}, { immediate: true, deep: true })
 
 // Refs
 const kanbanBoardRef = ref(null)
@@ -251,7 +260,9 @@ async function loadProjectData() {
   try {
     // Load project info
     const projectRes = await getProject(projectId)
+    console.log('[DEBUG] getProject response:', projectRes)
     project.value = projectRes.data || projectRes
+    console.log('[DEBUG] project.value after loading:', project.value)
 
     // Load sprints
     const sprintsRes = await getSprints(projectId)
@@ -260,11 +271,8 @@ async function loadProjectData() {
     // Load task statuses for the project
     await loadTaskStatuses(projectId)
 
-    // Set current sprint to active one or first sprint
-    const activeSprint = sprints.value.find(s => s.status === 'ACTIVE') || sprints.value[0]
-    if (activeSprint) {
-      currentSprintId.value = activeSprint.id
-    }
+    // Load all tasks for the project
+    loadTasks()
   } catch (error) {
     console.error('Failed to load project data:', error)
     ElMessage.error('Failed to load project data')
@@ -273,37 +281,37 @@ async function loadProjectData() {
   }
 }
 
-// Load tasks for current sprint
-async function loadSprintTasks() {
-  const projectId = route.params.id
-  if (!currentSprintId.value) {
+// Load all tasks for the project
+async function loadTasks() {
+  // Use business projectId from loaded project, not route params
+  const projectId = project.value?.projectId
+  console.log('[DEBUG] loadTasks called, projectId:', projectId, 'project:', project.value)
+  if (!projectId) {
+    console.log('[DEBUG] No projectId, setting tasks to empty')
     tasks.value = []
     return
   }
 
   loading.value = true
   try {
-    const res = await getSprintTasks(projectId, currentSprintId.value)
+    console.log('[DEBUG] Calling getTasksByProject with:', projectId)
+    const res = await getTasksByProject(projectId)
+    console.log('[DEBUG] getTasksByProject response:', res)
     const rawTasks = res.data || res || []
+    console.log('[DEBUG] rawTasks:', rawTasks)
     tasks.value = rawTasks.map(task => {
       const normalized = normalizeTask(task)
       normalized.dependencies = task.dependencies || []
       return normalized
     })
+    console.log('[DEBUG] tasks after mapping:', tasks.value)
   } catch (error) {
-    console.error('Failed to load sprint tasks:', error)
+    console.error('Failed to load tasks:', error)
     ElMessage.error('Failed to load tasks')
   } finally {
     loading.value = false
   }
 }
-
-// Watch for sprint changes
-watch(currentSprintId, () => {
-  if (currentSprintId.value) {
-    loadSprintTasks()
-  }
-})
 
 // Event handlers
 const onTaskClick = (task) => {

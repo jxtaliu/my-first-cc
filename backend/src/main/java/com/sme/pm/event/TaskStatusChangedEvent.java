@@ -5,14 +5,14 @@ import lombok.Getter;
 @Getter
 public class TaskStatusChangedEvent extends BaseNotificationEvent {
     private final Long taskId;
-    private final Long oldStatusId;
-    private final Long newStatusId;
+    private final String oldStatusCode;
+    private final String newStatusCode;
 
-    public TaskStatusChangedEvent(Object source, Long userId, Long taskId, Long oldStatusId,
-                                  Long newStatusId, String title, String content, String relatedProjectId) {
+    public TaskStatusChangedEvent(Object source, Long userId, Long taskId, String oldStatusCode,
+                                  String newStatusCode, String title, String content, String relatedProjectId) {
         super(source, userId, title, content, taskId, relatedProjectId);
         this.taskId = taskId;
-        this.oldStatusId = oldStatusId;
-        this.newStatusId = newStatusId;
+        this.oldStatusCode = oldStatusCode;
+        this.newStatusCode = newStatusCode;
     }
 }

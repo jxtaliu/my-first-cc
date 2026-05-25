@@ -166,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Plus, Calendar, ArrowLeft } from '@element-plus/icons-vue'
@@ -317,6 +317,13 @@ const onSprintChange = () => {
   loadSprintTasks()
 }
 
+// Watch for sprint changes
+watch(currentSprintId, (newVal) => {
+  if (newVal) {
+    loadSprintTasks()
+  }
+})
+
 const onTaskClick = (task) => {
   editingTask.value = { ...task }
   showTaskDetail.value = true
@@ -330,10 +337,10 @@ const onTaskDrop = async ({ taskId, targetStatus }) => {
   if (oldStatus === targetStatus) return
 
   try {
-    const newStatusId = statusCodeToId.value[targetStatus]
-    await apiMoveTask(taskId, { statusId: newStatusId, sprintId: currentSprintId.value })
+    // Now using status directly (backend Task.status field stores code)
+    await apiMoveTask(taskId, { status: targetStatus.toUpperCase(), sprintId: currentSprintId.value })
     task.status = targetStatus
-    task.statusId = newStatusId
+    task.statusId = targetStatus.toUpperCase()
     if (targetStatus === 'done') {
       task.progress = 100
       task.remainingHours = 0

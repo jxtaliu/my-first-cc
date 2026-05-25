@@ -764,3 +764,21 @@ SELECT 'PRJ009', from_status, to_status FROM bug_status_transition WHERE project
 
 INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
 SELECT 'PRJ010', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+
+-- =============================================================================
+-- Migration: task.status 从 sort_order (1,2,3,4) 改为 code (TODO, IN_PROGRESS...)
+-- 问题: sort_order 会随配置变化，不稳定
+-- 解决: 直接存储 task_status.code，查询时无需 JOIN
+-- =============================================================================
+-- 1. 修改字段类型
+ALTER TABLE task MODIFY COLUMN status VARCHAR(50) DEFAULT 'TODO' COMMENT 'TODO/IN_PROGRESS/IN_REVIEW/DONE - references task_status.code';
+
+-- 2. 数据迁移: sort_order -> code
+UPDATE task SET status = CASE 
+    WHEN status = '1' THEN 'TODO'
+    WHEN status = '2' THEN 'IN_PROGRESS'
+    WHEN status = '3' THEN 'IN_REVIEW'
+    WHEN status = '4' THEN 'DONE'
+END
+WHERE status IN ('1', '2', '3', '4');

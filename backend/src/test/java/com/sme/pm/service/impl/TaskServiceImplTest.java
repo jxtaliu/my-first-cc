@@ -118,7 +118,7 @@ class TaskServiceImplTest {
         Task task = new Task();
         task.setId(1L);
         task.setTitle("Updated Title");
-        task.setStatus(2);
+        task.setStatus("TODO");
 
         when(taskMapper.updateById(task)).thenReturn(1);
 
@@ -224,38 +224,38 @@ class TaskServiceImplTest {
     @Test
     void updateStatus_shouldPublishTaskStatusChangedEvent() {
         Long taskId = 1L;
-        Integer oldStatusId = 10;
-        Long newStatusId = 20L;
+        String oldStatusCode = "TODO";
+        String newStatusCode = "IN_PROGRESS";
 
         Task task = new Task();
         task.setId(taskId);
         task.setTitle("Test Task");
-        task.setStatus(oldStatusId);
+        task.setStatus(oldStatusCode);
         task.setAssigneeId(5L);
         task.setProjectId("PRJ_TEST");
 
         TaskStatus currentStatus = new TaskStatus();
-        currentStatus.setId(oldStatusId.longValue());
+        currentStatus.setId(10L);
         currentStatus.setCode("TODO");
 
         TaskStatus newStatus = new TaskStatus();
-        newStatus.setId(newStatusId);
+        newStatus.setId(20L);
         newStatus.setNameEn("In Progress");
         newStatus.setCode("IN_PROGRESS");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
-        when(taskStatusMapper.selectById(any())).thenAnswer(invocation -> {
-            Object arg = invocation.getArgument(0);
-            if (arg.equals(oldStatusId) || arg.equals(oldStatusId.longValue())) {
+        when(taskStatusMapper.selectOne(any())).thenAnswer(invocation -> {
+            TaskStatus queryStatus = invocation.getArgument(0);
+            if ("TODO".equals(queryStatus.getCode())) {
                 return currentStatus;
-            } else if (arg.equals(newStatusId) || arg.equals(newStatusId.intValue())) {
+            } else if ("IN_PROGRESS".equals(queryStatus.getCode())) {
                 return newStatus;
             }
             return null;
         });
         when(taskMapper.updateById(any(Task.class))).thenReturn(1);
 
-        taskService.updateStatus(taskId, newStatusId);
+        taskService.updateStatus(taskId, newStatusCode);
 
         ArgumentCaptor<TaskStatusChangedEvent> eventCaptor = ArgumentCaptor.forClass(TaskStatusChangedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -263,46 +263,46 @@ class TaskServiceImplTest {
         TaskStatusChangedEvent capturedEvent = eventCaptor.getValue();
         assertEquals(5L, capturedEvent.getUserId());
         assertEquals(taskId, capturedEvent.getTaskId());
-        assertEquals(oldStatusId.longValue(), capturedEvent.getOldStatusId());
-        assertEquals(newStatusId, capturedEvent.getNewStatusId());
+        assertEquals(oldStatusCode, capturedEvent.getOldStatusCode());
+        assertEquals(newStatusCode, capturedEvent.getNewStatusCode());
     }
 
     @Test
     void updateStatus_shouldSetInProgressSince_whenMovingToInProgress() {
         Long taskId = 1L;
-        Integer oldStatusId = 10;
-        Long newStatusId = 20L;
+        String oldStatusCode = "TODO";
+        String newStatusCode = "IN_PROGRESS";
 
         Task task = new Task();
         task.setId(taskId);
         task.setTitle("Test Task");
-        task.setStatus(oldStatusId);
+        task.setStatus(oldStatusCode);
         task.setAssigneeId(5L);
         task.setProjectId("PRJ_TEST");
         task.setInProgressSince(null); // Not yet in progress
 
         TaskStatus currentStatus = new TaskStatus();
-        currentStatus.setId(oldStatusId.longValue());
+        currentStatus.setId(10L);
         currentStatus.setCode("TODO");
 
         TaskStatus newStatus = new TaskStatus();
-        newStatus.setId(newStatusId);
+        newStatus.setId(20L);
         newStatus.setNameEn("In Progress");
         newStatus.setCode("IN_PROGRESS");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
-        when(taskStatusMapper.selectById(any())).thenAnswer(invocation -> {
-            Object arg = invocation.getArgument(0);
-            if (arg.equals(oldStatusId) || arg.equals(oldStatusId.longValue())) {
+        when(taskStatusMapper.selectOne(any())).thenAnswer(invocation -> {
+            TaskStatus queryStatus = invocation.getArgument(0);
+            if ("TODO".equals(queryStatus.getCode())) {
                 return currentStatus;
-            } else if (arg.equals(newStatusId) || arg.equals(newStatusId.intValue())) {
+            } else if ("IN_PROGRESS".equals(queryStatus.getCode())) {
                 return newStatus;
             }
             return null;
         });
         when(taskMapper.updateById(any(Task.class))).thenReturn(1);
 
-        Task result = taskService.updateStatus(taskId, newStatusId);
+        Task result = taskService.updateStatus(taskId, newStatusCode);
 
         assertNotNull(result.getInProgressSince());
     }
@@ -310,40 +310,40 @@ class TaskServiceImplTest {
     @Test
     void updateStatus_shouldSetCompletionDateAndProgress_whenMovingToDone() {
         Long taskId = 1L;
-        Integer oldStatusId = 20;
-        Long newStatusId = 30L;
+        String oldStatusCode = "IN_PROGRESS";
+        String newStatusCode = "DONE";
 
         Task task = new Task();
         task.setId(taskId);
         task.setTitle("Test Task");
-        task.setStatus(oldStatusId);
+        task.setStatus(oldStatusCode);
         task.setAssigneeId(5L);
         task.setProjectId("PRJ_TEST");
         task.setProgress(50);
         task.setInProgressSince(java.time.LocalDateTime.now());
 
         TaskStatus currentStatus = new TaskStatus();
-        currentStatus.setId(oldStatusId.longValue());
+        currentStatus.setId(20L);
         currentStatus.setCode("IN_PROGRESS");
 
         TaskStatus newStatus = new TaskStatus();
-        newStatus.setId(newStatusId);
+        newStatus.setId(30L);
         newStatus.setNameEn("Done");
         newStatus.setCode("DONE");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
-        when(taskStatusMapper.selectById(any())).thenAnswer(invocation -> {
-            Object arg = invocation.getArgument(0);
-            if (arg.equals(oldStatusId) || arg.equals(oldStatusId.longValue())) {
+        when(taskStatusMapper.selectOne(any())).thenAnswer(invocation -> {
+            TaskStatus queryStatus = invocation.getArgument(0);
+            if ("IN_PROGRESS".equals(queryStatus.getCode())) {
                 return currentStatus;
-            } else if (arg.equals(newStatusId) || arg.equals(newStatusId.intValue())) {
+            } else if ("DONE".equals(queryStatus.getCode())) {
                 return newStatus;
             }
             return null;
         });
         when(taskMapper.updateById(any(Task.class))).thenReturn(1);
 
-        Task result = taskService.updateStatus(taskId, newStatusId);
+        Task result = taskService.updateStatus(taskId, newStatusCode);
 
         assertEquals(100, result.getProgress());
         assertNotNull(result.getCompletionDate());
@@ -353,14 +353,14 @@ class TaskServiceImplTest {
     @Test
     void canTransitionTo_shouldCheckBlockingDependencies() {
         Long taskId = 1L;
-        Long targetStatusId = 20L;
+        String targetStatusCode = "IN_PROGRESS";
 
-        when(taskDependencyService.canTransitionTo(taskId, targetStatusId)).thenReturn(true);
+        when(taskDependencyService.canTransitionTo(taskId, targetStatusCode)).thenReturn(true);
 
-        boolean result = taskService.canTransitionTo(taskId, targetStatusId);
+        boolean result = taskService.canTransitionTo(taskId, targetStatusCode);
 
         assertTrue(result);
-        verify(taskDependencyService).canTransitionTo(taskId, targetStatusId);
+        verify(taskDependencyService).canTransitionTo(taskId, targetStatusCode);
     }
 
     // ==================== Requirement Tree Tests ====================

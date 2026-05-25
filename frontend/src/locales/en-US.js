@@ -23,7 +23,8 @@ export default {
     logout: 'Logout',
     reset: 'Reset',
     saveSuccess: 'Saved successfully',
-    actions: 'Actions'
+    actions: 'Actions',
+    view: 'View'
   },
   auth: {
     login: 'Login',
@@ -954,6 +955,7 @@ export default {
     addToFavorites: 'Add to Favorites',
     removeFromFavorites: 'Remove from Favorites',
     quickAddProject: 'Quick Add Project',
+    quickAddTask: 'Quick Add Task',
     projectNamePlaceholder: 'Enter project name',
     projectDescPlaceholder: 'Enter project description (optional)'
   },

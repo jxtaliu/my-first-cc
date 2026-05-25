@@ -29,7 +29,7 @@ public class Task {
 
     private String type;  // EPIC/FEATURE/STORY/TASK/BUG/SUBTASK - from sys_dict_code TASK_TYPE_PM
 
-    private Integer status;  // References task_status table (for STORY/TASK)
+    private String status = "TODO";  // TODO/IN_PROGRESS/IN_REVIEW/DONE - references task_status.code
 
     private Long bugStatusId;  // References bug_status table (for BUG type only)
 

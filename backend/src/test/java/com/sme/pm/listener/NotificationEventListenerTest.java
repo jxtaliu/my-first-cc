@@ -74,14 +74,14 @@ class NotificationEventListenerTest {
     void handleTaskStatusChangedEvent_shouldCreateNotification() {
         Long userId = 1L;
         Long taskId = 100L;
-        Long oldStatusId = 10L;
-        Long newStatusId = 20L;
+        String oldStatusCode = "TODO";
+        String newStatusCode = "IN_PROGRESS";
         String projectId = "PRJ_001";
         String title = "Task Status Changed";
         String content = "Task \"Test Task\" status changed to In Progress";
 
         TaskStatusChangedEvent event = new TaskStatusChangedEvent(
-            this, userId, taskId, oldStatusId, newStatusId, title, content, projectId
+            this, userId, taskId, oldStatusCode, newStatusCode, title, content, projectId
         );
 
         listener.handleTaskStatusChanged(event);

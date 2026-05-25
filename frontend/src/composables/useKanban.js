@@ -134,6 +134,9 @@ export function useKanban() {
   }
 
   function normalizeTask(apiTask) {
+    // Task.status now directly stores task_status.code (TODO, IN_PROGRESS, etc.)
+    const normalizedStatus = apiTask.status ? apiTask.status.toLowerCase() : 'todo'
+
     return {
       id: apiTask.id,
       title: apiTask.title,
@@ -141,8 +144,8 @@ export function useKanban() {
       type: apiTask.type,
       typeName: apiTask.typeName,
       priority: apiTask.priority || 'P3',
-      status: statusIdToCode.value[apiTask.status] || apiTask.status,
-      statusId: apiTask.status,
+      status: normalizedStatus,
+      statusId: apiTask.status, // Now stores code, not id
       assignee: apiTask.assigneeId,
       assigneeId: apiTask.assigneeId,
       assigneeName: apiTask.assigneeName || '',

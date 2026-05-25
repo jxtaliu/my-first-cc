@@ -104,7 +104,7 @@
               {{ selectedItem.dueDate || '-' }}
             </el-descriptions-item>
             <el-descriptions-item :label="$t('requirements.assignee')">
-              {{ selectedItem.assigneeId || '-' }}
+              {{ getMemberName(selectedItem.assigneeId) }}
             </el-descriptions-item>
             <el-descriptions-item v-if="selectedItem.type === 'BUG'" :label="$t('requirements.status')">
               <el-tag :color="getBugStatusColor(selectedItem.bugStatusId)">
@@ -118,8 +118,8 @@
             <p>{{ selectedItem.description || '-' }}</p>
           </div>
 
-          <!-- 子项列表（如果是 Epic/Feature） -->
-          <div v-if="['EPIC', 'FEATURE'].includes(selectedItem.type)" class="children-section">
+          <!-- 子项列表（如果是 Epic/Feature/Story） -->
+          <div v-if="['EPIC', 'FEATURE', 'STORY'].includes(selectedItem.type)" class="children-section">
             <div class="section-header">
               <h4>{{ $t('requirements.childItems') }}</h4>
               <el-button size="small" type="primary" @click="handleCreateChild">
@@ -144,6 +144,11 @@
               <el-table-column :label="$t('requirements.status')" width="100">
                 <template #default="{ row }">
                   <span>{{ getStatusName(row.status) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('requirements.assignee')" width="120">
+                <template #default="{ row }">
+                  {{ getMemberName(row.assigneeId) }}
                 </template>
               </el-table-column>
               <el-table-column :label="$t('common.actions')" width="100">
@@ -177,19 +182,22 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Folder, FolderOpened, Document, Warning, ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { getRequirementTree, getRequirementChildren, getRequirement, getBugs, getBugStatuses, deleteRequirement } from '@/api/requirements'
 import { getBugStatusesByProject } from '@/api/bugStatus'
-import { getProjects } from '@/api/project'
+import { getTaskStatusesByProject } from '@/api/taskStatus'
+import { getProjects, getProjectMembers } from '@/api/project'
 import CreateRequirementDialog from './CreateRequirementDialog.vue'
 
 const { t, locale } = useI18n()
 
 const loading = ref(false)
 const projects = ref([])
+const projectMembers = ref([])
 const selectedProjectId = ref(null)
 const treeData = ref([])
 const expandedNodeIds = ref(new Set())
 const showBugs = ref(false)
 const bugs = ref([])
 const bugStatuses = ref([])
+const taskStatuses = ref([])
 
 // 选中的项
 const selectedItem = ref(null)
@@ -261,10 +269,51 @@ const loadBugStatuses = async () => {
   }
 }
 
+// 加载项目成员
+const loadProjectMembers = async () => {
+  if (!selectedProjectId.value) return
+
+  try {
+    const res = await getProjectMembers(selectedProjectId.value)
+    projectMembers.value = res.data || []
+  } catch (e) {
+    console.error('Failed to load project members:', e)
+    projectMembers.value = []
+  }
+}
+
+// 获取成员名称
+const getMemberName = (memberId) => {
+  if (!memberId || !projectMembers.value.length) return '-'
+  const member = projectMembers.value.find(m => m.userId === memberId)
+  return member?.userName || memberId
+}
+
+// 加载任务状态
+const loadTaskStatuses = async () => {
+  if (!selectedProjectId.value) return
+
+  try {
+    const res = await getTaskStatusesByProject(selectedProjectId.value)
+    taskStatuses.value = res.data || []
+  } catch (e) {
+    console.error('Failed to load task statuses:', e)
+    taskStatuses.value = []
+  }
+}
+
+// 获取状态名称
+const getStatusName = (statusCode) => {
+  if (!statusCode || !taskStatuses.value.length) return statusCode || '-'
+  // task.status 直接存储 task_status.code
+  const status = taskStatuses.value.find(s => s.code === statusCode)
+  return status ? (locale.value === 'zh-CN' ? status.nameZh : status.nameEn) : (statusCode || '-')
+}
+
 // 点击树节点
 const handleNodeClick = (data) => {
   selectedItem.value = data
-  if (['EPIC', 'FEATURE'].includes(data.type)) {
+  if (['EPIC', 'FEATURE', 'STORY'].includes(data.type)) {
     // 直接使用树中已有的 children 数据
     childrenItems.value = data.children || []
   } else {
@@ -403,11 +452,6 @@ const getPriorityType = (priority) => {
   return types[priority] || 'info'
 }
 
-const getStatusName = (statusId) => {
-  // TODO: 从 task_status 表获取
-  return statusId || '-'
-}
-
 const getBugStatusName = (bugStatusId) => {
   if (!bugStatusId || !bugStatuses.value.length) return '-'
   const status = bugStatuses.value.find(s => s.id === bugStatusId)
@@ -428,10 +472,14 @@ watch(selectedProjectId, (newVal) => {
     loadRequirementTree()
     loadBugs()
     loadBugStatuses()
+    loadProjectMembers()
+    loadTaskStatuses()
   } else {
     treeData.value = []
     bugs.value = []
     bugStatuses.value = []
+    projectMembers.value = []
+    taskStatuses.value = []
   }
 })
 
@@ -453,8 +501,10 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 20px;
+  background: var(--pm-background, #F8FAFC);
 }
 
+/* 顶部工具栏 */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -464,7 +514,9 @@ export default {
 
 .page-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--pm-text-primary, #1E293B);
 }
 
 .header-right {
@@ -477,6 +529,7 @@ export default {
   width: 200px;
 }
 
+/* 主内容区 */
 .main-content {
   display: flex;
   gap: 20px;
@@ -484,10 +537,13 @@ export default {
   min-height: 0;
 }
 
+/* 左侧面板 */
 .tree-panel {
-  width: 350px;
-  background: var(--pm-bg-color);
-  border-radius: 8px;
+  width: 340px;
+  background: var(--pm-card, #FFFFFF);
+  border: 1px solid var(--pm-border, #E2E8F0);
+  border-radius: var(--pm-radius-lg, 12px);
+  box-shadow: var(--pm-shadow-card, 0 2px 8px rgba(0,0,0,0.06));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -497,19 +553,42 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--pm-border);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--pm-border, #E2E8F0);
+  background: var(--pm-background, #F8FAFC);
 }
 
 .tree-title {
   font-weight: 600;
   font-size: 14px;
+  color: var(--pm-text-secondary, #64748B);
+}
+
+.tree-header .el-button--text {
+  color: var(--pm-primary, #1E3A5F);
+  font-weight: 500;
 }
 
 .tree-content {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
+}
+
+/* 树节点样式 */
+:deep(.el-tree-node__content) {
+  height: 36px;
+  border-radius: var(--pm-radius-sm, 6px);
+  margin-bottom: 2px;
+  transition: background 0.15s ease;
+}
+
+:deep(.el-tree-node__content:hover) {
+  background: var(--pm-background, #F8FAFC);
+}
+
+:deep(.el-tree-node.is-current > .el-tree-node__content) {
+  background: rgba(30, 58, 95, 0.08);
 }
 
 .tree-node {
@@ -520,38 +599,63 @@ export default {
 }
 
 .node-icon {
-  color: var(--pm-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--pm-radius-sm, 6px);
+  flex-shrink: 0;
 }
+
+.type-epic .node-icon { background: rgba(139, 92, 246, 0.15); color: #8B5CF6; }
+.type-feature .node-icon { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+.type-story .node-icon { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+.type-task .node-icon { background: rgba(100, 116, 139, 0.15); color: #64748B; }
+.type-subtask .node-icon { background: rgba(71, 85, 105, 0.15); color: #475569; }
 
 .node-label {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 13px;
+  color: var(--pm-text-primary, #1E293B);
 }
 
 .node-type-badge {
   font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: var(--pm-radius-xs, 4px);
   color: white;
+  font-weight: 500;
+  flex-shrink: 0;
 }
 
+/* Bug 区域 */
 .bug-section {
-  border-top: 1px solid var(--pm-border);
+  border-top: 1px solid var(--pm-border, #E2E8F0);
+  background: #FEF2F2;
 }
 
-.section-header {
+.bug-section .section-header {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
   cursor: pointer;
   font-weight: 500;
+  font-size: 13px;
+  color: #DC2626;
+}
+
+.bug-section .section-header:hover {
+  background: rgba(220, 38, 38, 0.05);
 }
 
 .section-header .arrow {
   margin-left: auto;
+  color: var(--pm-text-muted, #94A3B8);
 }
 
 .bug-list {
@@ -562,13 +666,18 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border-radius: var(--pm-radius-sm, 6px);
   cursor: pointer;
+  margin-bottom: 4px;
+  background: white;
+  border: 1px solid #FEE2E2;
+  transition: all 0.15s ease;
 }
 
 .bug-item:hover {
-  background: var(--pm-hover);
+  background: #FEF2F2;
+  border-color: #FECACA;
 }
 
 .bug-title {
@@ -576,13 +685,17 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 12px;
+  color: var(--pm-text-primary, #1E293B);
 }
 
+/* 右侧详情面板 */
 .detail-panel {
   flex: 1;
-  background: var(--pm-bg-color);
-  border-radius: 8px;
+  background: var(--pm-card, #FFFFFF);
+  border: 1px solid var(--pm-border, #E2E8F0);
+  border-radius: var(--pm-radius-lg, 12px);
+  box-shadow: var(--pm-shadow-card, 0 2px 8px rgba(0,0,0,0.06));
   overflow-y: auto;
 }
 
@@ -594,7 +707,7 @@ export default {
 }
 
 .detail-content {
-  padding: 20px;
+  padding: 20px 24px;
 }
 
 .detail-header {
@@ -602,6 +715,8 @@ export default {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--pm-border, #E2E8F0);
 }
 
 .detail-title {
@@ -613,6 +728,15 @@ export default {
 .detail-title h2 {
   margin: 0;
   font-size: 18px;
+  font-weight: 600;
+  color: var(--pm-text-primary, #1E293B);
+}
+
+.detail-title .el-tag {
+  border-radius: var(--pm-radius-sm, 6px);
+  padding: 4px 10px;
+  font-weight: 500;
+  border: none;
 }
 
 .detail-actions {
@@ -620,43 +744,113 @@ export default {
   gap: 8px;
 }
 
+.detail-actions .el-button {
+  border-radius: var(--pm-radius-md, 8px);
+  font-weight: 500;
+}
+
+.detail-actions .el-button--small {
+  padding: 6px 12px;
+}
+
+/* 描述信息 */
 .detail-descriptions {
   margin-bottom: 20px;
 }
 
+:deep(.el-descriptions__label) {
+  background: var(--pm-background, #F8FAFC);
+  color: var(--pm-text-secondary, #64748B);
+  font-weight: 500;
+}
+
+:deep(.el-descriptions__cell) {
+  border-color: var(--pm-border, #E2E8F0);
+  padding: 10px 12px;
+}
+
+:deep(.el-descriptions__content) {
+  color: var(--pm-text-primary, #1E293B);
+}
+
 .detail-description {
   margin-bottom: 20px;
+  padding: 14px 16px;
+  background: var(--pm-background, #F8FAFC);
+  border-radius: var(--pm-radius-md, 8px);
+  border: 1px solid var(--pm-border, #E2E8F0);
 }
 
 .detail-description h4 {
   margin: 0 0 8px 0;
-  font-size: 14px;
-  color: var(--pm-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pm-text-secondary, #64748B);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .detail-description p {
   margin: 0;
-  color: var(--pm-text);
+  color: var(--pm-text-primary, #1E293B);
   line-height: 1.6;
+  font-size: 13px;
 }
 
+/* 子项区域 */
 .children-section {
   margin-top: 24px;
+  padding: 16px;
+  background: var(--pm-background, #F8FAFC);
+  border-radius: var(--pm-radius-md, 8px);
+  border: 1px solid var(--pm-border, #E2E8F0);
 }
 
 .children-section .section-header {
-  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0 12px 0;
   margin-bottom: 12px;
+  border-bottom: 1px solid var(--pm-border, #E2E8F0);
 }
 
 .children-section .section-header h4 {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pm-text-secondary, #64748B);
 }
 
+:deep(.children-section .el-table) {
+  border-radius: var(--pm-radius-sm, 6px);
+  overflow: hidden;
+}
+
+:deep(.children-section .el-table th) {
+  background: var(--pm-background, #F8FAFC);
+  color: var(--pm-text-secondary, #64748B);
+  font-weight: 600;
+  font-size: 12px;
+  border: none;
+  padding: 10px 8px;
+}
+
+:deep(.children-section .el-table td) {
+  border-color: var(--pm-border, #E2E8F0);
+  padding: 10px 8px;
+  font-size: 13px;
+}
+
+:deep(.children-section .el-table tr:hover > td) {
+  background: var(--pm-background, #F8FAFC);
+}
+
+/* 类型颜色 */
 .type-epic { color: #8B5CF6; }
 .type-feature { color: #3B82F6; }
 .type-story { color: #10B981; }
-.type-task { color: #94A3B8; }
+.type-task { color: #64748B; }
 .type-bug { color: #EF4444; }
+.type-subtask { color: #475569; }
 </style>

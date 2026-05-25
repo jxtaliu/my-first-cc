@@ -40,12 +40,12 @@ export function assignTask(id, userId) {
   return request.put(`/v1/tasks/${id}/assign`, { userId })
 }
 
-export function updateTaskStatus(id, statusId) {
-  return request.put(`/v1/tasks/${id}/status`, { statusId })
+export function updateTaskStatus(id, statusCode) {
+  return request.put(`/v1/tasks/${id}/status`, { statusCode })
 }
 
-export function canTransitionTo(id, targetStatusId) {
-  return request.get(`/v1/tasks/${id}/can-transition/${targetStatusId}`)
+export function canTransitionTo(id, targetStatusCode) {
+  return request.get(`/v1/tasks/${id}/can-transition/${targetStatusCode}`)
 }
 
 export function getTaskComments(taskId) {

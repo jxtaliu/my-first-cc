@@ -9,5 +9,5 @@ public interface ITaskDependencyService extends IService<TaskDependency> {
     List<TaskDependency> findByTaskId(Long taskId);
     List<TaskDependency> findByDependsOnTaskId(Long dependsOnTaskId);
     int countBlockingDependencies(Long taskId);
-    boolean canTransitionTo(Long taskId, Long targetStatusId);
+    boolean canTransitionTo(Long taskId, String targetStatusCode);
 }

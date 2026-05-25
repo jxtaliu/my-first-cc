@@ -26,7 +26,7 @@ import java.util.Map;
 @Service
 public class TaskServiceImpl implements TaskService {
 
-    private static final int MAX_DEPTH = 4;
+    private static final int MAX_DEPTH = 5;
     private final TaskMapper taskMapper;
     private final TaskStatusMapper taskStatusMapper;
     private final ITaskCommentService taskCommentService;
@@ -90,6 +90,12 @@ public class TaskServiceImpl implements TaskService {
             task.setProgress(0);
         }
 
+        // Set default status to TODO if not specified
+        if (task.getStatus() == null) {
+            task.setStatus("TODO");
+        }
+
+        // Use standard insert
         taskMapper.insert(task);
         return task;
     }
@@ -166,22 +172,26 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task updateStatus(Long taskId, Long statusId) {
+    public Task updateStatus(Long taskId, String targetStatusCode) {
         Task task = taskMapper.findById(taskId);
         if (task == null) {
             throw new IllegalArgumentException("Task not found: " + taskId);
         }
 
-        TaskStatus newStatus = taskStatusMapper.selectById(statusId);
+        TaskStatus newStatus = taskStatusMapper.selectOne(
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<TaskStatus>()
+                .eq(TaskStatus::getProjectId, task.getProjectId())
+                .eq(TaskStatus::getCode, targetStatusCode)
+        );
         if (newStatus == null) {
-            throw new IllegalArgumentException("Status not found: " + statusId);
+            throw new IllegalArgumentException("Status not found: " + targetStatusCode);
         }
 
-        TaskStatus currentStatus = taskStatusMapper.selectById(task.getStatus());
-        if (currentStatus != null && "DONE".equals(currentStatus.getCode()) && !"DONE".equals(newStatus.getCode())) {
+        String currentCode = task.getStatus();
+        if ("DONE".equals(currentCode) && !"DONE".equals(newStatus.getCode())) {
             task.setCompletionDate(null);
             task.setInProgressSince(LocalDateTime.now());
-        } else if (!"DONE".equals(currentStatus.getCode()) && "DONE".equals(newStatus.getCode())) {
+        } else if (!"DONE".equals(currentCode) && "DONE".equals(newStatus.getCode())) {
             task.setCompletionDate(LocalDateTime.now());
             task.setInProgressSince(null);
             task.setProgress(100);
@@ -189,8 +199,8 @@ public class TaskServiceImpl implements TaskService {
             task.setInProgressSince(LocalDateTime.now());
         }
 
-        Long oldStatusId = task.getStatus() != null ? task.getStatus().longValue() : null;
-        task.setStatus(statusId.intValue());
+        String oldStatusCode = task.getStatus();
+        task.setStatus(newStatus.getCode());
         taskMapper.updateById(task);
 
         // Publish TaskStatusChangedEvent
@@ -198,8 +208,8 @@ public class TaskServiceImpl implements TaskService {
                 this,
                 task.getAssigneeId(),
                 taskId,
-                oldStatusId,
-                statusId,
+                oldStatusCode,
+                newStatus.getCode(),
                 "Task Status Changed",
                 "Task \"" + task.getTitle() + "\" status changed to " + (newStatus.getNameEn() != null ? newStatus.getNameEn() : newStatus.getCode()),
                 task.getProjectId()
@@ -210,8 +220,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public boolean canTransitionTo(Long taskId, Long targetStatusId) {
-        return taskDependencyService.canTransitionTo(taskId, targetStatusId);
+    public boolean canTransitionTo(Long taskId, String targetStatusCode) {
+        return taskDependencyService.canTransitionTo(taskId, targetStatusCode);
     }
 
     @Override

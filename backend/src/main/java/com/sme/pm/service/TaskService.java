@@ -18,8 +18,8 @@ public interface TaskService {
     List<Task> listByParent(Long parentId);
     List<Task> listByAssignee(Long assigneeId);
     void assign(Long taskId, Long userId);
-    Task updateStatus(Long taskId, Long statusId);
-    boolean canTransitionTo(Long taskId, Long targetStatusId);
+    Task updateStatus(Long taskId, String statusCode);
+    boolean canTransitionTo(Long taskId, String targetStatusCode);
     List<TaskComment> getComments(Long taskId);
     void addComment(Long taskId, TaskComment comment);
     List<TaskAttachment> getAttachments(Long taskId);

@@ -23,7 +23,8 @@ export default {
     logout: '退出登录',
     reset: '重置',
     saveSuccess: '保存成功',
-    actions: '操作'
+    actions: '操作',
+    view: '查看'
   },
   auth: {
     login: '登录',
@@ -954,6 +955,7 @@ export default {
     addToFavorites: '添加到收藏',
     removeFromFavorites: '从收藏移除',
     quickAddProject: '快速创建项目',
+    quickAddTask: '快速添加任务',
     projectNamePlaceholder: '输入项目名称',
     projectDescPlaceholder: '输入项目描述（可选）'
   },

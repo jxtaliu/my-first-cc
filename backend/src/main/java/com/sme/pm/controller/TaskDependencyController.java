@@ -32,9 +32,9 @@ public class TaskDependencyController {
         return Result.success(taskDependencyService.countBlockingDependencies(taskId));
     }
 
-    @GetMapping("/task/{taskId}/can-transition/{targetStatusId}")
-    public Result<Boolean> canTransitionTo(@PathVariable Long taskId, @PathVariable Long targetStatusId) {
-        return Result.success(taskDependencyService.canTransitionTo(taskId, targetStatusId));
+    @GetMapping("/task/{taskId}/can-transition/{targetStatusCode}")
+    public Result<Boolean> canTransitionTo(@PathVariable Long taskId, @PathVariable String targetStatusCode) {
+        return Result.success(taskDependencyService.canTransitionTo(taskId, targetStatusCode));
     }
 
     @PostMapping

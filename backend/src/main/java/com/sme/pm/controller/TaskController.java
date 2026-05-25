@@ -82,13 +82,13 @@ public class TaskController {
 
     @PutMapping("/{id}/status")
     @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER", "DEVELOPER"}, operation = "update_task_status")
-    public Result<Task> updateStatus(@PathVariable Long id, @RequestParam Long statusId) {
-        return Result.success(taskService.updateStatus(id, statusId));
+    public Result<Task> updateStatus(@PathVariable Long id, @RequestParam String statusCode) {
+        return Result.success(taskService.updateStatus(id, statusCode));
     }
 
-    @GetMapping("/{id}/can-transition/{targetStatusId}")
-    public Result<Boolean> canTransitionTo(@PathVariable Long id, @PathVariable Long targetStatusId) {
-        return Result.success(taskService.canTransitionTo(id, targetStatusId));
+    @GetMapping("/{id}/can-transition/{targetStatusCode}")
+    public Result<Boolean> canTransitionTo(@PathVariable Long id, @PathVariable String targetStatusCode) {
+        return Result.success(taskService.canTransitionTo(id, targetStatusCode));
     }
 
     @GetMapping("/{id}/comments")

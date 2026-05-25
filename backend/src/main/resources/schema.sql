@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS task (
     title VARCHAR(500) NOT NULL,
     description TEXT,
     type VARCHAR(50) NOT NULL DEFAULT 'STORY' COMMENT 'EPIC/FEATURE/STORY/TASK/BUG/SUBTASK - from sys_dict_code',
-    status TINYINT DEFAULT 1 COMMENT '1: todo, 2: in_progress, 3: done - for STORY/TASK',
+    status VARCHAR(50) DEFAULT 'TODO' COMMENT 'TODO/IN_PROGRESS/IN_REVIEW/DONE - references task_status.code',
     bug_status_id BIGINT COMMENT 'Bug status ID - references bug_status.id, for BUG type only',
     priority VARCHAR(20) DEFAULT 'P2' COMMENT 'P0/P1/P2/P3',
     assignee_id BIGINT,
