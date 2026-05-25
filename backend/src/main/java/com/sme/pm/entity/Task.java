@@ -1,9 +1,11 @@
 package com.sme.pm.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @TableName("task")
@@ -41,6 +43,8 @@ public class Task {
 
     private Integer actualHours;
 
+    private Integer storyPoints;  // For STORY type only
+
     private Integer progress;  // 0-100
 
     private Long milestoneId;  // Auto-linked from sprint when task is added
@@ -63,4 +67,8 @@ public class Task {
 
     @TableLogic
     private Integer deleted;
+
+    @TableField(exist = false)
+    @JsonProperty("children")
+    private List<Task> children;
 }

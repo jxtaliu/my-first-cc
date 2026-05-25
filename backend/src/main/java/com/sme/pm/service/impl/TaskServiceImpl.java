@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -48,6 +50,17 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task create(Task task) {
+        // Validate required fields - none of these can be null
+        if (task.getProjectId() == null || task.getProjectId().isEmpty()) {
+            throw new IllegalArgumentException("projectId不能为空");
+        }
+        if (task.getType() == null || task.getType().isEmpty()) {
+            throw new IllegalArgumentException("type不能为空");
+        }
+        if (task.getTitle() == null || task.getTitle().isEmpty()) {
+            throw new IllegalArgumentException("title不能为空");
+        }
+
         // Generate task_id if not provided
         if (task.getTaskId() == null || task.getTaskId().isEmpty()) {
             int count = taskMapper.countAll();
@@ -83,6 +96,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task update(Task task) {
+        // Validate required fields
+        if (task.getId() == null) {
+            throw new IllegalArgumentException("id不能为空");
+        }
+        if (task.getTitle() != null && task.getTitle().isEmpty()) {
+            throw new IllegalArgumentException("title不能为空字符串");
+        }
+
         taskMapper.updateById(task);
         return task;
     }
@@ -273,12 +294,40 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> getRequirementTree(String projectId) {
-        // Get Epic and Feature (depth = 1, type = EPIC or FEATURE)
-        return taskMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Task>()
+        // Get all requirements for the project (all types)
+        List<Task> allTasks = taskMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Task>()
                 .eq(Task::getProjectId, projectId)
-                .in(Task::getType, "EPIC", "FEATURE")
+                .in(Task::getType, "EPIC", "FEATURE", "STORY", "TASK", "SUBTASK")
                 .eq(Task::getDeleted, 0)
                 .orderByAsc(Task::getId));
+
+        // Build tree structure
+        Map<Long, Task> taskMap = new java.util.HashMap<>();
+        List<Task> rootTasks = new java.util.ArrayList<>();
+
+        // First pass: put all tasks in map
+        for (Task task : allTasks) {
+            taskMap.put(task.getId(), task);
+            // Initialize children list
+            task.setChildren(new java.util.ArrayList<>());
+        }
+
+        // Second pass: build tree
+        for (Task task : allTasks) {
+            if (task.getParentId() == null) {
+                rootTasks.add(task);
+            } else {
+                Task parent = taskMap.get(task.getParentId());
+                if (parent != null) {
+                    parent.getChildren().add(task);
+                } else {
+                    // Orphan task, treat as root
+                    rootTasks.add(task);
+                }
+            }
+        }
+
+        return rootTasks;
     }
 
     @Override

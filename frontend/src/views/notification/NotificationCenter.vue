@@ -18,11 +18,11 @@
     <el-card class="filter-card" shadow="never">
       <div class="filters">
         <el-radio-group v-model="filterType" @change="handleFilterChange">
-          <el-radio-button label="all">{{ $t('notification.all') }}</el-radio-button>
-          <el-radio-button label="TASK">{{ $t('notification.task') }}</el-radio-button>
-          <el-radio-button label="TIMESHEET">{{ $t('notification.timesheet') }}</el-radio-button>
-          <el-radio-button label="PROJECT">{{ $t('notification.project') }}</el-radio-button>
-          <el-radio-button label="SYSTEM">{{ $t('notification.system') }}</el-radio-button>
+          <el-radio-button value="all">{{ $t('notification.all') }}</el-radio-button>
+          <el-radio-button value="TASK">{{ $t('notification.task') }}</el-radio-button>
+          <el-radio-button value="TIMESHEET">{{ $t('notification.timesheet') }}</el-radio-button>
+          <el-radio-button value="PROJECT">{{ $t('notification.project') }}</el-radio-button>
+          <el-radio-button value="SYSTEM">{{ $t('notification.system') }}</el-radio-button>
         </el-radio-group>
         <el-select v-model="filterRead" :placeholder="$t('notification.readStatus')" clearable style="width: 150px">
           <el-option :label="$t('notification.unread')" value="false" />

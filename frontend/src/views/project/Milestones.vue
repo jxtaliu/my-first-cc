@@ -15,9 +15,9 @@
     <!-- Filter Tabs -->
     <div class="milestones-tabs">
       <el-radio-group v-model="activeTab">
-        <el-radio-button label="all">{{ $t('project.allMilestones') }}</el-radio-button>
-        <el-radio-button label="cross-project">{{ $t('project.crossProject') }}</el-radio-button>
-        <el-radio-button label="project">{{ $t('project.projectMilestones') }}</el-radio-button>
+        <el-radio-button value="all">{{ $t('project.allMilestones') }}</el-radio-button>
+        <el-radio-button value="cross-project">{{ $t('project.crossProject') }}</el-radio-button>
+        <el-radio-button value="project">{{ $t('project.projectMilestones') }}</el-radio-button>
       </el-radio-group>
       <el-select v-model="filterProject" :placeholder="$t('project.filterByProject')" clearable style="width: 180px">
         <el-option

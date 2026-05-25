@@ -27,7 +27,7 @@ export function getRequirementSubtree(id) {
  * Move/ reorder a requirement
  */
 export function moveRequirement(data) {
-  return request.put('/v1/tasks/requirements/move', data)
+  return request.put('/v1/tasks/requirements/move', data, { params: { projectId: data.projectId } })
 }
 
 /**
@@ -43,7 +43,7 @@ export function getBugs(projectId) {
  * Create a bug
  */
 export function createBug(data) {
-  return request.post('/v1/tasks/bugs', data)
+  return request.post('/v1/tasks/bugs', data, { params: { projectId: data.projectId } })
 }
 
 /**
@@ -73,7 +73,7 @@ export function updateBugStatus(bugId, bugStatusId) {
  * Create a requirement
  */
 export function createRequirement(data) {
-  return request.post('/v1/tasks', data)
+  return request.post('/v1/tasks', data, { params: { projectId: data.projectId } })
 }
 
 /**

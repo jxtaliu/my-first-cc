@@ -22,7 +22,8 @@ export default {
     inactive: '停用',
     logout: '退出登录',
     reset: '重置',
-    saveSuccess: '保存成功'
+    saveSuccess: '保存成功',
+    actions: '操作'
   },
   auth: {
     login: '登录',
@@ -124,11 +125,13 @@ export default {
   },
   requirements: {
     title: '需求标题',
+    description: '描述',
     project: '所属项目',
     selectProject: '选择项目',
     status: '状态',
     selectStatus: '选择状态',
     priority: '优先级',
+    type: '类型',
     creator: '创建人',
     createTime: '创建时间',
     statusDraft: '草稿',
@@ -141,6 +144,8 @@ export default {
     noBugs: '暂无Bug',
     selectToViewDetail: '选择查看详情',
     estimateHours: '预估工时',
+    actualHours: '实际工时',
+    storyPoints: '故事点',
     dueDate: '截止日期',
     assignee: '负责人',
     childItems: '子项',
@@ -167,7 +172,17 @@ export default {
     p0: 'P0 - 最高',
     p1: 'P1 - 高',
     p2: 'P2 - 中',
-    p3: 'P3 - 低'
+    p3: 'P3 - 低',
+    // Parent relations
+    parentEpic: '所属史诗',
+    parentFeature: '所属特性',
+    parentStory: '所属故事',
+    parentTask: '所属任务',
+    selectEpic: '选择史诗',
+    selectFeature: '选择特性',
+    selectStory: '选择故事',
+    selectTask: '选择任务',
+    projectIdRequired: '项目ID不能为空'
   },
   project: {
     name: '项目名称',

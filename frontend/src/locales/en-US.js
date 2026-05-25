@@ -22,7 +22,8 @@ export default {
     inactive: 'Inactive',
     logout: 'Logout',
     reset: 'Reset',
-    saveSuccess: 'Saved successfully'
+    saveSuccess: 'Saved successfully',
+    actions: 'Actions'
   },
   auth: {
     login: 'Login',
@@ -124,11 +125,13 @@ export default {
   },
   requirements: {
     title: 'Title',
+    description: 'Description',
     project: 'Project',
     selectProject: 'Select Project',
     status: 'Status',
     selectStatus: 'Select Status',
     priority: 'Priority',
+    type: 'Type',
     creator: 'Creator',
     createTime: 'Created',
     statusDraft: 'Draft',
@@ -141,6 +144,8 @@ export default {
     noBugs: 'No Bugs',
     selectToViewDetail: 'Select to view details',
     estimateHours: 'Estimate Hours',
+    actualHours: 'Actual Hours',
+    storyPoints: 'Story Points',
     dueDate: 'Due Date',
     assignee: 'Assignee',
     childItems: 'Child Items',
@@ -167,7 +172,17 @@ export default {
     p0: 'P0 - Highest',
     p1: 'P1 - High',
     p2: 'P2 - Medium',
-    p3: 'P3 - Low'
+    p3: 'P3 - Low',
+    // Parent relations
+    parentEpic: 'Parent Epic',
+    parentFeature: 'Parent Feature',
+    parentStory: 'Parent Story',
+    parentTask: 'Parent Task',
+    selectEpic: 'Select Epic',
+    selectFeature: 'Select Feature',
+    selectStory: 'Select Story',
+    selectTask: 'Select Task',
+    projectIdRequired: 'Project ID is required'
   },
   project: {
     name: 'Project Name',

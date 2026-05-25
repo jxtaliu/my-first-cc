@@ -180,8 +180,7 @@ import { getBugStatusesByProject } from '@/api/bugStatus'
 import { getProjects } from '@/api/project'
 import CreateRequirementDialog from './CreateRequirementDialog.vue'
 
-const { t } = useI18n()
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 
 const loading = ref(false)
 const projects = ref([])
@@ -263,16 +262,11 @@ const loadBugStatuses = async () => {
 }
 
 // 点击树节点
-const handleNodeClick = async (data) => {
+const handleNodeClick = (data) => {
   selectedItem.value = data
   if (['EPIC', 'FEATURE'].includes(data.type)) {
-    // 加载子项
-    try {
-      const res = await getRequirementChildren(data.id)
-      childrenItems.value = res.data || []
-    } catch (e) {
-      childrenItems.value = []
-    }
+    // 直接使用树中已有的 children 数据
+    childrenItems.value = data.children || []
   } else {
     childrenItems.value = []
   }
@@ -291,13 +285,25 @@ const handleNodeCollapse = (data) => {
 // 展开/折叠全部
 const expandAll = () => {
   expanded.value = !expanded.value
-  if (expanded.value) {
-    treeData.value.forEach(node => {
-      expandedNodeIds.value.add(node.id)
+  if (!treeRef.value || !treeData.value.length) return
+
+  const traverseAndExpand = (nodes, isExpand) => {
+    nodes.forEach(node => {
+      const treeNode = treeRef.value.getNode(node.id)
+      if (treeNode) {
+        if (isExpand) {
+          treeNode.expand()
+        } else {
+          treeNode.collapse()
+        }
+      }
+      if (node.children && node.children.length > 0) {
+        traverseAndExpand(node.children, isExpand)
+      }
     })
-  } else {
-    expandedNodeIds.value.clear()
   }
+
+  traverseAndExpand(treeData.value, expanded.value)
 }
 
 const expanded = ref(false)
@@ -354,10 +360,29 @@ const handleDelete = async () => {
 
 // 创建成功回调
 const onCreateSuccess = () => {
-  loadRequirementTree()
-  if (selectedItem.value) {
-    handleNodeClick(selectedItem.value)
+  const previousId = selectedItem.value?.id
+  loadRequirementTree().then(() => {
+    if (previousId) {
+      // 从新树中找到更新后的节点
+      const updatedNode = findNodeById(treeData.value, previousId)
+      if (updatedNode) {
+        selectedItem.value = updatedNode
+        childrenItems.value = updatedNode.children || []
+      }
+    }
+  })
+}
+
+// 根据ID在树中查找节点
+const findNodeById = (nodes, id) => {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    if (node.children?.length) {
+      const found = findNodeById(node.children, id)
+      if (found) return found
+    }
   }
+  return null
 }
 
 // 工具函数

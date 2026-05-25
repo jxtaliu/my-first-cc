@@ -7,6 +7,17 @@
 USE sme_pm;
 
 -- =============================================================================
+-- 0. Schema Updates (for existing databases)
+-- =============================================================================
+-- Add story_points column to task table if not exists
+SET @column_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = 'sme_pm' AND TABLE_NAME = 'task' AND COLUMN_NAME = 'story_points');
+SET @sql = IF(@column_exists = 0, 'ALTER TABLE task ADD COLUMN story_points INT COMMENT ''Story points for STORY type''', 'SELECT ''Column already exists''');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- =============================================================================
 -- 第一部分: 系统基础数据
 -- =============================================================================
 
@@ -443,6 +454,32 @@ INSERT IGNORE INTO project (project_id, name, description, project_type, status,
 ('PRJ008', '文档管理系统', '企业级文档存储、检索、权限管理', 'DOCUMENT', 'COMPLETED', 'KANBAN', 1, NOW()),
 ('PRJ009', '第三方支付集成', '对接支付宝、微信支付、银联', 'INTEGRATION', 'PAUSED', 'SCRUM', 1, NOW()),
 ('PRJ010', '旧官网改版', '企业官网全新设计改版项目', 'WEB', 'ARCHIVED', 'KANBAN', 1, NOW());
+
+-- 为每个项目初始化项目成员（owner 作为成员）
+INSERT IGNORE INTO project_member (project_id, user_id, role_id, joined_at) VALUES
+('PRJ001', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ002', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ003', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ004', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ005', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ006', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ007', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ008', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ009', 1, 'ROLE_DEVELOPER', NOW()),
+('PRJ010', 1, 'ROLE_DEVELOPER', NOW());
+
+-- 为每个项目成员初始化项目角色
+INSERT IGNORE INTO project_role (project_id, user_id, role, joined_at) VALUES
+('PRJ001', 1, 'PROJECT_OWNER', NOW()),
+('PRJ002', 1, 'PROJECT_OWNER', NOW()),
+('PRJ003', 1, 'PROJECT_OWNER', NOW()),
+('PRJ004', 1, 'PROJECT_OWNER', NOW()),
+('PRJ005', 1, 'PROJECT_OWNER', NOW()),
+('PRJ006', 1, 'PROJECT_OWNER', NOW()),
+('PRJ007', 1, 'PROJECT_OWNER', NOW()),
+('PRJ008', 1, 'PROJECT_OWNER', NOW()),
+('PRJ009', 1, 'PROJECT_OWNER', NOW()),
+('PRJ010', 1, 'PROJECT_OWNER', NOW());
 
 -- 为每个初始项目初始化任务状态（从业务字典 task_status 复制）
 INSERT IGNORE INTO task_status (project_id, code, name_en, name_zh, color, sort_order)

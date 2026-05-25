@@ -32,4 +32,13 @@ public class Project {
 
     @TableLogic
     private Integer deleted;
+
+    @TableField(exist = false)
+    private Integer memberCount;
+
+    @TableField(exist = false)
+    private Integer taskCount;
+
+    @TableField(exist = false)
+    private Integer completedTaskCount;
 }

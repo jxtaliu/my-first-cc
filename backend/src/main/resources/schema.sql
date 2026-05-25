@@ -177,6 +177,7 @@ CREATE TABLE IF NOT EXISTS task (
     assignee_id BIGINT,
     estimate_hours INT,
     actual_hours INT,
+    story_points INT COMMENT 'Story points for STORY type',
     remaining_hours INT COMMENT 'Remaining work hours',
     progress INT DEFAULT 0 COMMENT 'Progress percentage 0-100',
     milestone_id BIGINT COMMENT 'Auto-linked from sprint',

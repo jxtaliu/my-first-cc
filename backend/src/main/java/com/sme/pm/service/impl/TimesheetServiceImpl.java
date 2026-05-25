@@ -38,6 +38,20 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     @Transactional
     public Timesheet create(Timesheet timesheet) {
+        // Validate required fields
+        if (timesheet.getUserId() == null) {
+            throw new IllegalArgumentException("userId不能为空");
+        }
+        if (timesheet.getProjectId() == null || timesheet.getProjectId().isEmpty()) {
+            throw new IllegalArgumentException("projectId不能为空");
+        }
+        if (timesheet.getWorkDate() == null) {
+            throw new IllegalArgumentException("workDate不能为空");
+        }
+        if (timesheet.getHours() == null) {
+            throw new IllegalArgumentException("hours不能为空");
+        }
+
         timesheet.setApprovalStatus(1);
         timesheetMapper.insert(timesheet);
 

@@ -2,6 +2,7 @@ package com.sme.pm.service.impl;
 
 import com.sme.pm.entity.Project;
 import com.sme.pm.mapper.ProjectMapper;
+import com.sme.pm.mapper.TaskMapper;
 import com.sme.pm.service.ProjectService;
 import com.sme.pm.service.ITaskStatusService;
 import org.springframework.stereotype.Service;
@@ -16,16 +17,29 @@ import java.util.Map;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectMapper projectMapper;
+    private final TaskMapper taskMapper;
     private final ITaskStatusService taskStatusService;
 
-    public ProjectServiceImpl(ProjectMapper projectMapper, ITaskStatusService taskStatusService) {
+    public ProjectServiceImpl(ProjectMapper projectMapper, TaskMapper taskMapper, ITaskStatusService taskStatusService) {
         this.projectMapper = projectMapper;
+        this.taskMapper = taskMapper;
         this.taskStatusService = taskStatusService;
     }
 
     @Override
     @Transactional
     public Project create(Project project) {
+        // Validate required fields
+        if (project.getProjectId() == null || project.getProjectId().isEmpty()) {
+            throw new IllegalArgumentException("projectId不能为空");
+        }
+        if (project.getName() == null || project.getName().isEmpty()) {
+            throw new IllegalArgumentException("name不能为空");
+        }
+        if (project.getOwnerId() == null) {
+            throw new IllegalArgumentException("ownerId不能为空");
+        }
+
         // Check for duplicate project_id
         Project existing = projectMapper.findByProjectId(project.getProjectId());
         if (existing != null) {
@@ -58,17 +72,36 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project getById(Long id) {
-        return projectMapper.findById(id);
+        Project project = projectMapper.findById(id);
+        if (project != null) {
+            populateProjectStats(project);
+        }
+        return project;
     }
 
     @Override
     public List<Project> list() {
-        return projectMapper.findAll();
+        List<Project> projects = projectMapper.findAll();
+        for (Project project : projects) {
+            populateProjectStats(project);
+        }
+        return projects;
     }
 
     @Override
     public List<Project> listByStatus(String status) {
-        return projectMapper.findByStatus(status);
+        List<Project> projects = projectMapper.findByStatus(status);
+        for (Project project : projects) {
+            populateProjectStats(project);
+        }
+        return projects;
+    }
+
+    private void populateProjectStats(Project project) {
+        project.setMemberCount(projectMapper.findMemberIds(project.getProjectId()).size());
+        project.setTaskCount(taskMapper.countByProjectId(project.getProjectId()));
+        // Assuming status = 3 means completed (TODO: verify from task_status table)
+        project.setCompletedTaskCount(taskMapper.countByProjectIdAndStatus(project.getProjectId(), 3));
     }
 
     @Override

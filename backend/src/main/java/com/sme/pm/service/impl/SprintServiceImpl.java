@@ -45,6 +45,14 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
     @Override
     @Transactional
     public Sprint create(Sprint sprint) {
+        // Validate required fields
+        if (sprint.getProjectId() == null || sprint.getProjectId().isEmpty()) {
+            throw new IllegalArgumentException("projectId不能为空");
+        }
+        if (sprint.getName() == null || sprint.getName().isEmpty()) {
+            throw new IllegalArgumentException("name不能为空");
+        }
+
         sprint.setStatus("PLANNING");
         sprintMapper.insert(sprint);
         return sprint;

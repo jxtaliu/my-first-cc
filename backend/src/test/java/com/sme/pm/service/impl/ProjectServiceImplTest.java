@@ -2,6 +2,7 @@ package com.sme.pm.service.impl;
 
 import com.sme.pm.entity.Project;
 import com.sme.pm.mapper.ProjectMapper;
+import com.sme.pm.mapper.TaskMapper;
 import com.sme.pm.service.ProjectService;
 import com.sme.pm.service.ITaskStatusService;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,13 +25,16 @@ class ProjectServiceImplTest {
     private ProjectMapper projectMapper;
 
     @Mock
+    private TaskMapper taskMapper;
+
+    @Mock
     private ITaskStatusService taskStatusService;
 
     private ProjectService projectService;
 
     @BeforeEach
     void setUp() {
-        projectService = new ProjectServiceImpl(projectMapper, taskStatusService);
+        projectService = new ProjectServiceImpl(projectMapper, taskMapper, taskStatusService);
     }
 
     @Test

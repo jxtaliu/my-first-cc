@@ -35,4 +35,10 @@ public interface TaskMapper extends BaseMapper<Task> {
 
     @Select("SELECT COUNT(*) FROM task WHERE status = #{statusId} AND deleted = 0")
     int countByStatusId(@Param("statusId") Integer statusId);
+
+    @Select("SELECT COUNT(*) FROM task WHERE project_id = #{projectId} AND deleted = 0")
+    int countByProjectId(@Param("projectId") String projectId);
+
+    @Select("SELECT COUNT(*) FROM task WHERE project_id = #{projectId} AND status = #{status} AND deleted = 0")
+    int countByProjectIdAndStatus(@Param("projectId") String projectId, @Param("status") Integer status);
 }

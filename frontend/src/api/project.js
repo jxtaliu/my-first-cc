@@ -29,15 +29,15 @@ export function restoreProject(id) {
 }
 
 export function getProjectMembers(projectId) {
-  return request.get(`/v1/projects/${projectId}/members`)
+  return request.get(`/projects/${projectId}/members`)
 }
 
 export function addProjectMember(projectId, data) {
-  return request.post(`/v1/projects/${projectId}/members`, data)
+  return request.post(`/projects/${projectId}/members`, data)
 }
 
 export function removeProjectMember(projectId, userId) {
-  return request.delete(`/v1/projects/${projectId}/members/${userId}`)
+  return request.delete(`/projects/${projectId}/members/${userId}`)
 }
 
 export function getSprints(projectId) {

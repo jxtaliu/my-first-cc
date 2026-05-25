@@ -40,6 +40,17 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User register(User user) {
+        // Validate required fields
+        if (user.getUsername() == null || user.getUsername().isEmpty()) {
+            throw new IllegalArgumentException("username不能为空");
+        }
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("password不能为空");
+        }
+        if (user.getEmail() == null || user.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("email不能为空");
+        }
+
         User existing = userMapper.findByUsername(user.getUsername());
         if (existing != null) {
             throw new IllegalArgumentException("Username already exists");
