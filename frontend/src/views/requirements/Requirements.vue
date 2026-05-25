@@ -1,167 +1,432 @@
 <template>
-  <div class="requirements-container">
+  <div class="requirements-page">
+    <!-- 顶部工具栏 -->
     <div class="page-header">
-      <h2>{{ $t('nav.requirements') }}</h2>
-      <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>
-        {{ $t('common.add') }}
-      </el-button>
+      <div class="header-left">
+        <h1 class="page-title">{{ $t('nav.requirements') }}</h1>
+      </div>
+      <div class="header-right">
+        <el-select v-model="selectedProjectId" :placeholder="$t('requirements.selectProject')" clearable class="project-select">
+          <el-option v-for="p in projects" :key="p.projectId" :label="p.name" :value="p.projectId" />
+        </el-select>
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          {{ $t('common.add') }}
+        </el-button>
+      </div>
     </div>
 
-    <el-card class="filter-card">
-      <el-form :inline="true" :model="filterForm">
-        <el-form-item :label="$t('requirements.project')">
-          <el-select v-model="filterForm.projectId" :placeholder="$t('requirements.selectProject')" clearable>
-            <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('requirements.status')">
-          <el-select v-model="filterForm.status" :placeholder="$t('requirements.selectStatus')" clearable>
-            <el-option :label="$t('requirements.statusDraft')" value="DRAFT" />
-            <el-option :label="$t('requirements.statusPublished')" value="PUBLISHED" />
-            <el-option :label="$t('requirements.statusArchived')" value="ARCHIVED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">{{ $t('common.search') }}</el-button>
-          <el-button @click="handleReset">{{ $t('common.reset') }}</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 左侧：需求树 -->
+      <div class="tree-panel">
+        <div class="tree-header">
+          <span class="tree-title">{{ $t('requirements.requirementTree') }}</span>
+          <el-button text size="small" @click="expandAll">
+            {{ expanded ? $t('requirements.collapseAll') : $t('requirements.expandAll') }}
+          </el-button>
+        </div>
+        <div class="tree-content" v-loading="loading">
+          <el-tree
+            ref="treeRef"
+            :data="treeData"
+            :props="treeProps"
+            node-key="id"
+            :expand-on-click-node="false"
+            :default-expanded-keys="defaultExpandedKeys"
+            @node-click="handleNodeClick"
+            @node-expand="handleNodeExpand"
+            @node-collapse="handleNodeCollapse"
+          >
+            <template #default="{ node, data }">
+              <div class="tree-node" :class="`type-${data.type?.toLowerCase()}`">
+                <span class="node-icon">
+                  <el-icon v-if="data.type === 'EPIC'"><Folder /></el-icon>
+                  <el-icon v-else-if="data.type === 'FEATURE'"><FolderOpened /></el-icon>
+                  <el-icon v-else><Document /></el-icon>
+                </span>
+                <span class="node-label">{{ data.title }}</span>
+                <span class="node-type-badge" :style="{ backgroundColor: getTypeColor(data.type) }">
+                  {{ $t(`requirements.type_${data.type?.toLowerCase()}`) }}
+                </span>
+              </div>
+            </template>
+          </el-tree>
+          <el-empty v-if="!loading && treeData.length === 0" :description="$t('common.noData')" />
+        </div>
 
-    <el-table :data="tableData" v-loading="loading" border stripe>
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="title" :label="$t('requirements.title')" min-width="200" />
-      <el-table-column prop="projectName" :label="$t('requirements.project')" width="150" />
-      <el-table-column prop="priority" :label="$t('requirements.priority')" width="100">
-        <template #default="{ row }">
-          <el-tag :type="getPriorityType(row.priority)">{{ row.priority }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="status" :label="$t('requirements.status')" width="120">
-        <template #default="{ row }">
-          <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="creatorName" :label="$t('requirements.creator')" width="100" />
-      <el-table-column prop="createdAt" :label="$t('requirements.createTime')" width="180" />
-      <el-table-column :label="$t('common.settings')" width="150" fixed="right">
-        <template #default="{ row }">
-          <el-button link type="primary" @click="handleEdit(row)">{{ $t('common.edit') }}</el-button>
-          <el-button link type="danger" @click="handleDelete(row)">{{ $t('common.delete') }}</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+        <!-- Bug 快捷入口 -->
+        <div class="bug-section">
+          <div class="section-header" @click="showBugs = !showBugs">
+            <el-icon><Warning /></el-icon>
+            <span>{{ $t('requirements.bugs') }}</span>
+            <el-icon class="arrow"><ArrowRight v-if="!showBugs" /><ArrowDown v-else /></el-icon>
+          </div>
+          <div v-show="showBugs" class="bug-list">
+            <div v-for="bug in bugs" :key="bug.id" class="bug-item" @click="handleBugClick(bug)">
+              <span class="bug-title">{{ bug.title }}</span>
+              <el-tag size="small" :color="getBugStatusColor(bug.bugStatusId)">
+                {{ getBugStatusName(bug.bugStatusId) }}
+              </el-tag>
+            </div>
+            <el-empty v-if="bugs.length === 0" :description="$t('requirements.noBugs')" size="small" />
+          </div>
+        </div>
+      </div>
 
-    <el-pagination
-      v-model:current-page="pagination.page"
-      v-model:page-size="pagination.pageSize"
-      :total="pagination.total"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      class="pagination"
+      <!-- 右侧：详情/子项 -->
+      <div class="detail-panel">
+        <div v-if="!selectedItem" class="detail-empty">
+          <el-empty :description="$t('requirements.selectToViewDetail')" />
+        </div>
+        <div v-else class="detail-content">
+          <div class="detail-header">
+            <div class="detail-title">
+              <h2>{{ selectedItem.title }}</h2>
+              <el-tag :color="getTypeColor(selectedItem.type)">
+                {{ $t(`requirements.type_${selectedItem.type?.toLowerCase()}`) }}
+              </el-tag>
+            </div>
+            <div class="detail-actions">
+              <el-button v-if="selectedItem.type !== 'BUG'" size="small" @click="handleEdit">{{ $t('common.edit') }}</el-button>
+              <el-button size="small" type="danger" @click="handleDelete">{{ $t('common.delete') }}</el-button>
+            </div>
+          </div>
+
+          <el-descriptions :column="2" border class="detail-descriptions">
+            <el-descriptions-item :label="$t('requirements.priority')">
+              <el-tag :type="getPriorityType(selectedItem.priority)">{{ selectedItem.priority }}</el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item :label="$t('requirements.estimateHours')">
+              {{ selectedItem.estimateHours || '-' }}
+            </el-descriptions-item>
+            <el-descriptions-item :label="$t('requirements.dueDate')">
+              {{ selectedItem.dueDate || '-' }}
+            </el-descriptions-item>
+            <el-descriptions-item :label="$t('requirements.assignee')">
+              {{ selectedItem.assigneeId || '-' }}
+            </el-descriptions-item>
+            <el-descriptions-item v-if="selectedItem.type === 'BUG'" :label="$t('requirements.status')">
+              <el-tag :color="getBugStatusColor(selectedItem.bugStatusId)">
+                {{ getBugStatusName(selectedItem.bugStatusId) }}
+              </el-tag>
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <div class="detail-description">
+            <h4>{{ $t('requirements.description') }}</h4>
+            <p>{{ selectedItem.description || '-' }}</p>
+          </div>
+
+          <!-- 子项列表（如果是 Epic/Feature） -->
+          <div v-if="['EPIC', 'FEATURE'].includes(selectedItem.type)" class="children-section">
+            <div class="section-header">
+              <h4>{{ $t('requirements.childItems') }}</h4>
+              <el-button size="small" type="primary" @click="handleCreateChild">
+                <el-icon><Plus /></el-icon>
+                {{ $t('requirements.addChild') }}
+              </el-button>
+            </div>
+            <el-table :data="childrenItems" border size="small">
+              <el-table-column prop="title" :label="$t('requirements.title')" />
+              <el-table-column :label="$t('requirements.type')" width="100">
+                <template #default="{ row }">
+                  <el-tag size="small" :color="getTypeColor(row.type)">
+                    {{ $t(`requirements.type_${row.type?.toLowerCase()}`) }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('requirements.priority')" width="80">
+                <template #default="{ row }">
+                  <el-tag size="small">{{ row.priority }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('requirements.status')" width="100">
+                <template #default="{ row }">
+                  <span>{{ getStatusName(row.status) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('common.actions')" width="100">
+                <template #default="{ row }">
+                  <el-button link size="small" type="primary" @click="handleNodeClick(row)">
+                    {{ $t('common.view') }}
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-empty v-if="childrenItems.length === 0" :description="$t('common.noData')" size="small" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建工作项弹窗 -->
+    <CreateRequirementDialog
+      ref="createDialogRef"
+      v-model="showCreateDialog"
+      :project-id="selectedProjectId"
+      :parent-item="parentForCreate"
+      @success="onCreateSuccess"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Folder, FolderOpened, Document, Warning, ArrowRight, ArrowDown } from '@element-plus/icons-vue'
+import { getRequirementTree, getRequirementChildren, getRequirement, getBugs, getBugStatuses, deleteRequirement } from '@/api/requirements'
+import { getBugStatusesByProject } from '@/api/bugStatus'
+import { getProjects } from '@/api/project'
+import CreateRequirementDialog from './CreateRequirementDialog.vue'
+
+const { t } = useI18n()
+const { locale } = useI18n()
 
 const loading = ref(false)
-const tableData = ref([])
 const projects = ref([])
+const selectedProjectId = ref(null)
+const treeData = ref([])
+const expandedNodeIds = ref(new Set())
+const showBugs = ref(false)
+const bugs = ref([])
+const bugStatuses = ref([])
 
-const filterForm = reactive({
-  projectId: null,
-  status: null
-})
+// 选中的项
+const selectedItem = ref(null)
+const childrenItems = ref([])
+const treeRef = ref()
 
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0
-})
+const showCreateDialog = ref(false)
+const parentForCreate = ref(null)
+const createDialogRef = ref()
+const isEditMode = ref(false)
 
-const getPriorityType = (priority) => {
-  const types = { HIGH: 'danger', MEDIUM: 'warning', LOW: 'info' }
-  return types[priority] || ''
+// Tree 配置
+const treeProps = {
+  children: 'children',
+  label: 'title'
 }
 
-const getStatusType = (status) => {
-  const types = { DRAFT: 'info', PUBLISHED: 'success', ARCHIVED: '' }
-  return types[status] || ''
+const defaultExpandedKeys = computed(() => Array.from(expandedNodeIds.value))
+
+// 加载项目列表
+const loadProjects = async () => {
+  try {
+    const res = await getProjects()
+    projects.value = res.data || []
+  } catch (e) {
+    console.error('Failed to load projects:', e)
+  }
 }
 
-const fetchData = async () => {
+// 加载需求树
+const loadRequirementTree = async () => {
+  if (!selectedProjectId.value) {
+    treeData.value = []
+    return
+  }
+
   loading.value = true
   try {
-    // TODO: 调用API获取需求列表
-    // const res = await requirementsApi.list({ ...filterForm, ...pagination })
-    // tableData.value = res.data.list
-    // pagination.total = res.data.total
-
-    // Demo data
-    tableData.value = [
-      { id: 1, title: '用户登录功能', projectName: '电商网站重构', priority: 'HIGH', status: 'PUBLISHED', creatorName: 'admin', createdAt: '2026-05-20 10:00:00' },
-      { id: 2, title: '商品展示模块', projectName: '电商网站重构', priority: 'MEDIUM', status: 'PUBLISHED', creatorName: 'admin', createdAt: '2026-05-19 14:30:00' },
-      { id: 3, title: '购物车功能', projectName: '电商网站重构', priority: 'HIGH', status: 'DRAFT', creatorName: 'admin', createdAt: '2026-05-18 09:00:00' }
-    ]
-    pagination.total = 3
+    const res = await getRequirementTree(selectedProjectId.value)
+    treeData.value = res.data || []
   } catch (e) {
-    ElMessage.error(e.message || 'Fetch failed')
+    ElMessage.error(t('common.failed'))
   } finally {
     loading.value = false
   }
 }
 
-const handleSearch = () => {
-  pagination.page = 1
-  fetchData()
-}
+// 加载 Bug 列表
+const loadBugs = async () => {
+  if (!selectedProjectId.value) return
 
-const handleReset = () => {
-  filterForm.projectId = null
-  filterForm.status = null
-  handleSearch()
-}
-
-const handleAdd = () => {
-  ElMessage.info('Add requirement - TODO')
-}
-
-const handleEdit = (row) => {
-  ElMessage.info(`Edit requirement: ${row.id}`)
-}
-
-const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('Delete this requirement?', 'Warning', { type: 'warning' })
-    ElMessage.success('Deleted')
-    fetchData()
-  } catch {
-    // cancelled
+    const res = await getBugs(selectedProjectId.value)
+    bugs.value = res.data || []
+  } catch (e) {
+    console.error('Failed to load bugs:', e)
   }
 }
 
-const handleSizeChange = () => {
-  fetchData()
+// 加载 Bug 状态
+const loadBugStatuses = async () => {
+  if (!selectedProjectId.value) return
+
+  try {
+    const res = await getBugStatuses(selectedProjectId.value)
+    bugStatuses.value = res.data || []
+  } catch (e) {
+    console.error('Failed to load bug statuses:', e)
+  }
 }
 
-const handleCurrentChange = () => {
-  fetchData()
+// 点击树节点
+const handleNodeClick = async (data) => {
+  selectedItem.value = data
+  if (['EPIC', 'FEATURE'].includes(data.type)) {
+    // 加载子项
+    try {
+      const res = await getRequirementChildren(data.id)
+      childrenItems.value = res.data || []
+    } catch (e) {
+      childrenItems.value = []
+    }
+  } else {
+    childrenItems.value = []
+  }
 }
+
+// 展开节点
+const handleNodeExpand = (data) => {
+  expandedNodeIds.value.add(data.id)
+}
+
+// 折叠节点
+const handleNodeCollapse = (data) => {
+  expandedNodeIds.value.delete(data.id)
+}
+
+// 展开/折叠全部
+const expandAll = () => {
+  expanded.value = !expanded.value
+  if (expanded.value) {
+    treeData.value.forEach(node => {
+      expandedNodeIds.value.add(node.id)
+    })
+  } else {
+    expandedNodeIds.value.clear()
+  }
+}
+
+const expanded = ref(false)
+
+// Bug 点击
+const handleBugClick = (bug) => {
+  selectedItem.value = bug
+  childrenItems.value = []
+}
+
+// 创建
+const handleCreate = () => {
+  isEditMode.value = false
+  parentForCreate.value = null
+  showCreateDialog.value = true
+}
+
+// 创建子项
+const handleCreateChild = () => {
+  isEditMode.value = false
+  parentForCreate.value = selectedItem.value
+  showCreateDialog.value = true
+}
+
+// 编辑
+const handleEdit = () => {
+  if (!selectedItem.value) return
+  isEditMode.value = true
+  parentForCreate.value = null
+  createDialogRef.value?.setEditData(selectedItem.value)
+  showCreateDialog.value = true
+}
+
+// 删除
+const handleDelete = async () => {
+  if (!selectedItem.value) return
+
+  try {
+    await ElMessageBox.confirm(
+      t('requirements.confirmDelete', { title: selectedItem.value.title }),
+      t('common.warning'),
+      { type: 'warning' }
+    )
+    await deleteRequirement(selectedItem.value.id)
+    ElMessage.success(t('common.success'))
+    selectedItem.value = null
+    loadRequirementTree()
+  } catch (e) {
+    if (e !== 'cancel') {
+      ElMessage.error(t('common.failed'))
+    }
+  }
+}
+
+// 创建成功回调
+const onCreateSuccess = () => {
+  loadRequirementTree()
+  if (selectedItem.value) {
+    handleNodeClick(selectedItem.value)
+  }
+}
+
+// 工具函数
+const getTypeColor = (type) => {
+  const colors = {
+    EPIC: '#8B5CF6',
+    FEATURE: '#3B82F6',
+    STORY: '#10B981',
+    TASK: '#94A3B8',
+    BUG: '#EF4444',
+    SUBTASK: '#64748B'
+  }
+  return colors[type] || '#94A3B8'
+}
+
+const getPriorityType = (priority) => {
+  const types = { P0: 'danger', P1: 'danger', P2: 'warning', P3: 'info' }
+  return types[priority] || 'info'
+}
+
+const getStatusName = (statusId) => {
+  // TODO: 从 task_status 表获取
+  return statusId || '-'
+}
+
+const getBugStatusName = (bugStatusId) => {
+  if (!bugStatusId || !bugStatuses.value.length) return '-'
+  const status = bugStatuses.value.find(s => s.id === bugStatusId)
+  return locale.value === 'zh-CN' ? status?.nameZh : status?.nameEn
+}
+
+const getBugStatusColor = (bugStatusId) => {
+  if (!bugStatusId || !bugStatuses.value.length) return '#94A3B8'
+  const status = bugStatuses.value.find(s => s.id === bugStatusId)
+  return status?.color || '#94A3B8'
+}
+
+// 监听项目变化
+watch(selectedProjectId, (newVal) => {
+  selectedItem.value = null
+  childrenItems.value = []
+  if (newVal) {
+    loadRequirementTree()
+    loadBugs()
+    loadBugStatuses()
+  } else {
+    treeData.value = []
+    bugs.value = []
+    bugStatuses.value = []
+  }
+})
 
 onMounted(() => {
-  fetchData()
+  loadProjects()
 })
 </script>
 
+<script>
+import { useI18n } from 'vue-i18n'
+export default {
+  name: 'Requirements'
+}
+</script>
+
 <style scoped>
-.requirements-container {
+.requirements-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   padding: 20px;
 }
 
@@ -172,19 +437,201 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.page-header h2 {
+.page-title {
   margin: 0;
   font-size: 18px;
-  font-weight: 600;
 }
 
-.filter-card {
+.header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.project-select {
+  width: 200px;
+}
+
+.main-content {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+.tree-panel {
+  width: 350px;
+  background: var(--pm-bg-color);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tree-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--pm-border);
+}
+
+.tree-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tree-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.node-icon {
+  color: var(--pm-text-secondary);
+}
+
+.node-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-type-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: white;
+}
+
+.bug-section {
+  border-top: 1px solid var(--pm-border);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.section-header .arrow {
+  margin-left: auto;
+}
+
+.bug-list {
+  padding: 0 12px 12px;
+}
+
+.bug-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.bug-item:hover {
+  background: var(--pm-hover);
+}
+
+.bug-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.detail-panel {
+  flex: 1;
+  background: var(--pm-bg-color);
+  border-radius: 8px;
+  overflow-y: auto;
+}
+
+.detail-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-content {
+  padding: 20px;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 20px;
 }
 
-.pagination {
-  margin-top: 20px;
+.detail-title {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
 }
+
+.detail-title h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.detail-descriptions {
+  margin-bottom: 20px;
+}
+
+.detail-description {
+  margin-bottom: 20px;
+}
+
+.detail-description h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: var(--pm-text-secondary);
+}
+
+.detail-description p {
+  margin: 0;
+  color: var(--pm-text);
+  line-height: 1.6;
+}
+
+.children-section {
+  margin-top: 24px;
+}
+
+.children-section .section-header {
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.children-section .section-header h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.type-epic { color: #8B5CF6; }
+.type-feature { color: #3B82F6; }
+.type-story { color: #10B981; }
+.type-task { color: #94A3B8; }
+.type-bug { color: #EF4444; }
 </style>

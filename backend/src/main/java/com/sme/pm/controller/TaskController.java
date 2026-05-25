@@ -1,5 +1,6 @@
 package com.sme.pm.controller;
 
+import com.sme.pm.annotation.RequireProjectRole;
 import com.sme.pm.common.CurrentUser;
 import com.sme.pm.common.Result;
 import com.sme.pm.entity.Task;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/tasks")
+@RequireProjectRole(memberOnly = true)
 public class TaskController {
 
     private final TaskService taskService;
@@ -23,6 +25,7 @@ public class TaskController {
     }
 
     @PostMapping
+    @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER", "DEVELOPER"}, operation = "create_task")
     public Result<Task> create(@RequestBody Task task, @CurrentUser Long userId) {
         task.setAssigneeId(userId);
         return Result.success(taskService.create(task));
@@ -50,30 +53,35 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
+    @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER"}, operation = "update_task")
     public Result<Task> update(@PathVariable Long id, @RequestBody Task task) {
         task.setId(id);
         return Result.success(taskService.update(task));
     }
 
     @DeleteMapping("/{id}")
+    @RequireProjectRole(value = {"PROJECT_OWNER"}, operation = "delete_task")
     public Result<Void> delete(@PathVariable Long id) {
         taskService.delete(id);
         return Result.success();
     }
 
     @PutMapping("/{id}/move")
+    @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER"}, operation = "move_task")
     public Result<Task> move(@PathVariable Long id, @RequestBody Task task) {
         task.setId(id);
         return Result.success(taskService.move(task));
     }
 
     @PutMapping("/{id}/assign")
+    @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER"}, operation = "assign_task")
     public Result<Void> assign(@PathVariable Long id, @RequestParam Long userId) {
         taskService.assign(id, userId);
         return Result.success();
     }
 
     @PutMapping("/{id}/status")
+    @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER", "DEVELOPER"}, operation = "update_task_status")
     public Result<Task> updateStatus(@PathVariable Long id, @RequestParam Long statusId) {
         return Result.success(taskService.updateStatus(id, statusId));
     }
@@ -127,12 +135,14 @@ public class TaskController {
     }
 
     @PostMapping("/{id}/dependencies")
+    @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER", "DEVELOPER"}, operation = "add_dependency")
     public Result<Void> addDependency(@PathVariable Long id, @RequestBody TaskDependency dependency) {
         taskService.addDependency(id, dependency);
         return Result.success();
     }
 
     @DeleteMapping("/dependencies/{dependencyId}")
+    @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER"}, operation = "remove_dependency")
     public Result<Void> removeDependency(@PathVariable Long dependencyId) {
         taskService.removeDependency(dependencyId);
         return Result.success();

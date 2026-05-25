@@ -90,7 +90,7 @@
                   <!-- Right: Sprint Gantt -->
                   <div class="sprint-gantt-panel">
                     <div class="panel-header">
-                      <h3>{{ $t('project.sprintGantt') || '冲刺甘特图' }}</h3>
+                      <h3>{{ $t('project.sprintGantt') }}</h3>
                       <div class="gantt-legend">
                         <span class="legend-item"><span class="legend-dot planning"></span>{{ $t('project.sprintPlanning') }}</span>
                         <span class="legend-item"><span class="legend-dot active"></span>{{ $t('project.sprintActive') }}</span>

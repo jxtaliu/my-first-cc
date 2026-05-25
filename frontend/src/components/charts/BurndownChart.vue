@@ -5,6 +5,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   idealData: {
@@ -45,7 +48,7 @@ const initChart = () => {
       }
     },
     legend: {
-      data: ['理想曲线', '实际曲线'],
+      data: [t('chart.idealCurve'), t('chart.actualCurve')],
       bottom: 0,
       textStyle: {
         fontSize: 12
@@ -73,7 +76,7 @@ const initChart = () => {
     },
     yAxis: {
       type: 'value',
-      name: '剩余工作量',
+      name: t('chart.remainingWorkload'),
       nameTextStyle: {
         color: '#6B7280'
       },
@@ -95,7 +98,7 @@ const initChart = () => {
     },
     series: [
       {
-        name: '理想曲线',
+        name: t('chart.idealCurve'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -113,7 +116,7 @@ const initChart = () => {
         data: props.idealData.length > 0 ? props.idealData : [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]
       },
       {
-        name: '实际曲线',
+        name: t('chart.actualCurve'),
         type: 'line',
         smooth: true,
         symbol: 'circle',
@@ -147,11 +150,11 @@ const updateChart = () => {
       },
       series: [
         {
-          name: '理想曲线',
+          name: t('chart.idealCurve'),
           data: props.idealData.length > 0 ? props.idealData : [100, 90, 80, 70, 60, 50, 40, 30, 20, 10]
         },
         {
-          name: '实际曲线',
+          name: t('chart.actualCurve'),
           data: props.actualData.length > 0 ? props.actualData : [100, 95, 85, 78, 65, 55, 45, 35, 25, null]
         }
       ],

@@ -22,10 +22,10 @@
           />
         </el-select>
         <el-select v-model="timeRange" style="width: 140px">
-          <el-option label="本周" value="week" />
-          <el-option label="本月" value="month" />
-          <el-option label="本季度" value="quarter" />
-          <el-option label="本年" value="year" />
+          <el-option :label="$t('project.thisWeek')" value="week" />
+          <el-option :label="$t('project.thisMonth')" value="month" />
+          <el-option :label="$t('project.thisQuarter')" value="quarter" />
+          <el-option :label="$t('project.thisYear')" value="year" />
         </el-select>
       </div>
     </div>

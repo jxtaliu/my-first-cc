@@ -138,10 +138,10 @@ const form = reactive({
 const rules = {
   projectId: [{ required: true, message: () => t('project.projectIdRequired') }],
   name: [{ required: true, message: () => t('project.projectNameRequired') }],
-  projectType: [{ required: true, message: '请选择项目类型' }],
-  sprintMode: [{ required: true, message: '请选择敏捷模式' }],
-  status: [{ required: true, message: '请选择项目状态' }],
-  ownerId: [{ required: true, message: '请选择负责人' }]
+  projectType: [{ required: true, message: () => t('project.selectProjectType') }],
+  sprintMode: [{ required: true, message: () => t('project.selectSprintMode') }],
+  status: [{ required: true, message: () => t('project.selectStatus') }],
+  ownerId: [{ required: true, message: () => t('project.selectOwner') }]
 }
 
 // 下拉选项数据

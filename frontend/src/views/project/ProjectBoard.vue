@@ -38,11 +38,11 @@
     <!-- Filter Bar -->
     <div class="project-board-filters">
       <div class="filter-left">
-        <el-select v-model="swimlaneMode" placeholder="泳道" size="default" style="width: 120px">
-          <el-option label="无泳道" value="none" />
-          <el-option label="按负责人" value="assignee" />
-          <el-option label="按优先级" value="priority" />
-          <el-option label="按类型" value="type" />
+        <el-select v-model="swimlaneMode" :placeholder="$t('project.swimlaneMode')" size="default" style="width: 120px">
+          <el-option :label="$t('project.noSwimlane')" value="none" />
+          <el-option :label="$t('project.byAssignee')" value="assignee" />
+          <el-option :label="$t('project.byPriority')" value="priority" />
+          <el-option :label="$t('project.byType')" value="type" />
         </el-select>
         <el-input
           v-model="searchQuery"
@@ -53,12 +53,12 @@
         />
       </div>
       <div class="filter-right">
-        <el-select v-model="selectedPriority" placeholder="优先级" clearable size="default" style="width: 120px">
-          <el-option label="全部" :value="null" />
-          <el-option label="P0 紧急" value="P0" />
-          <el-option label="P1 高" value="P1" />
-          <el-option label="P2 中" value="P2" />
-          <el-option label="P3 低" value="P3" />
+        <el-select v-model="selectedPriority" :placeholder="$t('project.priority')" clearable size="default" style="width: 120px">
+          <el-option :label="$t('project.all')" :value="null" />
+          <el-option :label="$t('project.p0')" value="P0" />
+          <el-option :label="$t('project.p1')" value="P1" />
+          <el-option :label="$t('project.p2')" value="P2" />
+          <el-option :label="$t('project.p3')" value="P3" />
         </el-select>
         <span class="task-count" :class="{ 'filter-active': selectedPriority }">{{ filteredTasks.length }} {{ $t('project.tasks') }}</span>
       </div>
@@ -105,10 +105,10 @@
             </el-form-item>
             <el-form-item :label="$t('project.priority')" class="form-col">
               <el-select v-model="editingTask.priority" style="width: 100%">
-                <el-option label="P0 紧急" value="P0" />
-                <el-option label="P1 高" value="P1" />
-                <el-option label="P2 中" value="P2" />
-                <el-option label="P3 低" value="P3" />
+                <el-option :label="$t('project.p0')" value="P0" />
+                <el-option :label="$t('project.p1')" value="P1" />
+                <el-option :label="$t('project.p2')" value="P2" />
+                <el-option :label="$t('project.p3')" value="P3" />
               </el-select>
             </el-form-item>
           </div>
@@ -175,7 +175,7 @@ import { useKanban } from '@/composables/useKanban'
 import { getProject, getSprints, getSprintTasks } from '@/api/project'
 import { getTasksByProject, moveTask as apiMoveTask, createTask as apiCreateTask, updateTask as apiUpdateTask } from '@/api/task'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const route = useRoute()
 
 // Kanban composable
@@ -198,11 +198,11 @@ const showQuickAdd = ref(false)
 const quickAddStatus = ref('todo')
 
 // View options
-const viewOptions = [
-  { label: '看板', value: 'kanban', icon: 'Grid' },
-  { label: '列表', value: 'list', icon: 'List' },
-  { label: '甘特图', value: 'gantt', icon: 'Calendar' }
-]
+const viewOptions = computed(() => [
+  { label: t('project.kanbanView'), value: 'kanban', icon: 'Grid' },
+  { label: t('project.list'), value: 'list', icon: 'List' },
+  { label: t('project.ganttView'), value: 'gantt', icon: 'Calendar' }
+])
 
 // Kanban columns - use API columns if available, otherwise fallback
 const kanbanColumns = computed(() => {
@@ -210,11 +210,11 @@ const kanbanColumns = computed(() => {
     return kanbanColumnsFromApi.value
   }
   return [
-    { id: 'todo', title: locale.value === 'zh-CN' ? '待办' : 'To Do', status: 'todo', color: '#94A3B8' },
-    { id: 'in_progress', title: locale.value === 'zh-CN' ? '进行中' : 'In Progress', status: 'in_progress', color: '#3B82F6', wipLimit: 5 },
-    { id: 'development', title: locale.value === 'zh-CN' ? '开发完成' : 'Development', status: 'development', color: '#8B5CF6', wipLimit: 3 },
-    { id: 'testing', title: locale.value === 'zh-CN' ? '测试中' : 'Testing', status: 'testing', color: '#F59E0B', wipLimit: 3 },
-    { id: 'done', title: locale.value === 'zh-CN' ? '已完成' : 'Done', status: 'done', color: '#10B981' }
+    { id: 'todo', title: t('project.colTodo'), status: 'todo', color: '#94A3B8' },
+    { id: 'in_progress', title: t('project.colInProgress'), status: 'in_progress', color: '#3B82F6', wipLimit: 5 },
+    { id: 'development', title: t('project.colDevelopment'), status: 'development', color: '#8B5CF6', wipLimit: 3 },
+    { id: 'testing', title: t('project.colTesting'), status: 'testing', color: '#F59E0B', wipLimit: 3 },
+    { id: 'done', title: t('project.colDone'), status: 'done', color: '#10B981' }
   ]
 })
 

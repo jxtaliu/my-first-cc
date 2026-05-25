@@ -362,4 +362,147 @@ class TaskServiceImplTest {
         assertTrue(result);
         verify(taskDependencyService).canTransitionTo(taskId, targetStatusId);
     }
+
+    // ==================== Requirement Tree Tests ====================
+
+    @Test
+    void getRequirementTree_shouldReturnEpicsAndFeatures() {
+        String projectId = "PRJ_001";
+        List<Task> tasks = Arrays.asList(
+                createTask(1L, "Epic 1", "EPIC", projectId),
+                createTask(2L, "Feature 1", "FEATURE", projectId)
+        );
+
+        when(taskMapper.selectList(any())).thenReturn(tasks);
+
+        List<Task> result = taskService.getRequirementTree(projectId);
+
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void getRequirementChildren_shouldReturnDirectChildren() {
+        Long parentId = 1L;
+        List<Task> children = Arrays.asList(
+                createTask(2L, "Story 1", "STORY", "PRJ_001"),
+                createTask(3L, "Story 2", "STORY", "PRJ_001")
+        );
+
+        when(taskMapper.selectList(any())).thenReturn(children);
+
+        List<Task> result = taskService.getRequirementChildren(parentId);
+
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void getBugs_shouldReturnBugsForProject() {
+        String projectId = "PRJ_001";
+        List<Task> bugs = Arrays.asList(
+                createTask(1L, "Bug 1", "BUG", projectId),
+                createTask(2L, "Bug 2", "BUG", projectId)
+        );
+
+        when(taskMapper.selectList(any())).thenReturn(bugs);
+
+        List<Task> result = taskService.getBugs(projectId);
+
+        assertEquals(2, result.size());
+        assertEquals("BUG", result.get(0).getType());
+    }
+
+    @Test
+    void updateBugStatus_shouldUpdateBugStatusId() {
+        Long taskId = 1L;
+        Long bugStatusId = 5L;
+
+        Task task = new Task();
+        task.setId(taskId);
+        task.setType("BUG");
+        task.setProjectId("PRJ_001");
+
+        when(taskMapper.selectById(taskId)).thenReturn(task);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        taskService.updateBugStatus(taskId, bugStatusId);
+
+        assertEquals(bugStatusId, task.getBugStatusId());
+        verify(taskMapper).updateById(task);
+    }
+
+    @Test
+    void moveRequirement_shouldUpdateParentAndDepth_whenNewParentProvided() {
+        Long taskId = 1L;
+        Long newParentId = 10L;
+
+        Task task = new Task();
+        task.setId(taskId);
+        task.setDepth(1);
+
+        Task newParent = new Task();
+        newParent.setId(newParentId);
+        newParent.setDepth(2);
+
+        when(taskMapper.selectById(taskId)).thenReturn(task);
+        when(taskMapper.selectById(newParentId)).thenReturn(newParent);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        taskService.moveRequirement(taskId, newParentId, null);
+
+        assertEquals(newParentId, task.getParentId());
+        assertEquals(3, task.getDepth());
+        verify(taskMapper).updateById(task);
+    }
+
+    @Test
+    void moveRequirement_shouldResetToDepth1_whenNewParentIsNull() {
+        Long taskId = 1L;
+
+        Task task = new Task();
+        task.setId(taskId);
+        task.setDepth(3);
+        task.setParentId(10L);
+
+        when(taskMapper.selectById(taskId)).thenReturn(task);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        taskService.moveRequirement(taskId, null, null);
+
+        assertNull(task.getParentId());
+        assertEquals(1, task.getDepth());
+        verify(taskMapper).updateById(task);
+    }
+
+    @Test
+    void moveRequirement_shouldDoNothing_whenTaskNotFound() {
+        Long taskId = 999L;
+        Long newParentId = 10L;
+
+        when(taskMapper.selectById(taskId)).thenReturn(null);
+
+        taskService.moveRequirement(taskId, newParentId, null);
+
+        verify(taskMapper, never()).updateById(any(Task.class));
+    }
+
+    @Test
+    void getRequirementSubtree_shouldReturnEmptyList_whenNoChildren() {
+        Long parentId = 1L;
+
+        when(taskMapper.selectList(any())).thenReturn(java.util.Collections.emptyList());
+
+        List<Task> result = taskService.getRequirementSubtree(parentId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    private Task createTask(Long id, String title, String type, String projectId) {
+        Task task = new Task();
+        task.setId(id);
+        task.setTitle(title);
+        task.setType(type);
+        task.setProjectId(projectId);
+        task.setDeleted(0);
+        return task;
+    }
 }

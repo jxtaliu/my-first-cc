@@ -31,4 +31,14 @@ public interface TaskService {
     void removeDependency(Long dependencyId);
     int countBlockingDependencies(Long taskId);
     int countByStatusId(Integer statusId);
+
+    // Requirement tree methods
+    List<Task> getRequirementTree(String projectId);
+    List<Task> getRequirementChildren(Long parentId);
+    List<Task> getRequirementSubtree(Long parentId);
+    void moveRequirement(Long taskId, Long newParentId, Integer sortOrder);
+
+    // Bug methods
+    List<Task> getBugs(String projectId);
+    void updateBugStatus(Long taskId, Long bugStatusId);
 }

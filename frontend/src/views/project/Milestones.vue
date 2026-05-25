@@ -211,7 +211,7 @@ const onCreateMilestone = () => {
 }
 
 const onMilestoneClick = (milestone) => {
-  ElMessage.info(`查看里程碑: ${milestone.name}`)
+  ElMessage.info(`${t('project.viewMilestone')}: ${milestone.name}`)
 }
 
 const onSaveMilestone = () => {

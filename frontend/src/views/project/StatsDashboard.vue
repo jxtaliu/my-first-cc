@@ -16,10 +16,10 @@
           />
         </el-select>
         <el-select v-model="timeRange" style="width: 150px">
-          <el-option label="本周" value="week" />
-          <el-option label="本月" value="month" />
-          <el-option label="本季度" value="quarter" />
-          <el-option label="本年" value="year" />
+          <el-option :label="$t('project.thisWeek')" value="week" />
+          <el-option :label="$t('project.thisMonth')" value="month" />
+          <el-option :label="$t('project.thisQuarter')" value="quarter" />
+          <el-option :label="$t('project.thisYear')" value="year" />
         </el-select>
         <el-button type="primary" @click="onExport">
           <el-icon><Download /></el-icon>
@@ -33,28 +33,28 @@
       <StatCard
         :label="$t('project.totalTasks')"
         :value="kpiStats.totalTasks"
-        subtitle="总任务数"
+        :subtitle="$t('project.totalTasks')"
       />
       <StatCard
         :label="$t('project.completedTasks')"
         :value="kpiStats.completed"
-        subtitle="已完成"
+        :subtitle="$t('project.completedTasks')"
         :trend="8"
       />
       <StatCard
         :label="$t('project.inProgressTasks')"
         :value="kpiStats.inProgress"
-        subtitle="进行中"
+        :subtitle="$t('project.inProgressTasks')"
       />
       <StatCard
         :label="$t('project.blockedTasks')"
         :value="kpiStats.blocked"
-        subtitle="阻塞"
+        :subtitle="$t('project.blockedTasks')"
       />
       <StatCard
         :label="$t('project.overdueTasks')"
         :value="kpiStats.overdue"
-        subtitle="逾期"
+        :subtitle="$t('project.overdueTasks')"
       />
       <StatCard
         :label="$t('project.taskCompletionRate')"
@@ -95,7 +95,7 @@
         <div class="stats-chart-content">
           <div class="hours-comparison">
             <div class="hours-bar-group">
-              <span class="hours-label">Alpha项目</span>
+              <span class="hours-label">{{ $t('project.alphaProject') }}</span>
               <div class="hours-bar-container">
                 <div class="hours-bar actual" style="width: 85%;"></div>
                 <div class="hours-bar estimate" style="width: 100%;"></div>
@@ -103,7 +103,7 @@
               <span class="hours-value">85/100h</span>
             </div>
             <div class="hours-bar-group">
-              <span class="hours-label">Beta项目</span>
+              <span class="hours-label">{{ $t('project.betaProject') }}</span>
               <div class="hours-bar-container">
                 <div class="hours-bar actual" style="width: 65%;"></div>
                 <div class="hours-bar estimate" style="width: 80%;"></div>
@@ -111,7 +111,7 @@
               <span class="hours-value">65/80h</span>
             </div>
             <div class="hours-bar-group">
-              <span class="hours-label">Gamma项目</span>
+              <span class="hours-label">{{ $t('project.gammaProject') }}</span>
               <div class="hours-bar-container">
                 <div class="hours-bar actual" style="width: 120%;"></div>
                 <div class="hours-bar estimate" style="width: 100%;"></div>
@@ -120,8 +120,8 @@
             </div>
           </div>
           <div class="hours-legend">
-            <span class="legend-item"><span class="legend-dot actual"></span> 实际</span>
-            <span class="legend-item"><span class="legend-dot estimate"></span> 预估</span>
+            <span class="legend-item"><span class="legend-dot actual"></span> {{ $t('project.actual') }}</span>
+            <span class="legend-item"><span class="legend-dot estimate"></span> {{ $t('project.estimate') }}</span>
           </div>
         </div>
       </div>
@@ -233,7 +233,7 @@
           <HeatmapChart
             :data="heatmapData"
             :x-axis-labels="['P0', 'P1', 'P2', 'P3']"
-            :y-axis-labels="['张三', '李四', '王五', '赵六']"
+            :y-axis-labels="[$t('project.zhangSan'), $t('project.liSi'), $t('project.wangWu'), $t('project.zhaoLiu')]"
           />
         </div>
       </div>
@@ -412,9 +412,9 @@ const getOverallTagType = (value) => {
 }
 
 const getOverallLabel = (value) => {
-  if (value >= 85) return '优秀'
-  if (value >= 70) return '良好'
-  return '需改进'
+  if (value >= 85) return t('project.excellent')
+  if (value >= 70) return t('project.good')
+  return t('project.needsImprovement')
 }
 
 const getProgressBarClass = (percent) => {

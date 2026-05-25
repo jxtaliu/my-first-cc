@@ -82,10 +82,6 @@
             <el-icon><Timer /></el-icon>
             <span>{{ $t('nav.sprintSettings') }}</span>
           </el-menu-item>
-          <el-menu-item index="/projects/settings/status">
-            <el-icon><Grid /></el-icon>
-            <span>{{ $t('nav.statusConfig') }}</span>
-          </el-menu-item>
           <el-menu-item index="/projects/settings/members">
             <el-icon><User /></el-icon>
             <span>{{ $t('nav.memberRoles') }}</span>

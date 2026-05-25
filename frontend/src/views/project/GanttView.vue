@@ -7,15 +7,15 @@
         <p class="pm-text-small">{{ $t('project.ganttViewDesc') }}</p>
       </div>
       <div class="gantt-actions">
-        <el-select v-model="swimlaneMode" placeholder="泳道" size="default" style="width: 120px">
-          <el-option label="无泳道" value="none" />
-          <el-option label="按负责人" value="assignee" />
-          <el-option label="按优先级" value="priority" />
+        <el-select v-model="swimlaneMode" :placeholder="$t('project.swimlaneMode')" size="default" style="width: 120px">
+          <el-option :label="$t('project.noSwimlane')" value="none" />
+          <el-option :label="$t('project.byAssignee')" value="assignee" />
+          <el-option :label="$t('project.byPriority')" value="priority" />
         </el-select>
         <el-button-group>
-          <el-button :type="timeScale === 'day' ? 'primary' : 'default'" @click="timeScale = 'day'">日</el-button>
-          <el-button :type="timeScale === 'week' ? 'primary' : 'default'" @click="timeScale = 'week'">周</el-button>
-          <el-button :type="timeScale === 'month' ? 'primary' : 'default'" @click="timeScale = 'month'">月</el-button>
+          <el-button :type="timeScale === 'day' ? 'primary' : 'default'" @click="timeScale = 'day'">{{ $t('project.dayScale') || 'Day' }}</el-button>
+          <el-button :type="timeScale === 'week' ? 'primary' : 'default'" @click="timeScale = 'week'">{{ $t('project.weekScale') || 'Week' }}</el-button>
+          <el-button :type="timeScale === 'month' ? 'primary' : 'default'" @click="timeScale = 'month'">{{ $t('project.monthScale') || 'Month' }}</el-button>
         </el-button-group>
         <el-button type="primary" @click="onToday">
           {{ $t('project.today') }}
@@ -198,14 +198,14 @@
             <el-input v-model="editingTask.title" />
           </el-form-item>
           <div class="form-row">
-            <el-form-item label="开始日期" class="form-col">
+            <el-form-item :label="$t('project.startDate')" class="form-col">
               <el-date-picker
                 v-model="editingTask.startDate"
                 type="date"
                 style="width: 100%"
               />
             </el-form-item>
-            <el-form-item label="截止日期" class="form-col">
+            <el-form-item :label="$t('project.endDate')" class="form-col">
               <el-date-picker
                 v-model="editingTask.dueDate"
                 type="date"
@@ -216,17 +216,17 @@
           <div class="form-row">
             <el-form-item :label="$t('project.priority')" class="form-col">
               <el-select v-model="editingTask.priority" style="width: 100%">
-                <el-option label="P0 紧急" value="P0" />
-                <el-option label="P1 高" value="P1" />
-                <el-option label="P2 中" value="P2" />
-                <el-option label="P3 低" value="P3" />
+                <el-option :label="$t('project.p0')" value="P0" />
+                <el-option :label="$t('project.p1')" value="P1" />
+                <el-option :label="$t('project.p2')" value="P2" />
+                <el-option :label="$t('project.p3')" value="P3" />
               </el-select>
             </el-form-item>
             <el-form-item :label="$t('project.status')" class="form-col">
               <el-select v-model="editingTask.status" style="width: 100%">
-                <el-option label="待办" value="todo" />
-                <el-option label="进行中" value="in_progress" />
-                <el-option label="已完成" value="done" />
+                <el-option :label="$t('project.todo')" value="todo" />
+                <el-option :label="$t('project.inProgress')" value="in_progress" />
+                <el-option :label="$t('project.done')" value="done" />
               </el-select>
             </el-form-item>
           </div>

@@ -268,4 +268,87 @@ public class TaskServiceImpl implements TaskService {
     public int countByStatusId(Integer statusId) {
         return taskMapper.countByStatusId(statusId);
     }
+
+    // ==================== Requirement Tree Methods ====================
+
+    @Override
+    public List<Task> getRequirementTree(String projectId) {
+        // Get Epic and Feature (depth = 1, type = EPIC or FEATURE)
+        return taskMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Task>()
+                .eq(Task::getProjectId, projectId)
+                .in(Task::getType, "EPIC", "FEATURE")
+                .eq(Task::getDeleted, 0)
+                .orderByAsc(Task::getId));
+    }
+
+    @Override
+    public List<Task> getRequirementChildren(Long parentId) {
+        // Get direct children of a requirement
+        return taskMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Task>()
+                .eq(Task::getParentId, parentId)
+                .eq(Task::getDeleted, 0)
+                .orderByAsc(Task::getId));
+    }
+
+    @Override
+    public List<Task> getRequirementSubtree(Long parentId) {
+        // Get all descendants recursively (simplified - depth-limited)
+        List<Task> allTasks = new ArrayList<>();
+        collectChildren(parentId, allTasks);
+        return allTasks;
+    }
+
+    private void collectChildren(Long parentId, List<Task> result) {
+        List<Task> children = getRequirementChildren(parentId);
+        for (Task child : children) {
+            result.add(child);
+            // Continue recursively if not at max depth
+            if (child.getDepth() < MAX_DEPTH) {
+                collectChildren(child.getId(), result);
+            }
+        }
+    }
+
+    @Override
+    public void moveRequirement(Long taskId, Long newParentId, Integer sortOrder) {
+        Task task = taskMapper.selectById(taskId);
+        if (task == null) {
+            return;
+        }
+
+        // Update parent and depth
+        if (newParentId != null) {
+            Task newParent = taskMapper.selectById(newParentId);
+            if (newParent != null) {
+                task.setParentId(newParentId);
+                task.setDepth(newParent.getDepth() + 1);
+            }
+        } else {
+            task.setParentId(null);
+            task.setDepth(1);
+        }
+
+        taskMapper.updateById(task);
+    }
+
+    // ==================== Bug Methods ====================
+
+    @Override
+    public List<Task> getBugs(String projectId) {
+        return taskMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Task>()
+                .eq(Task::getProjectId, projectId)
+                .eq(Task::getType, "BUG")
+                .eq(Task::getDeleted, 0)
+                .orderByDesc(Task::getCreatedAt));
+    }
+
+    @Override
+    public void updateBugStatus(Long taskId, Long bugStatusId) {
+        Task task = taskMapper.selectById(taskId);
+        if (task == null) {
+            return;
+        }
+        task.setBugStatusId(bugStatusId);
+        taskMapper.updateById(task);
+    }
 }

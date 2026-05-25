@@ -27,7 +27,9 @@ public class Task {
 
     private String type;  // EPIC/FEATURE/STORY/TASK/BUG/SUBTASK - from sys_dict_code TASK_TYPE_PM
 
-    private Integer status;  // References task_status table
+    private Integer status;  // References task_status table (for STORY/TASK)
+
+    private Long bugStatusId;  // References bug_status table (for BUG type only)
 
     private String priority;  // P0, P1, P2, P3
 

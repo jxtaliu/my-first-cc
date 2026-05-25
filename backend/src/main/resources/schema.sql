@@ -171,7 +171,8 @@ CREATE TABLE IF NOT EXISTS task (
     title VARCHAR(500) NOT NULL,
     description TEXT,
     type VARCHAR(50) NOT NULL DEFAULT 'STORY' COMMENT 'EPIC/FEATURE/STORY/TASK/BUG/SUBTASK - from sys_dict_code',
-    status TINYINT DEFAULT 1 COMMENT '1: todo, 2: in_progress, 3: done',
+    status TINYINT DEFAULT 1 COMMENT '1: todo, 2: in_progress, 3: done - for STORY/TASK',
+    bug_status_id BIGINT COMMENT 'Bug status ID - references bug_status.id, for BUG type only',
     priority VARCHAR(20) DEFAULT 'P2' COMMENT 'P0/P1/P2/P3',
     assignee_id BIGINT,
     estimate_hours INT,
@@ -279,6 +280,35 @@ CREATE TABLE IF NOT EXISTS status_transition (
     INDEX idx_project (project_id),
     INDEX idx_from (from_status_id),
     INDEX idx_to (to_status_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Bug status (independent status flow for bugs)
+CREATE TABLE IF NOT EXISTS bug_status (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id VARCHAR(50) COMMENT 'NULL means system default, references project.project_id',
+    code VARCHAR(50) NOT NULL COMMENT 'OPEN/IN_PROGRESS/IN_TEST/CLOSED/REOPENED',
+    name_en VARCHAR(100) NOT NULL,
+    name_zh VARCHAR(100) NOT NULL,
+    color VARCHAR(20) DEFAULT '#94A3B8',
+    sort_order INT DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT DEFAULT 0,
+    UNIQUE KEY uk_project_code (project_id, code),
+    INDEX idx_project (project_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Bug status transition
+CREATE TABLE IF NOT EXISTS bug_status_transition (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    project_id VARCHAR(50) COMMENT 'NULL means system default, references project.project_id',
+    from_status VARCHAR(50) NOT NULL COMMENT 'Source status code',
+    to_status VARCHAR(50) NOT NULL COMMENT 'Target status code',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT DEFAULT 0,
+    UNIQUE KEY uk_project_transition (project_id, from_status, to_status),
+    INDEX idx_project (project_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Task dependency

@@ -292,9 +292,6 @@ const onDragEnd = async () => {
     // Call API to persist the new order
     await taskStatusStore.reorderStatuses(businessId, newOrderIds)
 
-    // Update store cache with new statuses and sort orders
-    taskStatusStore.statusesByProject[businessId] = newOrderStatuses
-
     ElMessage.success(t('project.statusReordered'))
   } catch (e) {
     ElMessage.error(t('common.failed'))

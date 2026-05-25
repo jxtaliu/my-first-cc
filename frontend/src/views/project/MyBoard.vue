@@ -24,26 +24,26 @@
         :label="$t('project.myTasks')"
         :value="myTasks.length"
         :trend="5"
-        subtitle="正在处理"
+        :subtitle="$t('project.inProgress')"
       />
       <StatCard
         :label="$t('project.completedThisWeek')"
         :value="completedThisWeek"
         :trend="12"
-        subtitle="本周完成"
+        :subtitle="$t('project.completedThisWeek')"
       />
       <StatCard
         :label="$t('project.overdueTasks')"
         :value="overdueTasks"
         :trend="-2"
         :class="{ 'pm-stat-danger': overdueTasks > 0 }"
-        subtitle="需要关注"
+        :subtitle="$t('project.needsAttention')"
       />
       <StatCard
         :label="$t('project.blockedTasks')"
         :value="blockedTasks"
         :trend="0"
-        subtitle="等待解除"
+        :subtitle="$t('project.waitingToResolve')"
       />
     </div>
 
@@ -74,7 +74,7 @@ import { useAuthStore } from '@/stores/auth'
 import { getTasksByAssignee } from '@/api/task'
 import { getProjects } from '@/api/project'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const authStore = useAuthStore()
 
 const kanbanBoardRef = ref(null)
@@ -92,11 +92,11 @@ const kanbanColumns = computed(() => {
     return kanbanColumnsFromApi.value
   }
   return [
-    { id: 'todo', title: locale.value === 'zh-CN' ? '待办' : 'To Do', status: 'todo', color: '#94A3B8' },
-    { id: 'in_progress', title: locale.value === 'zh-CN' ? '进行中' : 'In Progress', status: 'in_progress', color: '#3B82F6', wipLimit: 5 },
-    { id: 'development', title: locale.value === 'zh-CN' ? '开发完成' : 'Development', status: 'development', color: '#8B5CF6', wipLimit: 3 },
-    { id: 'testing', title: locale.value === 'zh-CN' ? '测试中' : 'Testing', status: 'testing', color: '#F59E0B', wipLimit: 3 },
-    { id: 'done', title: locale.value === 'zh-CN' ? '已完成' : 'Done', status: 'done', color: '#10B981' }
+    { id: 'todo', title: t('project.colTodo'), status: 'todo', color: '#94A3B8' },
+    { id: 'in_progress', title: t('project.colInProgress'), status: 'in_progress', color: '#3B82F6', wipLimit: 5 },
+    { id: 'development', title: t('project.colDevelopment'), status: 'development', color: '#8B5CF6', wipLimit: 3 },
+    { id: 'testing', title: t('project.colTesting'), status: 'testing', color: '#F59E0B', wipLimit: 3 },
+    { id: 'done', title: t('project.colDone'), status: 'done', color: '#10B981' }
   ]
 })
 
@@ -163,7 +163,7 @@ async function loadProjects() {
 }
 
 const onTaskClick = (task) => {
-  ElMessage.info(`查看任务: ${task.title}`)
+  ElMessage.info(`${t('project.viewTask')}: ${task.title}`)
 }
 
 const onTaskDrop = ({ taskId, targetStatus }) => {

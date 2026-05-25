@@ -22,7 +22,7 @@
 
     <div class="pm-milestone-progress-section" v-if="showProgress">
       <div class="pm-milestone-progress-header">
-        <span class="pm-milestone-progress-label">进度</span>
+        <span class="pm-milestone-progress-label">{{ $t('project.progress') }}</span>
         <span class="pm-milestone-progress-value">{{ milestone.completedTasks }}/{{ milestone.totalTasks }}</span>
       </div>
       <div class="pm-progress">
@@ -36,7 +36,7 @@
     </div>
 
     <div class="pm-milestone-projects" v-if="milestone.projectNames && milestone.projectNames.length">
-      <span class="pm-milestone-projects-label">关联项目:</span>
+      <span class="pm-milestone-projects-label">{{ $t('project.relatedProjects') }}:</span>
       <div class="pm-milestone-projects-list">
         <el-tag
           v-for="project in milestone.projectNames.slice(0, 3)"
@@ -56,7 +56,10 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Calendar } from '@element-plus/icons-vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   milestone: {
@@ -93,10 +96,10 @@ const statusType = computed(() => {
 
 const statusText = computed(() => {
   const daysUntil = getDaysUntilTarget()
-  if (daysUntil < 0) return '已逾期'
-  if (daysUntil === 0) return '今日到期'
-  if (daysUntil <= 3) return `${daysUntil}天后到期`
-  return '进行中'
+  if (daysUntil < 0) return t('project.overdue')
+  if (daysUntil === 0) return t('project.dueToday')
+  if (daysUntil <= 3) return t('project.dueInDays', { days: daysUntil })
+  return t('project.inProgress')
 })
 
 const progressClass = computed(() => {

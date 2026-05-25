@@ -514,3 +514,216 @@ SELECT 'PRJ010', d.code, d.name_en, d.name_zh,
 FROM sys_dict_code d
 JOIN sys_dict_type t ON d.dict_type_id = t.id
 WHERE t.code = 'task_status';
+
+-- =============================================================================
+-- 敏捷角色初始化
+-- =============================================================================
+
+-- 添加新的敏捷角色（IGNORE 避免重复）
+INSERT IGNORE INTO sys_role (role_id, name, description) VALUES
+('ROLE_PRODUCT_OWNER', 'Product Owner', '产品负责人，负责产品规划、需求管理、优先级排序'),
+('ROLE_SCRUM_MASTER', 'Scrum Master', 'Scrum Master，负责 Scrum 流程执行、团队协调、Sprint 管理'),
+('ROLE_TEAM_MEMBER', 'Team Member', '团队成员，负责任务执行、代码开发、Bug 修复'),
+('ROLE_PROJECT_ADMIN', 'Project Admin', '项目管理员，拥有项目全部权限');
+
+-- =============================================================================
+-- 权限初始化
+-- =============================================================================
+
+-- 清空权限表后重新初始化
+TRUNCATE TABLE sys_permission;
+DELETE FROM sys_role_permission WHERE role_id IN (SELECT id FROM sys_role WHERE role_id IN ('ROLE_PRODUCT_OWNER', 'ROLE_SCRUM_MASTER', 'ROLE_TEAM_MEMBER', 'ROLE_PROJECT_ADMIN'));
+
+-- 需求管理权限
+INSERT INTO sys_permission (code, name, module) VALUES
+('requirement:create:epic', '创建 Epic', 'requirement'),
+('requirement:create:feature', '创建 Feature', 'requirement'),
+('requirement:create:story', '创建 Story', 'requirement'),
+('requirement:create:bug', '创建 Bug', 'requirement'),
+('requirement:edit:epic', '编辑 Epic', 'requirement'),
+('requirement:edit:feature', '编辑 Feature', 'requirement'),
+('requirement:edit:story', '编辑 Story', 'requirement'),
+('requirement:delete:epic', '删除 Epic', 'requirement'),
+('requirement:delete:feature', '删除 Feature', 'requirement'),
+('requirement:move:epic', '移动 Epic', 'requirement'),
+('requirement:move:feature', '移动 Feature', 'requirement');
+
+-- Sprint 权限
+INSERT INTO sys_permission (code, name, module) VALUES
+('sprint:manage', '管理 Sprint', 'sprint'),
+('sprint:start', '开始 Sprint', 'sprint'),
+('sprint:complete', '完成 Sprint', 'sprint');
+
+-- 任务权限
+INSERT INTO sys_permission (code, name, module) VALUES
+('task:create', '创建任务', 'task'),
+('task:assign', '分配任务', 'task'),
+('task:update:own', '更新自己的任务', 'task'),
+('task:complete:own', '完成自己的任务', 'task');
+
+-- 项目权限
+INSERT INTO sys_permission (code, name, module) VALUES
+('project:manage', '管理项目', 'project');
+
+-- =============================================================================
+-- 角色权限映射
+-- 使用数字 role_id (sys_role.id)
+-- =============================================================================
+
+-- Product Owner 权限
+INSERT INTO sys_role_permission (role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r, sys_permission p
+WHERE r.role_id = 'ROLE_PRODUCT_OWNER' AND p.code IN ('requirement:create:epic', 'requirement:create:feature', 'requirement:create:story', 'requirement:create:bug', 'requirement:edit:epic', 'requirement:edit:feature', 'requirement:edit:story', 'requirement:delete:epic', 'requirement:delete:feature', 'requirement:move:epic', 'requirement:move:feature', 'sprint:manage', 'task:assign');
+
+-- Scrum Master 权限
+INSERT INTO sys_role_permission (role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r, sys_permission p
+WHERE r.role_id = 'ROLE_SCRUM_MASTER' AND p.code IN ('requirement:create:story', 'requirement:create:bug', 'sprint:manage', 'sprint:start', 'sprint:complete', 'task:create', 'task:assign');
+
+-- Team Member 权限
+INSERT INTO sys_role_permission (role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r, sys_permission p
+WHERE r.role_id = 'ROLE_TEAM_MEMBER' AND p.code IN ('requirement:create:story', 'requirement:create:bug', 'task:create', 'task:update:own', 'task:complete:own');
+
+-- Project Admin 权限（全部权限）
+INSERT INTO sys_role_permission (role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r, sys_permission p
+WHERE r.role_id = 'ROLE_PROJECT_ADMIN';
+
+-- =============================================================================
+-- Bug 状态初始化（每个项目独立）
+-- =============================================================================
+
+-- 禁用外键检查以便插入数据
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- PRJ001 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ001', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ001', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ001', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ001', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ001', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ002 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ002', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ002', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ002', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ002', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ002', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ003 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ003', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ003', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ003', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ003', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ003', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ004 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ004', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ004', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ004', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ004', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ004', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ005 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ005', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ005', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ005', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ005', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ005', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ006 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ006', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ006', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ006', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ006', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ006', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ007 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ007', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ007', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ007', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ007', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ007', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ008 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ008', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ008', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ008', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ008', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ008', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ009 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ009', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ009', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ009', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ009', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ009', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- PRJ010 Bug 状态
+INSERT IGNORE INTO bug_status (project_id, code, name_en, name_zh, color, sort_order) VALUES
+('PRJ010', 'OPEN', 'Open', '待办', '#EF4444', 1),
+('PRJ010', 'IN_PROGRESS', 'In Progress', '修复中', '#F59E0B', 2),
+('PRJ010', 'IN_TEST', 'In Test', '待验证', '#3B82F6', 3),
+('PRJ010', 'CLOSED', 'Closed', '已关闭', '#10B981', 4),
+('PRJ010', 'REOPENED', 'Reopened', '重新打开', '#8B5CF6', 5);
+
+-- 恢复外键检查
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- =============================================================================
+-- Bug 状态流转规则初始化
+-- =============================================================================
+
+-- OPEN -> IN_PROGRESS, CLOSED
+-- IN_PROGRESS -> IN_TEST, REOPENED
+-- IN_TEST -> CLOSED, IN_PROGRESS
+-- CLOSED -> REOPENED
+-- REOPENED -> IN_PROGRESS
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status) VALUES
+('PRJ001', 'OPEN', 'IN_PROGRESS'),
+('PRJ001', 'OPEN', 'CLOSED'),
+('PRJ001', 'IN_PROGRESS', 'IN_TEST'),
+('PRJ001', 'IN_PROGRESS', 'REOPENED'),
+('PRJ001', 'IN_TEST', 'CLOSED'),
+('PRJ001', 'IN_TEST', 'IN_PROGRESS'),
+('PRJ001', 'CLOSED', 'REOPENED'),
+('PRJ001', 'REOPENED', 'IN_PROGRESS');
+
+-- 复制到其他项目
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ002', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ003', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ004', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ005', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ006', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ007', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ008', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ009', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';
+
+INSERT IGNORE INTO bug_status_transition (project_id, from_status, to_status)
+SELECT 'PRJ010', from_status, to_status FROM bug_status_transition WHERE project_id = 'PRJ001';

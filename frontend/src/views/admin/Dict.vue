@@ -149,13 +149,13 @@
     >
       <el-form :model="typeForm" :rules="typeRules" ref="typeFormRef" label-position="top">
         <el-form-item :label="$t('admin.dictTypeCode')" prop="code">
-          <el-input v-model="typeForm.code" :disabled="isEditType" placeholder="如: TASK_STATUS" />
+          <el-input v-model="typeForm.code" :disabled="isEditType" :placeholder="$t('admin.dictTypeCodePlaceholder')" />
         </el-form-item>
         <el-form-item :label="$t('admin.dictTypeName')" prop="name">
-          <el-input v-model="typeForm.name" placeholder="如: 任务状态" />
+          <el-input v-model="typeForm.name" :placeholder="$t('admin.dictTypeNamePlaceholder')" />
         </el-form-item>
         <el-form-item :label="$t('admin.description')">
-          <el-input v-model="typeForm.description" type="textarea" :rows="3" placeholder="描述该类型的用途" />
+          <el-input v-model="typeForm.description" type="textarea" :rows="3" :placeholder="$t('admin.dictTypeDescPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -174,21 +174,21 @@
       <el-form :model="itemForm" :rules="itemRules" ref="itemFormRef" label-position="top">
         <div class="form-row">
           <el-form-item :label="$t('admin.dictCode')" prop="code" class="form-col">
-            <el-input v-model="itemForm.code" :disabled="isEditItem" placeholder="如: TODO" />
+            <el-input v-model="itemForm.code" :disabled="isEditItem" :placeholder="$t('admin.dictCodePlaceholder')" />
           </el-form-item>
           <el-form-item :label="$t('admin.sortOrder')" prop="sortOrder" class="form-col-small">
             <el-input-number v-model="itemForm.sortOrder" :min="0" :max="9999" />
           </el-form-item>
         </div>
         <el-form-item :label="$t('admin.dictName')" prop="name">
-          <el-input v-model="itemForm.name" placeholder="如: Todo" />
+          <el-input v-model="itemForm.name" :placeholder="$t('admin.dictNamePlaceholder')" />
         </el-form-item>
         <div class="form-row">
           <el-form-item :label="$t('admin.dictNameEn')" class="form-col">
-            <el-input v-model="itemForm.nameEn" placeholder="待办" />
+            <el-input v-model="itemForm.nameEn" :placeholder="$t('admin.dictNameEnPlaceholder')" />
           </el-form-item>
           <el-form-item :label="$t('admin.dictNameZh')" class="form-col">
-            <el-input v-model="itemForm.nameZh" placeholder="进行中" />
+            <el-input v-model="itemForm.nameZh" :placeholder="$t('admin.dictNameZhPlaceholder')" />
           </el-form-item>
         </div>
         <el-form-item :label="$t('admin.extra')" class="extra-item">
@@ -206,7 +206,7 @@
               v-model="itemForm.extra"
               type="textarea"
               :rows="4"
-              placeholder='{"color": "#409EFF"}'
+              :placeholder="$t('admin.dictExtraPlaceholder')"
               class="json-textarea"
               @input="validateJson"
               spellcheck="false"
@@ -535,10 +535,10 @@ const handleRefreshCache = async () => {
   refreshing.value = true
   try {
     await dictApi.refreshDictCache()
-    ElMessage.success(t('admin.refreshCacheSuccess') || '缓存刷新成功')
+    ElMessage.success(t('admin.refreshCacheSuccess'))
     fetchTypes()
   } catch (e) {
-    ElMessage.error(t('admin.refreshCacheFailed') || '缓存刷新失败')
+    ElMessage.error(t('admin.refreshCacheFailed'))
   } finally {
     refreshing.value = false
   }
