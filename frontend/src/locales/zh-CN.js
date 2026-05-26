@@ -384,7 +384,8 @@ export default {
     tasksAssigned: '任务已分配',
     assignFailed: '分配失败',
     tasksRemoved: '任务已移出',
-    removeFailed: '移出失败'
+    removeFailed: '移出失败',
+    searchTasks: '搜索任务'
   },
   admin: {
     description: '角色描述',

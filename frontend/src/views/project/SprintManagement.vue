@@ -4,6 +4,21 @@
     <div class="pm-page-header">
       <h1 class="pm-heading-1">{{ $t('project.sprintManagement') }}</h1>
       <div class="header-right">
+        <div class="filters">
+          <el-input v-model="searchQuery" :placeholder="$t('project.searchTasks')" />
+          <el-select v-model="filterType" clearable>
+            <el-option :label="$t('project.task')" value="TASK" />
+            <el-option :label="$t('project.story')" value="STORY" />
+            <el-option :label="$t('project.bug')" value="BUG" />
+            <el-option :label="$t('project.epic')" value="EPIC" />
+          </el-select>
+          <el-select v-model="filterPriority" clearable>
+            <el-option :label="$t('project.p0')" value="P0" />
+            <el-option :label="$t('project.p1')" value="P1" />
+            <el-option :label="$t('project.p2')" value="P2" />
+            <el-option :label="$t('project.p3')" value="P3" />
+          </el-select>
+        </div>
         <el-button type="primary" @click="onCreateSprint">
           <el-icon><Plus /></el-icon>
           {{ $t('project.createSprint') }}
@@ -55,10 +70,27 @@ const sprints = ref([])
 const tasks = ref([])
 const selectedTasks = ref([])
 const loading = ref(false)
+const searchQuery = ref('')
+const filterType = ref(null)
+const filterPriority = ref(null)
 
 // Lanes computed - backlog lane first (sprintId=null), then sprint lanes
 const lanes = computed(() => {
-  const backlogTasks = tasks.value.filter(task => !task.sprintId)
+  const filterTasks = (taskList) => {
+    return taskList.filter(t => {
+      if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase()
+        if (!t.title?.toLowerCase().includes(q) && !t.description?.toLowerCase().includes(q)) {
+          return false
+        }
+      }
+      if (filterType.value && t.type !== filterType.value) return false
+      if (filterPriority.value && t.priority !== filterPriority.value) return false
+      return true
+    })
+  }
+
+  const backlogTasks = filterTasks(tasks.value.filter(task => !task.sprintId))
   const backlogLane = {
     id: null,
     name: t('project.backlog'),
@@ -69,7 +101,7 @@ const lanes = computed(() => {
   }
 
   const sprintLanes = sprints.value.map(sprint => {
-    const sprintTasks = tasks.value.filter(task => task.sprintId === sprint.id)
+    const sprintTasks = filterTasks(tasks.value.filter(task => task.sprintId === sprint.id))
     return {
       id: sprint.id,
       name: sprint.name,
@@ -199,6 +231,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: var(--pm-space-md);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--pm-space-sm);
 }
 
 .lanes-container {

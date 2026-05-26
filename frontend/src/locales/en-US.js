@@ -384,7 +384,8 @@ export default {
     tasksAssigned: 'Tasks assigned',
     assignFailed: 'Assignment failed',
     tasksRemoved: 'Tasks removed',
-    removeFailed: 'Removal failed'
+    removeFailed: 'Removal failed',
+    searchTasks: 'Search tasks'
   },
   admin: {
     description: 'Role Description',
