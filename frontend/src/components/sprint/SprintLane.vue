@@ -20,6 +20,8 @@
           draggable
           @node-click="handleNodeClick"
           @node-drag-start="handleDragStart"
+          @node-drag-end="handleDragEnd"
+          @node-drop="handleNodeDrop"
         >
           <template #default="{ data }">
             <div class="tree-node" :class="`type-${data.type?.toLowerCase()}`">
@@ -46,6 +48,9 @@
           draggable
           @node-click="handleNodeClick"
           @node-drag-start="handleDragStart"
+          @node-drag-end="handleDragEnd"
+          @node-drop="handleNodeDrop"
+          @dragend="handleTreeDragEnd"
         >
           <template #default="{ data }">
             <div class="tree-node" :class="`type-${data.type?.toLowerCase()}`">
@@ -68,8 +73,8 @@
 import { ref, computed } from 'vue'
 import { Folder, FolderOpened, Document } from '@element-plus/icons-vue'
 
-// Module-level shared state for cross-tree drag-drop (all SprintLane instances share this)
-const draggingTask = ref(null)
+// Use globalThis for truly shared state across all SprintLane instances
+const draggingTask = globalThis.__draggingTask__ || (globalThis.__draggingTask__ = ref(null))
 
 defineOptions({
   components: {}
@@ -184,8 +189,28 @@ const handleNodeClick = (data) => {
 }
 
 const handleDragStart = (node, event) => {
-  draggingTask.value = { id: node.id, type: node.type }
+  const taskId = node.data?.id ?? node.id
+  const taskType = node.data?.type ?? node.type
+  const sourceSprintId = props.lane.id
+  draggingTask.value = { id: taskId, type: taskType, setAt: Date.now(), sourceSprintId }
   event.dataTransfer.effectAllowed = 'move'
+}
+
+const handleDragEnd = (node, event) => {
+  // Don't clear draggingTask here - let onLaneDrop handle the cleanup
+}
+
+const handleNodeDrop = (draggingNode, dropNode, position, event) => {
+  // The drop was absorbed by el-tree's tree-node, need to emit our own drop event
+  // Use the stored draggingTask (which should still be valid)
+  if (draggingTask.value) {
+    const { id: taskId, type: taskType } = draggingTask.value
+    emit('drop', { taskId: String(taskId), taskType, targetSprintId: props.lane.id })
+  }
+}
+
+const handleTreeDragEnd = (event) => {
+  // Don't clear draggingTask here - let onLaneDrop handle it
 }
 
 const getTypeClass = (type) => {
@@ -224,6 +249,7 @@ const onLaneDragLeave = (e) => {
 
 const onLaneDrop = (e) => {
   e.preventDefault()
+  e.stopPropagation()
   isDragOver.value = false
   if (draggingTask.value) {
     const { id: taskId, type: taskType } = draggingTask.value

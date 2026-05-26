@@ -71,6 +71,7 @@ const loading = ref(false)
 const searchQuery = ref('')
 const filterType = ref(null)
 const filterPriority = ref(null)
+let isProcessingDrop = false  // Prevent duplicate drop processing
 
 // Lanes computed - backlog lane first (sprintId=null), then sprint lanes
 const lanes = computed(() => {
@@ -208,68 +209,102 @@ const onBatchRemove = async () => {
 }
 
 const onDropTask = async ({ taskId, taskType, targetSprintId }) => {
-  console.log('[DEBUG] onDropTask called:', { taskId, taskType, targetSprintId })
-  const task = tasks.value.find(t => String(t.id) === String(taskId))
-  if (!task) {
+  // Prevent duplicate processing
+  if (isProcessingDrop) {
+    console.log('[DEBUG] onDropTask: already processing, skipping')
     return
   }
-
-  // Epic/Feature/Story: move all descendant tasks, but don't change parent sprint
-  if (['EPIC', 'FEATURE', 'STORY'].includes(taskType)) {
-    console.log('[DEBUG] Epic/Feature/Story drop:', { taskId, taskType, task })
-    const descendantIds = getDescendantIds(task)
-    console.log('[DEBUG] descendantIds:', descendantIds)
-    if (descendantIds.length === 0) {
-      ElMessage.warning(t('project.noDescendantsToMove'))
-      return
-    }
-    try {
-      const descendants = tasks.value.filter(t => descendantIds.includes(t.id) && ['TASK', 'SUBTASK'].includes(t.type))
-      const targetSprintIdNum = Number(targetSprintId)
-      for (const desc of descendants) {
-        if (Number(desc.sprintId) !== targetSprintIdNum) {
-          await moveTask(desc.id, { sprintId: targetSprintIdNum, projectId: desc.projectId })
-          desc.sprintId = targetSprintId
-        }
-      }
-      // Remove moved tasks and empty ancestors from backlog tree
-      const idsToRemove = new Set([task.id, ...descendantIds])
-      filterBacklogTree(idsToRemove)
-      ElMessage.success(t('project.descendantsMoved', { count: descendants.length }))
-    } catch (e) {
-      ElMessage.error(t('project.moveFailed'))
-    }
-    return
-  }
-
-  // TASK/SUBTASK: normal move
-  console.log('[DEBUG] TASK/SUBTASK drop:', { taskId, taskType, task, targetSprintId })
-  const targetSprintIdNum = Number(targetSprintId)
-  if (Number(task.sprintId) === targetSprintIdNum) {
-    console.log('[DEBUG] Same sprint, no move needed')
-    return
-  }
+  isProcessingDrop = true
 
   try {
-    await moveTask(taskId, { sprintId: targetSprintIdNum, projectId: task.projectId })
-    task.sprintId = targetSprintId
-    // Remove from backlog tree and clean up empty ancestors
-    const idsToRemove = new Set([task.id, ...getDescendantIds(task)])
-    filterBacklogTree(idsToRemove)
+    console.log('[DEBUG] onDropTask called:', { taskId, taskType, targetSprintId })
+    const task = tasks.value.find(t => String(t.id) === String(taskId))
+    if (!task) {
+      isProcessingDrop = false
+      return
+    }
+
+    // Epic/Feature/Story: move all descendant tasks, but don't change parent sprint
+    if (['EPIC', 'FEATURE', 'STORY'].includes(taskType)) {
+      // Get source sprint ID from global dragging task (saved at drag start in SprintLane)
+      const draggingTaskInfo = globalThis.__draggingTask__?.value
+      const sourceSprintId = draggingTaskInfo?.sourceSprintId ?? task.sprintId
+      const descendantTaskIds = getDescendantIds(task)
+
+      // Filter to TASK/SUBTASK that are in the source lane
+      const descendants = tasks.value.filter(t =>
+        descendantTaskIds.includes(t.id) &&
+        ['TASK', 'SUBTASK'].includes(t.type) &&
+        (sourceSprintId == null ? !t.sprintId : Number(t.sprintId) === Number(sourceSprintId))
+      )
+
+      if (descendants.length === 0) {
+        ElMessage.warning(t('project.noDescendantsToMove'))
+        isProcessingDrop = false
+        return
+      }
+
+      const targetSprintIdValue = targetSprintId == null ? null : Number(targetSprintId)
+      for (const desc of descendants) {
+        await moveTask(desc.id, { sprintId: targetSprintIdValue, projectId: desc.projectId })
+        desc.sprintId = targetSprintIdValue
+      }
+
+      // Reload data if moving to backlog
+      if (targetSprintId === null) {
+        const projectId = route.params.projectId
+        const [treeRes, tasksRes] = await Promise.all([
+          getRequirementTree(projectId),
+          getTasksByProject(projectId)
+        ])
+        backlogTree.value = filterInvalidLeaves(treeRes.data || [])
+        tasks.value = tasksRes.data || tasksRes || []
+      }
+
+      ElMessage.success(t('project.descendantsMoved', { count: descendants.length }))
+      return
+    }
+
+    // TASK/SUBTASK: normal move
+    const targetSprintIdValue = targetSprintId === null ? null : Number(targetSprintId)
+    const currentSprintId = task.sprintId == null ? null : Number(task.sprintId)
+    if (currentSprintId === targetSprintIdValue) {
+      isProcessingDrop = false
+      return
+    }
+
+    await moveTask(taskId, { sprintId: targetSprintIdValue, projectId: task.projectId })
+    task.sprintId = targetSprintIdValue
+
+    if (targetSprintId === null) {
+      const projectId = route.params.projectId
+      const [treeRes, tasksRes] = await Promise.all([
+        getRequirementTree(projectId),
+        getTasksByProject(projectId)
+      ])
+      backlogTree.value = filterInvalidLeaves(treeRes.data || [])
+      tasks.value = tasksRes.data || tasksRes || []
+    } else {
+      const idsToRemove = new Set([task.id, ...getDescendantIds(task)])
+      filterBacklogTree(idsToRemove)
+    }
     ElMessage.success(t('project.taskMoved'))
   } catch (e) {
     ElMessage.error(t('project.taskMoveFailed'))
+  } finally {
+    isProcessingDrop = false
   }
 }
 
 // Get all descendant task IDs for a parent task
-function getDescendantIds(parentTask) {
+function getDescendantIds(parentTask, taskList = null) {
+  const list = taskList || tasks.value
   const result = []
   const parentId = Number(parentTask.id)
-  const children = tasks.value.filter(t => Number(t.parentId) === parentId)
+  const children = list.filter(t => Number(t.parentId) === parentId)
   for (const child of children) {
     result.push(child.id)
-    result.push(...getDescendantIds(child))
+    result.push(...getDescendantIds(child, list))
   }
   return result
 }
