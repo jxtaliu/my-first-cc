@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside width="200px" class="sidebar">
       <div class="logo">SME PM</div>
-      <el-menu :default-active="$route.path" router>
+      <el-menu :default-active="$route.path" router @select="handleMenuSelect">
         <el-menu-item index="/dashboard">
           <el-icon><DataAnalysis /></el-icon>
           <span>{{ $t('nav.dashboard') }}</span>
@@ -59,6 +59,10 @@
           <el-menu-item index="/projects/portfolio">
             <el-icon><TrendCharts /></el-icon>
             <span>{{ $t('nav.portfolio') }}</span>
+          </el-menu-item>
+          <el-menu-item :index="`/projects/sprint-management/${projectStore.currentProjectId}`">
+            <el-icon><Timer /></el-icon>
+            <span>{{ $t('nav.sprintManagement') }}</span>
           </el-menu-item>
         </el-sub-menu>
         <!-- 需求管理 -->
@@ -139,6 +143,21 @@
           <LanguageSwitcher />
         </div>
         <div class="header-right">
+          <!-- 全局项目选择器 -->
+          <el-select
+            v-model="projectStore.currentProjectId"
+            :placeholder="$t('project.selectProject')"
+            clearable
+            class="project-selector"
+            @change="handleProjectChange"
+          >
+            <el-option
+              v-for="project in projectStore.projects"
+              :key="project.projectId"
+              :label="project.name"
+              :value="project.projectId"
+            />
+          </el-select>
           <NotificationBell />
           <el-dropdown @command="handleCommand">
             <span class="user-info">
@@ -164,6 +183,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useProjectStore } from '@/stores/project'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import NotificationBell from '@/components/common/NotificationBell.vue'
@@ -172,6 +192,7 @@ import { getUnreadCount } from '@/api/notification'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const projectStore = useProjectStore()
 const unreadCount = ref(0)
 
 const fetchUnreadCount = async () => {
@@ -190,9 +211,21 @@ const handleCommand = (command) => {
   }
 }
 
+const handleMenuSelect = (index) => {
+  // 如果是需求池页面，使用全局项目选择
+  if (index === '/requirements') {
+    // 需求池将使用 projectStore.currentProjectId
+  }
+}
+
+const handleProjectChange = (projectId) => {
+  projectStore.setCurrentProject(projectId)
+}
+
 onMounted(() => {
   if (authStore.user?.id) {
     fetchUnreadCount()
+    projectStore.loadProjects()
   }
 })
 </script>
@@ -232,6 +265,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.project-selector {
+  width: 180px;
 }
 
 .user-info {

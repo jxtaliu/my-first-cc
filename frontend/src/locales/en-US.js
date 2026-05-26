@@ -69,7 +69,8 @@ export default {
     compare: 'Compare',
     portfolio: 'Portfolio',
     requirements: 'Requirements',
-    requirementsList: 'Requirements Pool'
+    requirementsList: 'Requirements Pool',
+    sprintManagement: 'Sprint Management'
   },
   dashboard: {
     projects: 'Projects',

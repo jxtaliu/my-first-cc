@@ -69,7 +69,8 @@ export default {
     compare: '项目对比',
     portfolio: 'Portfolio',
     requirements: '需求管理',
-    requirementsList: '需求池'
+    requirementsList: '需求池',
+    sprintManagement: '冲刺管理'
   },
   dashboard: {
     projects: '项目数',
