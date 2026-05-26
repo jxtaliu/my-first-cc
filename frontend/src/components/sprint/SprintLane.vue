@@ -62,14 +62,14 @@ const onDragStart = (event, taskId) => {
   event.dataTransfer.setData('taskId', taskId)
 }
 
-const onSelect = (taskId) => {
-  const index = selectedTasks.value.indexOf(taskId)
-  if (index === -1) {
+const onSelect = (taskId, checked) => {
+  const idx = selectedTasks.value.indexOf(taskId)
+  if (checked && idx < 0) {
     selectedTasks.value.push(taskId)
-  } else {
-    selectedTasks.value.splice(index, 1)
+  } else if (!checked && idx >= 0) {
+    selectedTasks.value.splice(idx, 1)
   }
-  emit('select', taskId)
+  emit('select-task', taskId)
 }
 </script>
 
