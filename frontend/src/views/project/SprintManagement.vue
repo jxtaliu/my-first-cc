@@ -30,7 +30,7 @@
       :selected-count="selectedTasks.length"
       :sprints="sprints"
       @assign-sprint="onBatchAssignSprint"
-      @delete="onBatchDelete"
+      @batch-remove="onBatchRemove"
       @clear="onClearSelection"
     />
   </div>
@@ -139,10 +139,6 @@ const onBatchAssignSprint = async (targetSprintId) => {
   } catch (e) {
     ElMessage.error(t('project.assignFailed'))
   }
-}
-
-const onBatchDelete = () => {
-  ElMessage.info('Batch delete')
 }
 
 const onClearSelection = () => {
