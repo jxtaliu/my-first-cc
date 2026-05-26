@@ -195,11 +195,20 @@ const onBatchRemove = async () => {
 }
 
 const onDropTask = async ({ taskId, targetSprintId }) => {
-  const task = tasks.value.find(t => t.id === taskId)
-  if (!task || task.sprintId === targetSprintId) return
+  console.log('onDropTask called - taskId:', taskId, 'targetSprintId:', targetSprintId)
+  console.log('Available tasks:', tasks.value.map(t => ({ id: t.id, title: t.title })))
+  const task = tasks.value.find(t => String(t.id) === String(taskId))
+  if (!task) {
+    console.log('Task not found with id:', taskId)
+    return
+  }
+  if (task.sprintId === targetSprintId) {
+    console.log('Task already in this sprint')
+    return
+  }
 
   try {
-    await updateTask(taskId, { sprintId: targetSprintId })
+    await updateTask(taskId, { sprintId: targetSprintId, projectId: task.projectId })
     task.sprintId = targetSprintId
     ElMessage.success(t('project.taskMoved'))
   } catch (e) {
@@ -246,5 +255,8 @@ onMounted(() => {
   display: flex;
   gap: var(--pm-space-lg);
   padding: var(--pm-space-md) 0;
+  height: calc(100vh - 180px);
+  min-height: 400px;
+  box-sizing: border-box;
 }
 </style>

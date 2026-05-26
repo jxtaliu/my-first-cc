@@ -13,7 +13,7 @@ export function createTask(data) {
 }
 
 export function updateTask(id, data) {
-  return request.put(`/v1/tasks/${id}`, data)
+  return request.put(`/v1/tasks/${id}`, data, { params: { projectId: data.projectId } })
 }
 
 export function deleteTask(id) {
