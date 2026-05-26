@@ -181,28 +181,34 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
         taskMapper.updateById(task);
     }
 
+    @Transactional
     public int batchAddTasks(Long sprintId, List<Long> taskIds) {
         if (taskIds == null || taskIds.isEmpty()) return 0;
+        int count = 0;
         for (Long taskId : taskIds) {
             Task task = taskMapper.selectById(taskId);
             if (task != null) {
                 task.setSprintId(sprintId);
                 taskMapper.updateById(task);
+                count++;
             }
         }
-        return taskIds.size();
+        return count;
     }
 
+    @Transactional
     public int batchRemoveTasks(Long sprintId, List<Long> taskIds) {
         if (taskIds == null || taskIds.isEmpty()) return 0;
+        int count = 0;
         for (Long taskId : taskIds) {
             Task task = taskMapper.selectById(taskId);
             if (task != null && sprintId.equals(task.getSprintId())) {
                 task.setSprintId(null);
                 taskMapper.updateById(task);
+                count++;
             }
         }
-        return taskIds.size();
+        return count;
     }
 
     @Override
