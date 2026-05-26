@@ -21,7 +21,7 @@ public class Milestone {
 
     private String projectId; // References project.project_id  // NULL for cross-project milestones
 
-    private String status;  // ACTIVE, ACHIEVED, FAILED
+    private String status;  // PLANNING, IN_PROGRESS, COMPLETED
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

@@ -61,4 +61,10 @@ public class MilestoneController {
         milestoneService.removeById(id);
         return Result.success();
     }
+
+    @PutMapping("/{id}/complete")
+    public Result<Milestone> complete(@PathVariable Long id) {
+        milestoneService.completeMilestone(id);
+        return Result.success(milestoneService.getById(id));
+    }
 }

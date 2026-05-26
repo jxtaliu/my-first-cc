@@ -10,4 +10,5 @@ public interface IMilestoneService extends IService<Milestone> {
     List<Milestone> findCrossProject();
     List<Milestone> findByProjectId(String projectId);
     List<Milestone> findDueSoon(int days);
+    void completeMilestone(Long id);
 }

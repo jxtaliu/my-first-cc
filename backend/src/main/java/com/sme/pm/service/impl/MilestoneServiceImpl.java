@@ -50,4 +50,14 @@ public class MilestoneServiceImpl extends ServiceImpl<MilestoneMapper, Milestone
                .orderByAsc(Milestone::getTargetDate);
         return list(wrapper);
     }
+
+    @Override
+    public void completeMilestone(Long id) {
+        Milestone milestone = getById(id);
+        if (milestone == null) {
+            throw new IllegalArgumentException("Milestone not found");
+        }
+        milestone.setStatus("COMPLETED");
+        updateById(milestone);
+    }
 }
