@@ -5,7 +5,7 @@
       <h1 class="pm-heading-1">{{ project?.name || $t('project.selectProject') }}</h1>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Stats Cards Row -->
     <div class="stats-cards">
       <div class="stat-card">
         <div class="stat-icon total">
@@ -45,8 +45,8 @@
       </div>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="dashboard-grid">
+    <!-- Main Content - Two Columns -->
+    <div class="dashboard-content">
       <!-- Left Column -->
       <div class="dashboard-left">
         <!-- Task Distribution -->
@@ -82,64 +82,6 @@
           </div>
         </div>
 
-        <!-- Current Sprint Overview -->
-        <div class="dashboard-card">
-          <div class="card-header">
-            <h3>{{ $t('project.currentSprint') }}</h3>
-            <el-tag v-if="currentSprint" :type="sprintStatusType">{{ currentSprint.status }}</el-tag>
-          </div>
-          <div class="card-body" v-if="currentSprint">
-            <div class="sprint-info">
-              <div class="sprint-name">{{ currentSprint.name }}</div>
-              <div class="sprint-dates" v-if="currentSprint.startDate">
-                {{ formatDate(currentSprint.startDate) }} - {{ formatDate(currentSprint.endDate) }}
-              </div>
-            </div>
-            <div class="sprint-progress">
-              <div class="progress-header">
-                <span>{{ $t('project.completion') }}: {{ sprintStats.completed }}/{{ sprintStats.total }}</span>
-                <span>{{ sprintStats.percent }}%</span>
-              </div>
-              <el-progress :percentage="sprintStats.percent" :stroke-width="8" />
-            </div>
-            <div class="sprint-meta">
-              <div class="meta-item">
-                <span class="meta-label">{{ $t('project.remainingDays') }}:</span>
-                <span class="meta-value">{{ sprintStats.remainingDays }}</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">{{ $t('project.capacity') }}:</span>
-                <span class="meta-value">{{ sprintStats.capacityHours }}h</span>
-              </div>
-            </div>
-          </div>
-          <div class="card-body empty-state" v-else>
-            <el-empty :description="$t('project.noActiveSprint')" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column -->
-      <div class="dashboard-right">
-        <!-- Milestone Timeline -->
-        <div class="dashboard-card">
-          <div class="card-header">
-            <h3>{{ $t('project.milestones') }}</h3>
-          </div>
-          <div class="card-body">
-            <div v-if="milestones.length > 0" class="milestone-timeline">
-              <div v-for="milestone in milestones" :key="milestone.id" class="milestone-item" :class="{ overdue: isOverdue(milestone) }">
-                <div class="milestone-date">{{ formatDate(milestone.endDate) }}</div>
-                <div class="milestone-info">
-                  <div class="milestone-name">{{ milestone.name }}</div>
-                  <div class="milestone-status" :class="milestone.status?.toLowerCase()">{{ milestone.status }}</div>
-                </div>
-              </div>
-            </div>
-            <el-empty v-else :description="$t('project.noMilestones')" />
-          </div>
-        </div>
-
         <!-- Team Load -->
         <div class="dashboard-card">
           <div class="card-header">
@@ -157,7 +99,7 @@
                 </div>
               </div>
             </div>
-            <el-empty v-else :description="$t('project.noTeamData')" />
+            <el-empty v-else :description="$t('project.noTeamData')" :image-size="60" />
           </div>
         </div>
 
@@ -174,7 +116,113 @@
                 <span class="recent-time">{{ formatRelativeTime(task.updatedAt) }}</span>
               </div>
             </div>
-            <el-empty v-else :description="$t('project.noRecentActivity')" />
+            <el-empty v-else :description="$t('project.noRecentActivity')" :image-size="60" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="dashboard-right">
+        <!-- Sprint Gantt Chart -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h3>{{ $t('project.sprintGantt') }}</h3>
+            <div class="header-right">
+              <el-tag v-if="currentSprints.length" type="success">{{ currentSprints.length }} {{ $t('project.activeSprints') }}</el-tag>
+            </div>
+          </div>
+          <div class="card-body" v-if="sprints.length">
+            <div class="gantt-chart">
+              <!-- Gantt Header -->
+              <div class="gantt-header-row">
+                <div class="gantt-col-name">{{ $t('project.sprintName') }}</div>
+                <div class="gantt-col-timeline">
+                  <div class="timeline-header">
+                    <div
+                      v-for="week in timelineWeeks"
+                      :key="week.key"
+                      class="week-cell"
+                      :class="{ current: week.isCurrent }"
+                    >
+                      {{ week.label }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Gantt Rows -->
+              <div class="gantt-body">
+                <div v-for="sprint in sprints" :key="sprint.id" class="gantt-row">
+                  <div class="gantt-col-name">
+                    <span class="sprint-name-text">{{ sprint.name }}</span>
+                    <el-tag size="small" :type="getSprintTagType(sprint.status)">{{ sprint.status }}</el-tag>
+                  </div>
+                  <div class="gantt-col-timeline">
+                    <div class="timeline-grid">
+                      <div
+                        v-if="sprint.startDate && sprint.endDate"
+                        class="sprint-bar"
+                        :class="['status-' + sprint.status.toLowerCase(), { active: sprint.status === 'ACTIVE' }]"
+                        :style="getSprintBarStyle(sprint)"
+                      >
+                        <span class="bar-label">{{ sprint.name }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body empty-state" v-else>
+            <el-empty :description="$t('project.noSprints')" :image-size="60" />
+          </div>
+        </div>
+
+        <!-- Milestone Timeline - Horizontal -->
+        <div class="dashboard-card milestone-timeline-card">
+          <div class="card-header">
+            <h3>{{ $t('project.milestones') }}</h3>
+          </div>
+          <div class="card-body" v-if="milestones.length">
+            <div class="milestone-timeline">
+              <!-- Date markers above line -->
+              <div class="timeline-dates">
+                <span
+                  v-for="marker in timelineMarkers"
+                  :key="marker.key"
+                  class="date-label"
+                  :style="{ left: marker.percent + '%' }"
+                >
+                  {{ marker.label }}
+                </span>
+              </div>
+              <!-- Main timeline axis -->
+              <div class="timeline-axis">
+                <div class="axis-line"></div>
+                <!-- Today indicator -->
+                <div class="today-marker" :style="{ left: todayPosition + '%' }">
+                  <div class="today-flag"></div>
+                  <span class="today-text">{{ $t('project.today') }}</span>
+                </div>
+                <!-- Milestone dots -->
+                <div
+                  v-for="milestone in milestones"
+                  :key="milestone.id"
+                  class="milestone-dot-wrapper"
+                  :class="'status-' + (milestone.status || 'planning').toLowerCase()"
+                  :style="{ left: getMilestonePosition(milestone) + '%' }"
+                >
+                  <div class="milestone-line-connector"></div>
+                  <div class="milestone-circle"></div>
+                  <div class="milestone-label">
+                    <span class="label-name">{{ milestone.name }}</span>
+                    <span class="label-date">{{ formatDate(milestone.targetDate) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body empty-state" v-else>
+            <el-empty :description="$t('project.noMilestones')" :image-size="60" />
           </div>
         </div>
       </div>
@@ -188,20 +236,21 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Document, Clock, CircleCheck, Warning } from '@element-plus/icons-vue'
 import { useProjectStore } from '@/stores/project'
-import { getProject } from '@/api/project'
 import { getTasksByProject } from '@/api/task'
 import { getSprints } from '@/api/project'
-import { getMilestones } from '@/api/milestone'
+import { getMilestonesByProject } from '@/api/milestone'
 
 const { t } = useI18n()
 const projectStore = useProjectStore()
 
 // Refs
-const project = ref(null)
 const tasks = ref([])
 const sprints = ref([])
 const milestones = ref([])
 const loading = ref(false)
+
+// Computed project from store
+const project = computed(() => projectStore.currentProject)
 
 // Load data
 async function loadData() {
@@ -210,17 +259,15 @@ async function loadData() {
 
   loading.value = true
   try {
-    const [projectRes, tasksRes, sprintsRes, milestonesRes] = await Promise.all([
-      getProject(projectId),
+    const [tasksRes, sprintsRes, milestonesRes] = await Promise.all([
       getTasksByProject(projectId),
       getSprints(projectId),
-      getMilestones(projectId)
+      getMilestonesByProject(projectId)
     ])
 
-    project.value = projectRes.data || projectRes
     tasks.value = tasksRes.data || tasksRes || []
     sprints.value = sprintsRes.data || sprintsRes || []
-    milestones.value = (milestonesRes.data || milestonesRes || []).slice(0, 5)
+    milestones.value = (milestonesRes.data || milestonesRes || []).slice(0, 6)
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
     ElMessage.error(t('project.loadFailed'))
@@ -289,41 +336,194 @@ const distributionByPriority = computed(() => {
   }))
 })
 
-// Current Sprint
-const currentSprint = computed(() => {
-  return sprints.value.find(s => s.status === 'ACTIVE' || s.status === 'IN_PROGRESS')
+// Current Sprints
+const currentSprints = computed(() => {
+  return sprints.value.filter(s => s.status === 'ACTIVE')
 })
 
-const sprintStatusType = computed(() => {
-  if (!currentSprint.value) return 'info'
-  const statusMap = { 'PLANNING': 'warning', 'ACTIVE': 'success', 'COMPLETED': 'info' }
-  return statusMap[currentSprint.value.status] || 'info'
-})
+// Sprint Gantt - Weekly view
+const timelineWeeks = computed(() => {
+  const weeks = []
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
-const sprintStats = computed(() => {
-  if (!currentSprint.value) return { completed: 0, total: 0, percent: 0, remainingDays: 0, capacityHours: 0 }
+  let minDate = new Date(today)
+  let maxDate = new Date(today)
 
-  const sprintId = currentSprint.value.id
-  const sprintTasks = tasks.value.filter(t => Number(t.sprintId) === Number(sprintId))
-  const total = sprintTasks.length
-  const completed = sprintTasks.filter(t => t.status?.toUpperCase() === 'DONE').length
-  const percent = total > 0 ? Math.round((completed / total) * 100) : 0
+  sprints.value.forEach(sprint => {
+    if (sprint.startDate) {
+      const start = new Date(sprint.startDate)
+      if (start < minDate) minDate = start
+    }
+    if (sprint.endDate) {
+      const end = new Date(sprint.endDate)
+      if (end > maxDate) maxDate = end
+    }
+  })
 
-  let remainingDays = 0
-  if (currentSprint.value.endDate) {
-    const end = new Date(currentSprint.value.endDate)
-    const now = new Date()
-    remainingDays = Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)))
+  minDate.setDate(minDate.getDate() - 7)
+  maxDate.setDate(maxDate.getDate() + 21)
+
+  const dayOfWeek = minDate.getDay()
+  const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  const monday = new Date(minDate)
+  monday.setDate(minDate.getDate() + daysToMonday)
+
+  let current = new Date(monday)
+  let count = 0
+  while (current <= maxDate && count < 10) {
+    weeks.push({
+      key: current.toISOString().split('T')[0],
+      label: `${current.getMonth() + 1}/${current.getDate()}`,
+      isCurrent: current <= today && new Date(current.getTime() + 6 * 24 * 60 * 60 * 1000) >= today
+    })
+    current.setDate(current.getDate() + 7)
+    count++
   }
+
+  return weeks
+})
+
+const timelineTotalDays = computed(() => {
+  return timelineWeeks.value.length * 7
+})
+
+function getSprintBarStyle(sprint) {
+  if (!timelineWeeks.value.length) return {}
+
+  const startDate = new Date(sprint.startDate)
+  const endDate = new Date(sprint.endDate)
+  startDate.setHours(0, 0, 0, 0)
+  endDate.setHours(0, 0, 0, 0)
+
+  const firstWeek = timelineWeeks.value[0]
+  const firstDate = new Date(firstWeek.key)
+  firstDate.setHours(0, 0, 0, 0)
+
+  const startOffset = Math.floor((startDate - firstDate) / (1000 * 60 * 60 * 24))
+  const duration = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1
+
+  const leftPercent = (startOffset / timelineTotalDays.value) * 100
+  const widthPercent = (duration / timelineTotalDays.value) * 100
 
   return {
-    completed,
-    total,
-    percent,
-    remainingDays,
-    capacityHours: currentSprint.value.capacityHours || 0
+    left: `${Math.max(0, leftPercent)}%`,
+    width: `${Math.min(100 - leftPercent, widthPercent)}%`
   }
+}
+
+function getSprintTagType(status) {
+  const map = { 'PLANNING': 'info', 'ACTIVE': 'success', 'COMPLETED': '', 'ARCHIVED': 'warning' }
+  return map[status] || 'info'
+}
+
+// Milestone Timeline - use sprint date range for better distribution
+const milestoneRange = computed(() => {
+  if (milestones.value.length === 0) {
+    const today = new Date()
+    return {
+      start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
+      end: new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000),
+      totalDays: 60
+    }
+  }
+
+  const dates = milestones.value
+    .filter(m => m.targetDate)
+    .map(m => new Date(m.targetDate))
+
+  if (dates.length === 0) {
+    const today = new Date()
+    return {
+      start: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
+      end: new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000),
+      totalDays: 60
+    }
+  }
+
+  const minDate = new Date(Math.min(...dates))
+  const maxDate = new Date(Math.max(...dates))
+
+  // Add padding: 7 days before earliest, 7 days after latest
+  const start = new Date(minDate.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const end = new Date(maxDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+  const totalDays = Math.ceil((end - start) / (24 * 60 * 60 * 1000))
+
+  return { start, end, totalDays }
 })
+
+const timelineMarkers = computed(() => {
+  const { start, end, totalDays } = milestoneRange.value
+  const markers = []
+
+  // Determine interval based on total days
+  let interval = 5
+  if (totalDays >= 60) interval = 15
+  else if (totalDays >= 30) interval = 10
+
+  for (let i = 0; i <= totalDays; i += interval) {
+    const date = new Date(start.getTime() + i * 24 * 60 * 60 * 1000)
+    const percent = (i / totalDays) * 100
+    markers.push({
+      key: i,
+      label: `${date.getMonth() + 1}/${date.getDate()}`,
+      percent: percent
+    })
+  }
+  return markers
+})
+
+function getMilestonePosition(milestone) {
+  if (!milestone.targetDate) return 50
+  const { start, totalDays } = milestoneRange.value
+  const target = new Date(milestone.targetDate)
+  const daysDiff = Math.floor((target - start) / (24 * 60 * 60 * 1000))
+  const percent = (daysDiff / totalDays) * 100
+  return Math.max(0, Math.min(100, percent))
+}
+
+function getMilestoneStatusClass(milestone) {
+  const status = (milestone.status || 'PLANNING').toUpperCase()
+  if (status === 'COMPLETED') return 'status-completed'
+  if (status === 'IN_PROGRESS') return 'status-in-progress'
+  return 'status-planning'
+}
+
+const todayPosition = computed(() => {
+  const { start, totalDays } = milestoneRange.value
+  const today = new Date()
+  const daysDiff = Math.floor((today - start) / (24 * 60 * 60 * 1000))
+  const percent = (daysDiff / totalDays) * 100
+  return Math.max(0, Math.min(100, percent))
+})
+
+const timelineMonths = computed(() => {
+  const { start, end, totalDays } = milestoneRange.value
+  const months = []
+  let currentMonth = -1
+  let currentYear = -1
+
+  for (let i = 0; i <= totalDays; i++) {
+    const date = new Date(start.getTime() + i * 24 * 60 * 60 * 1000)
+    if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
+      currentMonth = date.getMonth()
+      currentYear = date.getFullYear()
+      const percent = (i / totalDays) * 100
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      months.push({
+        key: i,
+        label: monthNames[currentMonth],
+        percent: percent
+      })
+    }
+  }
+  return months
+})
+
+function isOverdue(milestone) {
+  if (!milestone.endDate || milestone.status === 'COMPLETED') return false
+  return new Date(milestone.endDate) < new Date()
+}
 
 // Team Load
 const teamLoad = computed(() => {
@@ -358,19 +558,14 @@ const teamLoad = computed(() => {
 const recentTasks = computed(() => {
   return [...tasks.value]
     .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
-    .slice(0, 8)
+    .slice(0, 6)
 })
 
 // Helpers
 function formatDate(dateStr) {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
-  return date.toLocaleDateString()
-}
-
-function isOverdue(milestone) {
-  if (!milestone.endDate || milestone.status === 'COMPLETED') return false
-  return new Date(milestone.endDate) < new Date()
+  return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
 }
 
 function formatRelativeTime(dateStr) {
@@ -405,19 +600,26 @@ onMounted(() => {
 <style scoped>
 .project-dashboard {
   padding: var(--pm-space-lg);
-  overflow-y: auto;
   height: 100vh;
+  overflow: hidden;
+  background: var(--el-fill-color-light);
 }
 
 .pm-page-header {
   margin-bottom: var(--pm-space-lg);
 }
 
+.pm-page-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
 /* Stats Cards */
 .stats-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--pm-space-lg);
+  gap: var(--pm-space-md);
   margin-bottom: var(--pm-space-lg);
 }
 
@@ -427,8 +629,15 @@ onMounted(() => {
   gap: var(--pm-space-md);
   padding: var(--pm-space-lg);
   background: var(--el-bg-color);
-  border-radius: var(--pm-radius-md);
-  border: 1px solid var(--el-border-color);
+  border-radius: var(--pm-radius-lg);
+  border: 1px solid var(--el-border-color-light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .stat-icon {
@@ -438,42 +647,47 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
 }
 
-.stat-icon.total { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
-.stat-icon.in-progress { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
-.stat-icon.done { background: rgba(16, 185, 129, 0.1); color: #10B981; }
-.stat-icon.blocked { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
+.stat-icon.total { background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; }
+.stat-icon.in-progress { background: linear-gradient(135deg, #F59E0B, #D97706); color: white; }
+.stat-icon.done { background: linear-gradient(135deg, #10B981, #059669); color: white; }
+.stat-icon.blocked { background: linear-gradient(135deg, #EF4444, #DC2626); color: white; }
 
 .stat-value {
   font-size: 28px;
   font-weight: 700;
   color: var(--el-text-color-primary);
+  line-height: 1;
 }
 
 .stat-label {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
+  margin-top: 4px;
 }
 
-/* Dashboard Grid */
-.dashboard-grid {
+/* Dashboard Content */
+.dashboard-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 380px 1fr;
   gap: var(--pm-space-lg);
+  align-items: start;
 }
 
 .dashboard-left, .dashboard-right {
   display: flex;
   flex-direction: column;
-  gap: var(--pm-space-lg);
+  gap: var(--pm-space-md);
 }
 
+/* Cards */
 .dashboard-card {
   background: var(--el-bg-color);
-  border-radius: var(--pm-radius-md);
-  border: 1px solid var(--el-border-color);
+  border-radius: var(--pm-radius-lg);
+  border: 1px solid var(--el-border-color-light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
@@ -482,14 +696,21 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--pm-space-md) var(--pm-space-lg);
-  border-bottom: 1px solid var(--el-border-color);
-  background: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--el-border-color-light);
+  background: var(--el-fill-color-lighter);
 }
 
 .card-header h3 {
   font-size: 14px;
   font-weight: 600;
+  color: var(--el-text-color-primary);
   margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--pm-space-sm);
 }
 
 .card-body {
@@ -510,164 +731,292 @@ onMounted(() => {
 }
 
 .distribution-section h4 {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--el-text-color-secondary);
-  margin: 0 0 var(--pm-space-md) 0;
+  margin: 0 0 var(--pm-space-sm) 0;
+  font-weight: 500;
 }
 
 .distribution-bars {
   display: flex;
   flex-direction: column;
-  gap: var(--pm-space-sm);
+  gap: 6px;
 }
 
 .distribution-item {
   display: flex;
   align-items: center;
-  gap: var(--pm-space-md);
+  gap: var(--pm-space-sm);
 }
 
 .dist-label {
-  width: 70px;
-  font-size: 13px;
+  width: 60px;
+  font-size: 12px;
   color: var(--el-text-color-primary);
 }
 
 .dist-bar-container {
   flex: 1;
-  height: 8px;
+  height: 6px;
   background: var(--el-fill-color);
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .dist-bar {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 3px;
   transition: width 0.3s ease;
 }
 
 .dist-value {
-  width: 30px;
+  width: 24px;
   text-align: right;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--el-text-color-primary);
 }
 
-/* Sprint */
-.sprint-info {
-  margin-bottom: var(--pm-space-md);
+/* Sprint Gantt */
+.gantt-chart {
+  overflow: hidden;
 }
 
-.sprint-name {
-  font-size: 16px;
+.gantt-header-row {
+  display: flex;
+  border-bottom: 2px solid var(--el-border-color);
+  background: var(--el-fill-color-light);
+}
+
+.gantt-col-name {
+  width: 140px;
+  min-width: 140px;
+  padding: var(--pm-space-sm) var(--pm-space-md);
+  font-size: 12px;
   font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-
-.sprint-dates {
-  font-size: 13px;
   color: var(--el-text-color-secondary);
-  margin-top: 4px;
+  border-right: 1px solid var(--el-border-color-light);
 }
 
-.sprint-progress {
-  margin-bottom: var(--pm-space-md);
+.gantt-col-timeline {
+  flex: 1;
+  overflow-x: auto;
 }
 
-.progress-header {
+.timeline-header {
   display: flex;
-  justify-content: space-between;
-  font-size: 13px;
+}
+
+.week-cell {
+  flex-shrink: 0;
+  width: 50px;
+  padding: var(--pm-space-sm);
+  text-align: center;
+  font-size: 11px;
   color: var(--el-text-color-secondary);
-  margin-bottom: var(--pm-space-sm);
+  border-right: 1px solid var(--el-border-color-light);
 }
 
-.sprint-meta {
-  display: flex;
-  gap: var(--pm-space-lg);
-}
-
-.meta-item {
-  display: flex;
-  gap: var(--pm-space-sm);
-  font-size: 13px;
-}
-
-.meta-label {
-  color: var(--el-text-color-secondary);
-}
-
-.meta-value {
+.week-cell.current {
+  background: rgba(59, 130, 246, 0.08);
+  color: #3B82F6;
   font-weight: 600;
-  color: var(--el-text-color-primary);
 }
 
-/* Milestone Timeline */
-.milestone-timeline {
+.gantt-body {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.gantt-row {
+  display: flex;
+  border-bottom: 1px solid var(--el-border-color-light);
+}
+
+.gantt-row:last-child {
+  border-bottom: none;
+}
+
+.gantt-row .gantt-col-name {
   display: flex;
   flex-direction: column;
-  gap: var(--pm-space-md);
+  gap: 4px;
+  justify-content: center;
+  border-right: 1px solid var(--el-border-color-light);
 }
 
-.milestone-item {
-  display: flex;
-  gap: var(--pm-space-md);
-  padding: var(--pm-space-sm) 0;
-  border-left: 2px solid var(--el-border-color);
-  padding-left: var(--pm-space-md);
-}
-
-.milestone-item.overdue {
-  border-left-color: #EF4444;
-}
-
-.milestone-date {
+.sprint-name-text {
   font-size: 12px;
-  color: var(--el-text-color-secondary);
-  width: 80px;
-  flex-shrink: 0;
-}
-
-.milestone-info {
-  flex: 1;
-}
-
-.milestone-name {
-  font-size: 13px;
   font-weight: 500;
   color: var(--el-text-color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.milestone-status {
+.gantt-col-timeline {
+  position: relative;
+  min-height: 44px;
+}
+
+.timeline-grid {
+  position: relative;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 49px,
+    var(--el-border-color-light) 49px,
+    var(--el-border-color-light) 50px
+  );
+}
+
+.sprint-bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--pm-space-sm);
   font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-top: 4px;
-  display: inline-block;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.milestone-status.completed {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10B981;
+.sprint-bar.status-planning { background: linear-gradient(135deg, #94A3B8, #64748B); }
+.sprint-bar.status-active { background: linear-gradient(135deg, #10B981, #059669); }
+.sprint-bar.status-completed { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+.sprint-bar.status-archived { background: linear-gradient(135deg, #6B7280, #4B5563); }
+.sprint-bar.active {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
-.milestone-status.active, .milestone-status.in_progress {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3B82F6;
+.bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.milestone-status.planning {
-  background: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
+/* Milestone Timeline - Horizontal with blue dots */
+.milestone-timeline {
+  width: 100%;
+  min-height: 80px;
 }
+
+.timeline-dates {
+  position: relative;
+  height: 24px;
+  margin-bottom: 4px;
+}
+
+.date-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+.timeline-axis {
+  position: relative;
+  height: 60px;
+}
+
+.axis-line {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--el-border-color);
+}
+
+.today-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.today-flag {
+  width: 2px;
+  height: 20px;
+  background: var(--el-color-primary);
+}
+
+.today-text {
+  font-size: 10px;
+  color: var(--el-color-primary);
+  font-weight: 600;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.milestone-dot-wrapper {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.milestone-line-connector {
+  width: 2px;
+  height: 20px;
+  background: var(--el-border-color);
+}
+
+.milestone-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  margin-top: -1px;
+  background: #3B82F6;
+}
+
+.milestone-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+  white-space: nowrap;
+}
+
+.label-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.label-date {
+  font-size: 10px;
+  color: var(--el-text-color-secondary);
+  margin-top: 2px;
+}
+
+.milestone-dot-wrapper.status-completed .milestone-circle { background: #10B981; }
+.milestone-dot-wrapper.status-in_progress .milestone-circle { background: #F59E0B; }
 
 /* Team Load */
 .team-load-list {
   display: flex;
   flex-direction: column;
-  gap: var(--pm-space-md);
+  gap: var(--pm-space-sm);
 }
 
 .team-member-item {
@@ -679,7 +1028,7 @@ onMounted(() => {
 .member-info {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .member-name {
@@ -714,13 +1063,13 @@ onMounted(() => {
 .recent-item {
   display: flex;
   align-items: center;
-  gap: var(--pm-space-md);
-  padding: var(--pm-space-sm) 0;
-  font-size: 13px;
+  gap: var(--pm-space-sm);
+  padding: 6px 0;
+  font-size: 12px;
 }
 
 .recent-type {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
@@ -746,7 +1095,7 @@ onMounted(() => {
 
 .recent-time {
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: 11px;
   flex-shrink: 0;
 }
 </style>

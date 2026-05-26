@@ -416,7 +416,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Grid, Timer, User, Plus, Search, Calendar } from '@element-plus/icons-vue'
-import { getProject, getSprints, createSprint, updateSprint, getSprintTasks } from '@/api/project'
+import { getProject, getSprints, createSprint, updateSprint, getSprintTasks, startSprint, completeSprint } from '@/api/project'
 import { getTasksByProject, createTask, updateTask, moveTask } from '@/api/task'
 import KanbanColumn from '@/components/kanban/KanbanColumn.vue'
 import QuickAddDialog from '@/components/kanban/QuickAddDialog.vue'
@@ -1052,7 +1052,7 @@ const onSprintTabChange = (tabName) => {
 
 const handleStartSprint = async (sprint) => {
   try {
-    await request.post(`/projects/${project.value.projectId}/sprints/${sprint.id}/start`)
+    await startSprint(project.value.projectId, sprint.id)
     ElMessage.success(t('project.sprintStarted'))
     await fetchSprints()
   } catch (e) {
@@ -1062,7 +1062,7 @@ const handleStartSprint = async (sprint) => {
 
 const handleCompleteSprint = async (sprint) => {
   try {
-    await request.post(`/projects/${project.value.projectId}/sprints/${sprint.id}/complete`)
+    await completeSprint(project.value.projectId, sprint.id)
     ElMessage.success(t('project.sprintCompleted'))
     await fetchSprints()
   } catch (e) {
