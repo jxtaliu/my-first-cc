@@ -20,7 +20,7 @@
       >
         <el-checkbox
           :model-value="selectedTasks.includes(task.id)"
-          @change="onSelect(task.id)"
+          @change="(checked) => onSelect(task.id, checked)"
         />
         <span class="task-title">{{ task.title }}</span>
         <span class="task-type">{{ task.type }}</span>
