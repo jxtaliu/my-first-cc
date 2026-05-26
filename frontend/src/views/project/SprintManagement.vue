@@ -211,13 +211,11 @@ const onBatchRemove = async () => {
 const onDropTask = async ({ taskId, taskType, targetSprintId }) => {
   // Prevent duplicate processing
   if (isProcessingDrop) {
-    console.log('[DEBUG] onDropTask: already processing, skipping')
     return
   }
   isProcessingDrop = true
 
   try {
-    console.log('[DEBUG] onDropTask called:', { taskId, taskType, targetSprintId })
     const task = tasks.value.find(t => String(t.id) === String(taskId))
     if (!task) {
       isProcessingDrop = false
