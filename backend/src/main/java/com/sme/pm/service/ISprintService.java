@@ -26,5 +26,7 @@ public interface ISprintService extends IService<Sprint> {
     // Sprint planning
     void addTaskToSprint(Long sprintId, Long taskId);
     void removeTaskFromSprint(Long taskId);
+    int batchAddTasks(Long sprintId, List<Long> taskIds);
+    int batchRemoveTasks(Long sprintId, List<Long> taskIds);
     List<Task> getBacklogTasks(String projectId);
 }
