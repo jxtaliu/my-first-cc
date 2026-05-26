@@ -29,9 +29,9 @@
       v-if="selectedTasks.length > 0"
       :selected-count="selectedTasks.length"
       :sprints="sprints"
-      @assign-sprint="onBatchAssignSprint"
+      @batch-assign="onBatchAssignSprint"
       @batch-remove="onBatchRemove"
-      @clear="onClearSelection"
+      @clear-selection="onClearSelection"
     />
   </div>
 </template>
