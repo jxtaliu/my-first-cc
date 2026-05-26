@@ -36,9 +36,9 @@
             <el-icon><Folder /></el-icon>
             <span>{{ $t('nav.projects') }}</span>
           </el-menu-item>
-          <el-menu-item index="/projects/board">
+          <el-menu-item :index="`/projects/dashboard/${projectStore.currentProjectId}`">
             <el-icon><Grid /></el-icon>
-            <span>{{ $t('nav.projectBoard') }}</span>
+            <span>{{ $t('nav.projectDashboard') }}</span>
           </el-menu-item>
           <el-menu-item :index="`/projects/sprint-management/${projectStore.currentProjectId}`">
             <el-icon><Timer /></el-icon>

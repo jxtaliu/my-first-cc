@@ -1,5 +1,5 @@
 <template>
-  <div class="pm-milestone-card" @click="onClick">
+  <div class="pm-milestone-card">
     <div class="pm-milestone-header">
       <div class="pm-milestone-icon">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -18,38 +18,37 @@
           {{ statusText }}
         </el-tag>
       </div>
+      <el-dropdown trigger="click" @command="handleCommand">
+        <el-button link type="primary" @click.stop>
+          <el-icon><MoreFilled /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="edit">
+              <el-icon><Edit /></el-icon>
+              {{ $t('common.edit') }}
+            </el-dropdown-item>
+            <el-dropdown-item v-if="milestone.status !== 'COMPLETED'" command="complete">
+              <el-icon><CircleCheck /></el-icon>
+              {{ $t('project.completeMilestone') }}
+            </el-dropdown-item>
+            <el-dropdown-item command="delete" divided>
+              <el-icon><Delete /></el-icon>
+              {{ $t('common.delete') }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
 
-    <div class="pm-milestone-progress-section" v-if="showProgress">
-      <div class="pm-milestone-progress-header">
-        <span class="pm-milestone-progress-label">{{ $t('project.progress') }}</span>
-        <span class="pm-milestone-progress-value">{{ milestone.completedTasks }}/{{ milestone.totalTasks }}</span>
-      </div>
-      <div class="pm-progress">
-        <div
-          class="pm-progress-bar"
-          :class="progressClass"
-          :style="{ width: progressPercent + '%' }"
-        ></div>
-      </div>
-      <div class="pm-milestone-progress-percent">{{ progressPercent }}%</div>
+    <div class="pm-milestone-description" v-if="milestone.description">
+      <p>{{ milestone.description }}</p>
     </div>
 
-    <div class="pm-milestone-projects" v-if="milestone.projectNames && milestone.projectNames.length">
-      <span class="pm-milestone-projects-label">{{ $t('project.relatedProjects') }}:</span>
-      <div class="pm-milestone-projects-list">
-        <el-tag
-          v-for="project in milestone.projectNames.slice(0, 3)"
-          :key="project"
-          size="small"
-          type="info"
-        >
-          {{ project }}
-        </el-tag>
-        <el-tag v-if="milestone.projectNames.length > 3" size="small" type="info">
-          +{{ milestone.projectNames.length - 3 }}
-        </el-tag>
-      </div>
+    <div class="pm-milestone-footer" v-if="milestone.status">
+      <span class="pm-milestone-days" :class="daysClass">
+        {{ daysText }}
+      </span>
     </div>
   </div>
 </template>
@@ -57,7 +56,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Calendar } from '@element-plus/icons-vue'
+import { Calendar, MoreFilled, Edit, Delete, CircleCheck } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 
@@ -68,55 +67,51 @@ const props = defineProps({
     default: () => ({
       id: null,
       name: '',
+      description: '',
       targetDate: null,
-      totalTasks: 0,
-      completedTasks: 0,
-      projectNames: []
+      status: 'PLANNING'
     })
-  },
-  showProgress: {
-    type: Boolean,
-    default: true
   }
 })
 
-const emit = defineEmits(['click'])
-
-const progressPercent = computed(() => {
-  if (!props.milestone.totalTasks) return 0
-  return Math.round((props.milestone.completedTasks / props.milestone.totalTasks) * 100)
-})
+const emit = defineEmits(['edit', 'delete', 'complete', 'click'])
 
 const statusType = computed(() => {
-  const daysUntil = getDaysUntilTarget()
-  if (daysUntil < 0) return 'danger'
-  if (daysUntil <= 3) return 'warning'
-  return 'success'
+  if (props.milestone.status === 'COMPLETED') return 'success'
+  if (props.milestone.status === 'IN_PROGRESS') return 'warning'
+  return 'info'
 })
 
 const statusText = computed(() => {
-  const daysUntil = getDaysUntilTarget()
-  if (daysUntil < 0) return t('project.overdue')
-  if (daysUntil === 0) return t('project.dueToday')
-  if (daysUntil <= 3) return t('project.dueInDays', { days: daysUntil })
-  return t('project.inProgress')
+  if (props.milestone.status === 'COMPLETED') return t('project.completed')
+  if (props.milestone.status === 'IN_PROGRESS') return t('project.inProgress')
+  return t('project.planning')
 })
 
-const progressClass = computed(() => {
-  if (progressPercent.value >= 100) return 'success'
-  if (progressPercent.value >= 70) return 'success'
-  if (progressPercent.value >= 30) return 'warning'
-  return 'danger'
-})
-
-const getDaysUntilTarget = () => {
-  if (!props.milestone.targetDate) return 999
+const daysUntil = computed(() => {
+  if (!props.milestone.targetDate) return null
   const target = new Date(props.milestone.targetDate)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   target.setHours(0, 0, 0, 0)
   return Math.ceil((target - today) / (1000 * 60 * 60 * 24))
-}
+})
+
+const daysClass = computed(() => {
+  if (props.milestone.status === 'COMPLETED') return 'completed'
+  if (daysUntil.value === null) return ''
+  if (daysUntil.value < 0) return 'overdue'
+  if (daysUntil.value <= 7) return 'soon'
+  return 'normal'
+})
+
+const daysText = computed(() => {
+  if (props.milestone.status === 'COMPLETED') return t('project.completed')
+  if (daysUntil.value === null) return ''
+  if (daysUntil.value < 0) return t('project.overdueDays', { days: Math.abs(daysUntil.value) })
+  if (daysUntil.value === 0) return t('project.dueToday')
+  return t('project.dueInDays', { days: daysUntil.value })
+})
 
 const formatDate = (date) => {
   if (!date) return '-'
@@ -127,8 +122,14 @@ const formatDate = (date) => {
   })
 }
 
-const onClick = () => {
-  emit('click', props.milestone)
+const handleCommand = (command) => {
+  if (command === 'edit') {
+    emit('edit', props.milestone)
+  } else if (command === 'delete') {
+    emit('delete', props.milestone)
+  } else if (command === 'complete') {
+    emit('complete', props.milestone)
+  }
 }
 </script>
 
@@ -138,13 +139,11 @@ const onClick = () => {
   border: 1px solid var(--pm-border);
   border-radius: var(--pm-radius-lg);
   padding: var(--pm-space-xl);
-  cursor: pointer;
   transition: all var(--pm-transition-normal);
 }
 
 .pm-milestone-card:hover {
   box-shadow: var(--pm-shadow-md);
-  transform: translateY(-2px);
 }
 
 .pm-milestone-header {
@@ -193,54 +192,47 @@ const onClick = () => {
   flex-shrink: 0;
 }
 
-.pm-milestone-progress-section {
-  margin-top: var(--pm-space-lg);
-  padding-top: var(--pm-space-lg);
+.pm-milestone-description {
+  margin-top: var(--pm-space-md);
+  padding-top: var(--pm-space-md);
   border-top: 1px solid var(--pm-border-light);
 }
 
-.pm-milestone-progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--pm-space-sm);
-}
-
-.pm-milestone-progress-label {
-  font-size: 12px;
+.pm-milestone-description p {
+  margin: 0;
+  font-size: 13px;
   color: var(--pm-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-.pm-milestone-progress-value {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--pm-text-primary);
-}
-
-.pm-milestone-progress-percent {
-  text-align: right;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--pm-text-primary);
-  margin-top: var(--pm-space-xs);
-}
-
-.pm-milestone-projects {
-  margin-top: var(--pm-space-lg);
-  padding-top: var(--pm-space-lg);
+.pm-milestone-footer {
+  margin-top: var(--pm-space-md);
+  padding-top: var(--pm-space-md);
   border-top: 1px solid var(--pm-border-light);
 }
 
-.pm-milestone-projects-label {
+.pm-milestone-days {
   font-size: 12px;
-  color: var(--pm-text-secondary);
-  display: block;
-  margin-bottom: var(--pm-space-sm);
+  font-weight: 500;
 }
 
-.pm-milestone-projects-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--pm-space-xs);
+.pm-milestone-days.completed {
+  color: var(--pm-success);
+}
+
+.pm-milestone-days.overdue {
+  color: var(--pm-danger);
+}
+
+.pm-milestone-days.soon {
+  color: var(--pm-warning);
+}
+
+.pm-milestone-days.normal {
+  color: var(--pm-text-secondary);
 }
 </style>
