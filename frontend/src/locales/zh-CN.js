@@ -371,7 +371,14 @@ export default {
     createTaskFailed: '创建任务失败',
     saveTaskFailed: '保存任务失败',
     expandSwimlane: '展开泳道',
-    noTasks: '暂无任务'
+    noTasks: '暂无任务',
+    // Batch action bar
+    selectedTasks: '已选择 {count} 个任务',
+    assignToSprint: '分配到冲刺',
+    removeFromSprint: '从冲刺移出',
+    backlog: 'Backlog',
+    selectSprint: '选择冲刺',
+    clearSelection: '清除选择'
   },
   admin: {
     description: '角色描述',

@@ -371,7 +371,14 @@ export default {
     updateTaskStatusFailed: 'Failed to update task status',
     createTaskFailed: 'Failed to create task',
     saveTaskFailed: 'Failed to save task',
-    expandSwimlane: 'Expand swimlane'
+    expandSwimlane: 'Expand swimlane',
+    // Batch action bar
+    selectedTasks: 'Selected {count} tasks',
+    assignToSprint: 'Assign to Sprint',
+    removeFromSprint: 'Remove from Sprint',
+    backlog: 'Backlog',
+    selectSprint: 'Select Sprint',
+    clearSelection: 'Clear Selection'
   },
   admin: {
     description: 'Role Description',
