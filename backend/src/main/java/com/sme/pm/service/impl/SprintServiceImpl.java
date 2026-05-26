@@ -203,8 +203,10 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
         for (Long taskId : taskIds) {
             Task task = taskMapper.selectById(taskId);
             if (task != null && sprintId.equals(task.getSprintId())) {
-                task.setSprintId(null);
-                taskMapper.updateById(task);
+                // Use LambdaUpdateWrapper to ensure null value is saved
+                taskMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Task>()
+                        .eq(Task::getId, taskId)
+                        .set(Task::getSprintId, null));
                 count++;
             }
         }
