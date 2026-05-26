@@ -8,58 +8,49 @@
     @dragend="onDragEnd"
     @click="onClick"
   >
-    <!-- Header: Priority + Title -->
-    <div class="pm-task-card-header">
-      <span v-if="task.priority" class="pm-priority-badge" :class="getPriorityClass(task.priority)">
-        {{ task.priority }}
-      </span>
+    <!-- Top Row: Priority + Type Badge + Title -->
+    <div class="pm-task-card-top">
+      <span v-if="task.priority" class="pm-priority-dot" :class="getPriorityClass(task.priority)" :title="task.priority"></span>
+      <span class="pm-type-badge" :class="getTypeClass(task.type)">{{ getTypeLabel(task.type) }}</span>
       <span class="pm-task-card-title">{{ task.title }}</span>
     </div>
 
-    <!-- Type Tags -->
-    <div class="pm-task-card-tags" v-if="task.type">
-      <span class="pm-tag" :class="getTypeClass(task.type)">
-        {{ getTypeLabel(task.type) }}
-      </span>
-    </div>
-
-    <!-- Meta: Assignee + Estimate -->
-    <div class="pm-task-card-meta">
+    <!-- Middle Row: Assignee + Estimate + Progress inline -->
+    <div class="pm-task-card-middle">
       <div class="pm-task-card-assignee" v-if="task.assignee">
-        <span class="pm-avatar pm-avatar-sm">
-          {{ getAvatarText(task.assigneeName || task.assignee) }}
-        </span>
+        <span class="pm-avatar pm-avatar-xs">{{ getAvatarText(task.assigneeName || task.assignee) }}</span>
         <span class="pm-task-card-assignee-name">{{ task.assigneeName || task.assignee }}</span>
       </div>
       <div class="pm-task-card-estimate" v-if="task.estimateHours">
-        <span class="pm-text-small">⏱ {{ task.estimateHours }}h</span>
+        <el-icon size="12"><Clock /></el-icon>
+        <span>{{ task.estimateHours }}h</span>
+      </div>
+      <div class="pm-task-card-progress" v-if="showProgress && task.progress > 0">
+        <el-progress
+          :percentage="task.progress || 0"
+          :stroke-width="3"
+          :show-text="false"
+          :color="getProgressColor(task.progress)"
+        />
+        <span class="pm-progress-text">{{ task.progress || 0 }}%</span>
       </div>
     </div>
 
-    <!-- Progress -->
-    <div class="pm-task-card-progress" v-if="showProgress">
-      <div class="pm-progress">
-        <div
-          class="pm-progress-bar"
-          :class="getProgressClass(task.progress)"
-          :style="{ width: (task.progress || 0) + '%' }"
-        ></div>
-      </div>
-      <span class="pm-text-small">{{ task.progress || 0 }}%</span>
-    </div>
-
-    <!-- Footer: Comments + Duration -->
-    <div class="pm-task-card-footer">
+    <!-- Bottom Row: Comments + Attachments + Duration -->
+    <div class="pm-task-card-bottom" v-if="task.commentCount || task.attachmentCount || task.inProgressTime">
       <div class="pm-task-card-info">
-        <span v-if="task.commentCount" class="pm-task-card-comments">
-          💬 {{ task.commentCount }}
+        <span v-if="task.commentCount" class="pm-task-card-stat">
+          <el-icon size="12"><ChatLineSquare /></el-icon>
+          {{ task.commentCount }}
         </span>
-        <span v-if="task.attachmentCount" class="pm-task-card-attachments">
-          📎 {{ task.attachmentCount }}
+        <span v-if="task.attachmentCount" class="pm-task-card-stat">
+          <el-icon size="12"><Paperclip /></el-icon>
+          {{ task.attachmentCount }}
         </span>
       </div>
       <span v-if="task.inProgressTime" class="pm-task-card-duration">
-        ⏳ {{ formatDuration(task.inProgressTime) }}
+        <el-icon size="12"><Timer /></el-icon>
+        {{ formatDuration(task.inProgressTime) }}
       </span>
     </div>
   </div>
@@ -67,6 +58,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { Clock, ChatLineSquare, Paperclip, Timer } from '@element-plus/icons-vue'
 
 const props = defineProps({
   task: {
@@ -100,43 +92,43 @@ const emit = defineEmits(['click', 'dragstart', 'dragend'])
 
 const getPriorityClass = (priority) => {
   const map = {
-    'P0': 'pm-priority-p0',
-    'P1': 'pm-priority-p1',
-    'P2': 'pm-priority-p2',
-    'P3': 'pm-priority-p3'
+    'P0': 'priority-p0',
+    'P1': 'priority-p1',
+    'P2': 'priority-p2',
+    'P3': 'priority-p3'
   }
-  return map[priority] || 'pm-priority-p3'
+  return map[priority] || 'priority-p3'
 }
 
 const getTypeClass = (type) => {
   const map = {
-    'epic': 'pm-tag-epic',
-    'feature': 'pm-tag-feature',
-    'story': 'pm-tag-story',
-    'task': 'pm-tag-task',
-    'bug': 'pm-tag-bug',
-    'subtask': 'pm-tag-task'
+    'epic': 'type-epic',
+    'feature': 'type-feature',
+    'story': 'type-story',
+    'task': 'type-task',
+    'bug': 'type-bug',
+    'subtask': 'type-task'
   }
-  return map[type] || 'pm-tag-task'
+  return map[type?.toLowerCase()] || 'type-task'
 }
 
 const getTypeLabel = (type) => {
   const map = {
-    'epic': 'Epic',
-    'feature': 'Feature',
-    'story': 'Story',
-    'task': 'Task',
-    'bug': 'Bug',
-    'subtask': 'Sub-task'
+    'epic': 'E',
+    'feature': 'F',
+    'story': 'S',
+    'task': 'T',
+    'bug': 'B',
+    'subtask': 'ST'
   }
-  return map[type] || type
+  return map[type?.toLowerCase()] || type?.charAt(0) || 'T'
 }
 
-const getProgressClass = (progress) => {
-  if (progress >= 100) return 'success'
-  if (progress >= 70) return 'success'
-  if (progress >= 30) return 'warning'
-  return 'danger'
+const getProgressColor = (progress) => {
+  if (progress >= 100) return '#10B981'
+  if (progress >= 70) return '#10B981'
+  if (progress >= 30) return '#F59E0B'
+  return '#EF4444'
 }
 
 const getAvatarText = (name) => {
@@ -148,8 +140,8 @@ const getAvatarText = (name) => {
 const formatDuration = (days) => {
   if (!days) return ''
   if (days < 1) return `${Math.round(days * 24)}h`
-  if (days < 30) return `${Math.round(days)}天`
-  return `${Math.round(days / 30)}月`
+  if (days < 30) return `${Math.round(days)}d`
+  return `${Math.round(days / 30)}mo`
 }
 
 const onDragStart = (e) => {
@@ -171,12 +163,12 @@ const onClick = () => {
 .pm-task-card {
   background: var(--pm-card);
   border: 1px solid var(--pm-border);
-  border-radius: var(--pm-radius-md);
-  padding: var(--pm-space-md);
+  border-radius: var(--pm-radius-sm);
+  padding: 10px 12px;
   cursor: grab;
-  transition: all var(--pm-transition-normal);
+  transition: all var(--pm-transition-fast);
   position: relative;
-  border-left: 4px solid var(--pm-status-color, var(--pm-status-todo));
+  border-left: 3px solid var(--pm-status-color, var(--pm-border));
 }
 
 .pm-task-card:hover {
@@ -191,37 +183,48 @@ const onClick = () => {
   cursor: grabbing;
 }
 
-/* Status colors */
-.pm-task-card[data-status="todo"] {
-  --pm-status-color: var(--pm-status-todo);
-}
+/* Status colors for left border */
+.pm-task-card[data-status="todo"] { --pm-status-color: var(--pm-status-todo, #94A3B8); }
+.pm-task-card[data-status="in_progress"] { --pm-status-color: var(--pm-status-in-progress, #3B82F6); }
+.pm-task-card[data-status="development"] { --pm-status-color: var(--pm-status-development, #8B5CF6); }
+.pm-task-card[data-status="testing"] { --pm-status-color: var(--pm-status-testing, #F59E0B); }
+.pm-task-card[data-status="done"] { --pm-status-color: var(--pm-status-done, #10B981); }
+.pm-task-card[data-status="blocked"] { --pm-status-color: var(--pm-status-blocked, #EF4444); }
 
-.pm-task-card[data-status="in_progress"] {
-  --pm-status-color: var(--pm-status-in-progress);
-}
-
-.pm-task-card[data-status="development"] {
-  --pm-status-color: var(--pm-status-development);
-}
-
-.pm-task-card[data-status="testing"] {
-  --pm-status-color: var(--pm-status-testing);
-}
-
-.pm-task-card[data-status="done"] {
-  --pm-status-color: var(--pm-status-done);
-}
-
-.pm-task-card[data-status="blocked"] {
-  --pm-status-color: var(--pm-status-blocked);
-}
-
-.pm-task-card-header {
+/* Top Row */
+.pm-task-card-top {
   display: flex;
   align-items: center;
-  gap: var(--pm-space-sm);
-  margin-bottom: var(--pm-space-sm);
+  gap: 6px;
+  margin-bottom: 8px;
 }
+
+.pm-priority-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pm-priority-dot.priority-p0,
+.pm-priority-dot.priority-p1 { background: #EF4444; }
+.pm-priority-dot.priority-p2 { background: #F59E0B; }
+.pm-priority-dot.priority-p3 { background: #94A3B8; }
+
+.pm-type-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  color: white;
+}
+
+.pm-type-badge.type-epic { background: #8B5CF6; }
+.pm-type-badge.type-feature { background: #3B82F6; }
+.pm-type-badge.type-story { background: #10B981; }
+.pm-type-badge.type-task { background: #64748B; }
+.pm-type-badge.type-bug { background: #EF4444; }
 
 .pm-task-card-title {
   flex: 1;
@@ -229,71 +232,98 @@ const onClick = () => {
   font-weight: 500;
   color: var(--pm-text-primary);
   line-height: 1.3;
-  word-break: break-word;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.pm-task-card-tags {
+/* Middle Row */
+.pm-task-card-middle {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--pm-space-xs);
-  margin-bottom: var(--pm-space-sm);
-}
-
-.pm-task-card-meta {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--pm-space-sm);
+  gap: 12px;
+  font-size: 12px;
+  color: var(--pm-text-secondary);
+  margin-bottom: 6px;
 }
 
 .pm-task-card-assignee {
   display: flex;
   align-items: center;
-  gap: var(--pm-space-xs);
+  gap: 4px;
+}
+
+.pm-avatar.pm-avatar-xs {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--pm-primary);
+  color: white;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }
 
 .pm-task-card-assignee-name {
-  font-size: 12px;
-  color: var(--pm-text-secondary);
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pm-task-card-estimate {
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
   color: var(--pm-text-muted);
+  font-size: 11px;
 }
 
 .pm-task-card-progress {
   display: flex;
   align-items: center;
-  gap: var(--pm-space-sm);
-  margin-bottom: var(--pm-space-sm);
-}
-
-.pm-task-card-progress .pm-progress {
+  gap: 6px;
   flex: 1;
 }
 
-.pm-task-card-footer {
+.pm-task-card-progress .el-progress {
+  flex: 1;
+}
+
+.pm-progress-text {
+  font-size: 10px;
+  color: var(--pm-text-muted);
+  min-width: 28px;
+  text-align: right;
+}
+
+/* Bottom Row */
+.pm-task-card-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: var(--pm-space-sm);
+  padding-top: 6px;
   border-top: 1px solid var(--pm-border-light);
+  font-size: 11px;
+  color: var(--pm-text-muted);
 }
 
 .pm-task-card-info {
   display: flex;
-  gap: var(--pm-space-md);
-  font-size: 11px;
-  color: var(--pm-text-muted);
+  gap: 10px;
+}
+
+.pm-task-card-stat {
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .pm-task-card-duration {
-  font-size: 11px;
-  color: var(--pm-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 </style>

@@ -116,9 +116,12 @@ defineExpose({
   display: flex;
   gap: var(--pm-space-lg);
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: var(--pm-space-lg);
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  height: calc(100vh - 180px);
+  min-height: 400px;
 }
 
 .pm-kanban-board::-webkit-scrollbar {

@@ -6,10 +6,7 @@
         <h1 class="page-title">{{ $t('nav.requirements') }}</h1>
       </div>
       <div class="header-right">
-        <el-select v-model="selectedProjectId" :placeholder="$t('requirements.selectProject')" clearable class="project-select">
-          <el-option v-for="p in projects" :key="p.projectId" :label="p.name" :value="p.projectId" />
-        </el-select>
-        <el-button type="primary" @click="handleCreate">
+        <el-button type="primary" @click="handleCreate" :disabled="!projectStore.currentProjectId">
           <el-icon><Plus /></el-icon>
           {{ $t('common.add') }}
         </el-button>
@@ -169,7 +166,7 @@
     <CreateRequirementDialog
       ref="createDialogRef"
       v-model="showCreateDialog"
-      :project-id="selectedProjectId"
+      :project-id="projectStore.currentProjectId"
       :parent-item="parentForCreate"
       @success="onCreateSuccess"
     />
@@ -183,15 +180,15 @@ import { Plus, Folder, FolderOpened, Document, Warning, ArrowRight, ArrowDown } 
 import { getRequirementTree, getRequirementChildren, getRequirement, getBugs, getBugStatuses, deleteRequirement } from '@/api/requirements'
 import { getBugStatusesByProject } from '@/api/bugStatus'
 import { getTaskStatusesByProject } from '@/api/taskStatus'
-import { getProjects, getProjectMembers } from '@/api/project'
+import { getProjectMembers } from '@/api/project'
+import { useProjectStore } from '@/stores/project'
 import CreateRequirementDialog from './CreateRequirementDialog.vue'
 
 const { t, locale } = useI18n()
+const projectStore = useProjectStore()
 
 const loading = ref(false)
-const projects = ref([])
 const projectMembers = ref([])
-const selectedProjectId = ref(null)
 const treeData = ref([])
 const expandedNodeIds = ref(new Set())
 const showBugs = ref(false)
@@ -217,26 +214,16 @@ const treeProps = {
 
 const defaultExpandedKeys = computed(() => Array.from(expandedNodeIds.value))
 
-// 加载项目列表
-const loadProjects = async () => {
-  try {
-    const res = await getProjects()
-    projects.value = res.data || []
-  } catch (e) {
-    console.error('Failed to load projects:', e)
-  }
-}
-
 // 加载需求树
 const loadRequirementTree = async () => {
-  if (!selectedProjectId.value) {
+  if (!projectStore.currentProjectId) {
     treeData.value = []
     return
   }
 
   loading.value = true
   try {
-    const res = await getRequirementTree(selectedProjectId.value)
+    const res = await getRequirementTree(projectStore.currentProjectId)
     treeData.value = res.data || []
   } catch (e) {
     ElMessage.error(t('common.failed'))
@@ -247,10 +234,10 @@ const loadRequirementTree = async () => {
 
 // 加载 Bug 列表
 const loadBugs = async () => {
-  if (!selectedProjectId.value) return
+  if (!projectStore.currentProjectId) return
 
   try {
-    const res = await getBugs(selectedProjectId.value)
+    const res = await getBugs(projectStore.currentProjectId)
     bugs.value = res.data || []
   } catch (e) {
     console.error('Failed to load bugs:', e)
@@ -259,10 +246,10 @@ const loadBugs = async () => {
 
 // 加载 Bug 状态
 const loadBugStatuses = async () => {
-  if (!selectedProjectId.value) return
+  if (!projectStore.currentProjectId) return
 
   try {
-    const res = await getBugStatuses(selectedProjectId.value)
+    const res = await getBugStatuses(projectStore.currentProjectId)
     bugStatuses.value = res.data || []
   } catch (e) {
     console.error('Failed to load bug statuses:', e)
@@ -271,11 +258,11 @@ const loadBugStatuses = async () => {
 
 // 加载项目成员
 const loadProjectMembers = async () => {
-  if (!selectedProjectId.value) return
+  if (!projectStore.currentProjectId) return
 
   try {
-    console.log('[DEBUG] loadProjectMembers called with projectId:', selectedProjectId.value)
-    const res = await getProjectMembers(selectedProjectId.value)
+    console.log('[DEBUG] loadProjectMembers called with projectId:', projectStore.currentProjectId)
+    const res = await getProjectMembers(projectStore.currentProjectId)
     console.log('[DEBUG] loadProjectMembers response:', res)
     projectMembers.value = res.data || []
     console.log('[DEBUG] projectMembers.value after loading:', projectMembers.value)
@@ -295,10 +282,10 @@ const getMemberName = (memberId) => {
 
 // 加载任务状态
 const loadTaskStatuses = async () => {
-  if (!selectedProjectId.value) return
+  if (!projectStore.currentProjectId) return
 
   try {
-    const res = await getTaskStatusesByProject(selectedProjectId.value)
+    const res = await getTaskStatusesByProject(projectStore.currentProjectId)
     taskStatuses.value = res.data || []
   } catch (e) {
     console.error('Failed to load task statuses:', e)
@@ -469,7 +456,7 @@ const getBugStatusColor = (bugStatusId) => {
 }
 
 // 监听项目变化
-watch(selectedProjectId, (newVal) => {
+watch(() => projectStore.currentProjectId, (newVal) => {
   selectedItem.value = null
   childrenItems.value = []
   if (newVal) {
@@ -488,7 +475,18 @@ watch(selectedProjectId, (newVal) => {
 })
 
 onMounted(() => {
-  loadProjects()
+  // 如果项目列表还没加载，先触发加载
+  if (projectStore.projects.length === 0) {
+    projectStore.loadProjects()
+  }
+  // 如果已经有项目ID，加载数据
+  if (projectStore.currentProjectId) {
+    loadRequirementTree()
+    loadBugs()
+    loadBugStatuses()
+    loadProjectMembers()
+    loadTaskStatuses()
+  }
 })
 </script>
 

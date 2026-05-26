@@ -159,11 +159,15 @@ const onQuickAdd = () => {
 <style scoped>
 .pm-kanban-column {
   background: var(--pm-background);
-  border-radius: var(--pm-radius-lg);
+  border-radius: var(--pm-radius-md);
   display: flex;
   flex-direction: column;
   transition: all var(--pm-transition-fast);
   border: 1px solid var(--pm-border);
+  min-width: 280px;
+  max-width: 320px;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .pm-kanban-column.pm-wip-exceeded {
@@ -177,13 +181,13 @@ const onQuickAdd = () => {
 }
 
 .pm-kanban-column-header {
-  padding: var(--pm-space-md) var(--pm-space-lg);
+  padding: var(--pm-space-sm) var(--pm-space-md);
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--pm-border);
   background: var(--pm-card);
-  border-radius: var(--pm-radius-lg) var(--pm-radius-lg) 0 0;
+  border-radius: var(--pm-radius-md) var(--pm-radius-md) 0 0;
   flex-shrink: 0;
 }
 
@@ -231,13 +235,13 @@ const onQuickAdd = () => {
 }
 
 .pm-kanban-column-body {
-  flex: 1;
+  flex: 1 1 auto;
   overflow-y: auto;
-  padding: var(--pm-space-sm);
+  padding: var(--pm-space-xs);
   display: flex;
   flex-direction: column;
-  gap: var(--pm-space-sm);
-  min-height: 60px;
+  gap: 6px;
+  min-height: 100px;
 }
 
 .pm-kanban-column-empty {
@@ -264,10 +268,10 @@ const onQuickAdd = () => {
 }
 
 .pm-kanban-column-footer {
-  padding: var(--pm-space-sm) var(--pm-space-md);
+  padding: var(--pm-space-xs) var(--pm-space-sm);
   border-top: 1px solid var(--pm-border-light);
   background: var(--pm-card);
-  border-radius: 0 0 var(--pm-radius-lg) var(--pm-radius-lg);
+  border-radius: 0 0 var(--pm-radius-md) var(--pm-radius-md);
   flex-shrink: 0;
 }
 
