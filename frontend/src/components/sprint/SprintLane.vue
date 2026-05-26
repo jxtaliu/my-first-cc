@@ -18,7 +18,7 @@
         key-field="id"
         v-slot="{ item }"
       >
-        <div class="task-item" draggable="true" @dragstart="onDragStart($event, item)">
+        <div class="task-item" draggable="true" @dragstart="onDragStart($event, item.id)">
           <el-checkbox
             :model-value="selectedTasks.includes(item.id)"
             @change="(checked) => onSelect(item.id, checked)"
