@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
@@ -58,9 +58,11 @@ import BatchActionBar from '@/components/sprint/BatchActionBar.vue'
 import { getSprints, batchAssignTasks, batchRemoveTasks } from '@/api/project'
 import { getTasksByProject, moveTask } from '@/api/task'
 import { getRequirementTree } from '@/api/requirements'
+import { useProjectStore } from '@/stores/project'
 
 const { t } = useI18n()
 const route = useRoute()
+const projectStore = useProjectStore()
 
 // Refs
 const sprints = ref([])
@@ -123,11 +125,10 @@ const lanes = computed(() => {
   return [backlogLane, ...sprintLanes]
 })
 
-// Load data from route.params.projectId
+// Load data using projectStore.currentProjectId
 async function loadData() {
-  const projectId = route.params.projectId
+  const projectId = projectStore.currentProjectId
   if (!projectId) {
-    ElMessage.error(t('project.projectIdRequired'))
     return
   }
 
@@ -250,7 +251,7 @@ const onDropTask = async ({ taskId, taskType, targetSprintId }) => {
 
       // Reload data if moving to backlog
       if (targetSprintId === null) {
-        const projectId = route.params.projectId
+        const projectId = projectStore.currentProjectId
         const [treeRes, tasksRes] = await Promise.all([
           getRequirementTree(projectId),
           getTasksByProject(projectId)
@@ -275,7 +276,7 @@ const onDropTask = async ({ taskId, taskType, targetSprintId }) => {
     task.sprintId = targetSprintIdValue
 
     if (targetSprintId === null) {
-      const projectId = route.params.projectId
+      const projectId = projectStore.currentProjectId
       const [treeRes, tasksRes] = await Promise.all([
         getRequirementTree(projectId),
         getTasksByProject(projectId)
@@ -402,6 +403,13 @@ function filterBacklogBySprintId(nodes, sprintTaskIds) {
 
 onMounted(() => {
   loadData()
+})
+
+// Watch for project changes and reload data
+watch(() => projectStore.currentProjectId, (newProjectId) => {
+  if (newProjectId) {
+    loadData()
+  }
 })
 </script>
 
