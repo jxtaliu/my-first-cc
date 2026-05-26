@@ -69,7 +69,7 @@ export default {
     compare: '项目对比',
     portfolio: 'Portfolio',
     requirements: '需求管理',
-    requirementsList: '需求列表'
+    requirementsList: '需求池'
   },
   dashboard: {
     projects: '项目数',
@@ -268,6 +268,7 @@ export default {
     sprintActive: '进行中',
     sprintCompletedLabel: '已完成',
     sprintArchived: '已归档',
+    sprintManagement: '冲刺管理',
     fetchSprintsFailed: '获取冲刺列表失败',
     createSprintFailed: '创建冲刺失败',
     startSprintFailed: '开始冲刺失败',

@@ -58,6 +58,11 @@ const routes = [
         component: () => import('@/views/project/SprintBoard.vue')
       },
       {
+        path: 'sprint-management/:projectId',
+        name: 'SprintManagement',
+        component: () => import('@/views/project/SprintManagement.vue')
+      },
+      {
         path: 'projects/team-board',
         name: 'TeamBoard',
         component: () => import('@/views/project/TeamBoard.vue')

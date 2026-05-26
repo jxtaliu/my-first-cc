@@ -69,7 +69,7 @@ export default {
     compare: 'Compare',
     portfolio: 'Portfolio',
     requirements: 'Requirements',
-    requirementsList: 'Requirements List'
+    requirementsList: 'Requirements Pool'
   },
   dashboard: {
     projects: 'Projects',
@@ -269,6 +269,7 @@ export default {
     sprintActive: 'Active',
     sprintCompletedLabel: 'Completed',
     sprintArchived: 'Archived',
+    sprintManagement: 'Sprint Management',
     fetchSprintsFailed: 'Failed to fetch sprints',
     createSprintFailed: 'Failed to create sprint',
     startSprintFailed: 'Failed to start sprint',
