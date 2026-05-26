@@ -369,6 +369,7 @@ export default {
     actualHours: 'Actual',
     taskStatusConfig: 'Task Status Config',
     // View options
+    viewMode: 'View Mode',
     kanbanView: 'Kanban',
     list: 'List',
     // Kanban columns

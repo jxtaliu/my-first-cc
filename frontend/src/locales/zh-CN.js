@@ -368,6 +368,7 @@ export default {
     actualHours: '实际工时',
     taskStatusConfig: '任务状态配置',
     // View options
+    viewMode: '视图模式',
     kanbanView: '看板',
     list: '列表',
     // Kanban columns
