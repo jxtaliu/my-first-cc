@@ -11,26 +11,34 @@
       <span class="lane-task-count">{{ lane.taskCount }}</span>
     </div>
     <div class="lane-tasks">
-      <div
-        v-for="task in lane.tasks"
-        :key="task.id"
-        class="task-item"
-        draggable="true"
-        @dragstart="onDragStart($event, task.id)"
+      <RecycleScroller
+        class="scroller"
+        :items="lane.tasks"
+        :item-size="50"
+        key-field="id"
+        v-slot="{ item }"
       >
-        <el-checkbox
-          :model-value="selectedTasks.includes(task.id)"
-          @change="(checked) => onSelect(task.id, checked)"
-        />
-        <span class="task-title">{{ task.title }}</span>
-        <span class="task-type">{{ task.type }}</span>
-      </div>
+        <div class="task-item" draggable="true" @dragstart="onDragStart($event, item)">
+          <el-checkbox
+            :model-value="selectedTasks.includes(item.id)"
+            @change="(checked) => onSelect(item.id, checked)"
+          />
+          <span class="task-title">{{ item.title }}</span>
+          <span class="task-type">{{ item.type }}</span>
+        </div>
+      </RecycleScroller>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { RecycleScroller } from 'vue-virtual-scroller'
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
+
+defineOptions({
+  components: { RecycleScroller }
+})
 
 const props = defineProps({
   lane: {
@@ -108,9 +116,11 @@ const onSelect = (taskId, checked) => {
 }
 
 .lane-tasks {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  height: 100%;
+}
+
+.scroller {
+  height: 100%;
 }
 
 .task-item {
