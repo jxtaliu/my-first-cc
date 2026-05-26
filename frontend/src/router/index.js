@@ -28,19 +28,14 @@ const routes = [
         component: () => import('@/views/project/List.vue')
       },
       {
-        path: 'projects/board',
-        name: 'ProjectBoard',
-        component: () => import('@/views/project/ProjectBoard.vue')
+        path: 'projects/:id',
+        name: 'ProjectDetail',
+        component: () => import('@/views/project/Detail.vue')
       },
       {
         path: 'projects/board/:id',
         name: 'ProjectBoard',
         component: () => import('@/views/project/ProjectBoard.vue')
-      },
-      {
-        path: 'projects/:id',
-        name: 'ProjectDetail',
-        component: () => import('@/views/project/Detail.vue')
       },
       {
         path: 'projects/my-board',
@@ -81,11 +76,6 @@ const routes = [
         path: 'projects/milestones',
         name: 'Milestones',
         component: () => import('@/views/project/Milestones.vue')
-      },
-      {
-        path: 'projects/milestone-timeline',
-        name: 'MilestoneTimeline',
-        component: () => import('@/views/project/MilestoneTimeline.vue')
       },
       {
         path: 'projects/stats',

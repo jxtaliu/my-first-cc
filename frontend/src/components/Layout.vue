@@ -36,6 +36,14 @@
             <el-icon><Folder /></el-icon>
             <span>{{ $t('nav.projects') }}</span>
           </el-menu-item>
+          <el-menu-item index="/projects/board">
+            <el-icon><Grid /></el-icon>
+            <span>{{ $t('nav.projectBoard') }}</span>
+          </el-menu-item>
+          <el-menu-item :index="`/projects/sprint-management/${projectStore.currentProjectId}`">
+            <el-icon><Timer /></el-icon>
+            <span>{{ $t('nav.sprintManagement') }}</span>
+          </el-menu-item>
           <el-menu-item index="/projects/milestones">
             <el-icon><Flag /></el-icon>
             <span>{{ $t('nav.milestones') }}</span>
@@ -59,10 +67,6 @@
           <el-menu-item index="/projects/portfolio">
             <el-icon><TrendCharts /></el-icon>
             <span>{{ $t('nav.portfolio') }}</span>
-          </el-menu-item>
-          <el-menu-item :index="`/projects/sprint-management/${projectStore.currentProjectId}`">
-            <el-icon><Timer /></el-icon>
-            <span>{{ $t('nav.sprintManagement') }}</span>
           </el-menu-item>
         </el-sub-menu>
         <!-- 需求管理 -->

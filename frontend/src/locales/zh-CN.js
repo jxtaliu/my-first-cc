@@ -39,6 +39,7 @@ export default {
   nav: {
     dashboard: '仪表盘',
     projects: '项目管理',
+    projectBoard: '项目看板',
     projectManagement: '项目管理',
     myBoard: '我的看板',
     sprintBoard: '冲刺看板',
@@ -59,7 +60,6 @@ export default {
     dictManagement: '业务字典',
     myWork: '我的工作',
     projectOverview: '项目总览',
-    projectBoard: '项目看板',
     projectSettings: '项目设置',
     myTasks: '我的任务',
     myTimesheet: '我的工时',
@@ -231,22 +231,13 @@ export default {
     // Milestones
     milestones: '里程碑',
     milestonesDesc: '管理项目里程碑',
-    milestoneTimeline: '里程碑时间轴',
     createMilestone: '创建里程碑',
     filterByProject: '按项目筛选',
-    filterByStatus: '按状态筛选',
     crossProject: '跨项目',
     projectMilestones: '项目里程碑',
     noMilestones: '暂无里程碑',
-    confirmDeleteMilestone: '确认删除此里程碑？',
-    milestoneDeleted: '里程碑已删除',
-    deleteFailed: '删除失败',
-    milestoneSaved: '里程碑已保存',
-    saveFailed: '保存失败',
-    milestoneNameRequired: '请输入里程碑名称',
-    milestoneCompleted: '里程碑已完成',
-    completeFailed: '完成失败',
-    today: '今天',
+    viewMode: '视图模式',
+    tasks: '任务',
     // Project Detail
     board: '看板',
     sprints: '冲刺',
@@ -370,7 +361,6 @@ export default {
     actualHours: '实际工时',
     taskStatusConfig: '任务状态配置',
     // View options
-    viewMode: '视图模式',
     kanbanView: '看板',
     list: '列表',
     // Kanban columns

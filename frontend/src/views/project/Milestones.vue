@@ -6,33 +6,55 @@
         <h1 class="pm-heading-1">{{ $t('project.milestones') }}</h1>
         <p class="pm-text-small">{{ $t('project.milestonesDesc') }}</p>
       </div>
-    </div>
-
-    <!-- Filter and Actions -->
-    <div class="milestones-tabs">
-      <el-select v-model="filterStatus" :placeholder="$t('project.filterByStatus')" clearable>
-        <el-option :label="$t('project.allMilestones')" :value="null" />
-        <el-option :label="$t('project.planning')" value="PLANNING" />
-        <el-option :label="$t('project.inProgress')" value="IN_PROGRESS" />
-        <el-option :label="$t('project.completed')" value="COMPLETED" />
-      </el-select>
       <el-button type="primary" @click="onCreateMilestone">
         <el-icon><Plus /></el-icon>
         {{ $t('project.createMilestone') }}
       </el-button>
     </div>
 
-    <!-- Milestones Grid -->
-    <div class="milestones-grid" v-loading="loading">
-      <MilestoneCard
-        v-for="milestone in filteredMilestones"
-        :key="milestone.id"
-        :milestone="milestone"
-        @edit="onEditMilestone"
-        @delete="onDeleteMilestone"
-        @complete="onMarkComplete"
-      />
-      <el-empty v-if="filteredMilestones.length === 0" :description="$t('project.noMilestones')" />
+    <!-- Filter Tabs -->
+    <div class="milestones-tabs">
+      <el-radio-group v-model="activeTab">
+        <el-radio-button value="all">{{ $t('project.allMilestones') }}</el-radio-button>
+        <el-radio-button value="cross-project">{{ $t('project.crossProject') }}</el-radio-button>
+        <el-radio-button value="project">{{ $t('project.projectMilestones') }}</el-radio-button>
+      </el-radio-group>
+      <el-select v-model="filterProject" :placeholder="$t('project.filterByProject')" clearable style="width: 180px">
+        <el-option
+          v-for="project in projects"
+          :key="project.id"
+          :label="project.name"
+          :value="project.id"
+        />
+      </el-select>
+    </div>
+
+    <!-- Cross-Project Milestones -->
+    <div class="milestones-section" v-if="activeTab === 'all' || activeTab === 'cross-project'">
+      <h3 class="milestones-section-title" v-if="activeTab === 'all'">{{ $t('project.crossProject') }}</h3>
+      <div class="milestones-grid">
+        <MilestoneCard
+          v-for="milestone in crossProjectMilestones"
+          :key="milestone.id"
+          :milestone="milestone"
+          @click="onMilestoneClick"
+        />
+      </div>
+      <el-empty v-if="crossProjectMilestones.length === 0" :description="$t('project.noMilestones')" />
+    </div>
+
+    <!-- Project Milestones -->
+    <div class="milestones-section" v-if="activeTab === 'all' || activeTab === 'project'">
+      <h3 class="milestones-section-title" v-if="activeTab === 'all'">{{ $t('project.projectMilestones') }}</h3>
+      <div class="milestones-grid">
+        <MilestoneCard
+          v-for="milestone in projectMilestones"
+          :key="milestone.id"
+          :milestone="milestone"
+          @click="onMilestoneClick"
+        />
+      </div>
+      <el-empty v-if="projectMilestones.length === 0" :description="$t('project.noMilestones')" />
     </div>
 
     <!-- Create/Edit Milestone Dialog -->
@@ -54,6 +76,16 @@
             style="width: 100%"
           />
         </el-form-item>
+        <el-form-item :label="$t('project.relatedProjects')">
+          <el-select v-model="milestoneForm.projectIds" multiple style="width: 100%">
+            <el-option
+              v-for="project in projects"
+              :key="project.id"
+              :label="project.name"
+              :value="project.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item :label="$t('project.description')">
           <el-input
             v-model="milestoneForm.description"
@@ -72,139 +104,127 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import MilestoneCard from '@/components/charts/MilestoneCard.vue'
-import { useProjectStore } from '@/stores/project'
-import {
-  getMilestonesByProject,
-  createMilestone,
-  updateMilestone,
-  deleteMilestone,
-  completeMilestone
-} from '@/api/milestone'
 
 const { t } = useI18n()
 
-const projectStore = useProjectStore()
+const activeTab = ref('all')
+const filterProject = ref(null)
+const projects = ref([])
 const milestones = ref([])
-const loading = ref(false)
-const filterStatus = ref(null)
 const showMilestoneDialog = ref(false)
 const editingMilestone = ref(null)
 
 const milestoneForm = ref({
   name: '',
-  description: '',
-  targetDate: null
+  targetDate: null,
+  projectIds: [],
+  description: ''
 })
 
-const filteredMilestones = computed(() => {
-  let result = milestones.value
-  if (filterStatus.value) {
-    result = result.filter(m => m.status === filterStatus.value)
+const crossProjectMilestones = computed(() => {
+  return milestones.value.filter(m => m.isCrossProject)
+})
+
+const projectMilestones = computed(() => {
+  let result = milestones.value.filter(m => !m.isCrossProject)
+  if (filterProject.value) {
+    result = result.filter(m => m.projectIds?.includes(filterProject.value))
   }
   return result
 })
 
-const loadMilestones = async () => {
-  const projectId = projectStore.currentProjectId
-  if (!projectId) {
-    milestones.value = []
-    return
-  }
-  loading.value = true
-  try {
-    const res = await getMilestonesByProject(projectId)
-    milestones.value = res.data || []
-  } catch (e) {
-    console.error('Failed to load milestones:', e)
-  } finally {
-    loading.value = false
-  }
+const loadMockData = () => {
+  projects.value = [
+    { id: 1, name: 'SME-PM系统' },
+    { id: 2, name: '客户CRM项目' },
+    { id: 3, name: '电商平台' }
+  ]
+
+  milestones.value = [
+    {
+      id: 1,
+      name: '发布 V2.0',
+      targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      isCrossProject: true,
+      totalTasks: 25,
+      completedTasks: 20,
+      projectNames: ['SME-PM系统', '客户CRM项目', '电商平台'],
+      projectIds: [1, 2, 3]
+    },
+    {
+      id: 2,
+      name: 'Sprint 15 完成',
+      targetDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      isCrossProject: false,
+      totalTasks: 20,
+      completedTasks: 16,
+      projectNames: ['SME-PM系统'],
+      projectIds: [1]
+    },
+    {
+      id: 3,
+      name: '用户模块上线',
+      targetDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      isCrossProject: false,
+      totalTasks: 15,
+      completedTasks: 5,
+      projectNames: ['客户CRM项目'],
+      projectIds: [2]
+    },
+    {
+      id: 4,
+      name: 'Alpha 版本发布',
+      targetDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // Overdue
+      isCrossProject: true,
+      totalTasks: 30,
+      completedTasks: 22,
+      projectNames: ['SME-PM系统', '电商平台'],
+      projectIds: [1, 3]
+    },
+    {
+      id: 5,
+      name: '支付模块集成',
+      targetDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      isCrossProject: false,
+      totalTasks: 8,
+      completedTasks: 0,
+      projectNames: ['电商平台'],
+      projectIds: [3]
+    }
+  ]
 }
 
 const onCreateMilestone = () => {
   editingMilestone.value = null
   milestoneForm.value = {
     name: '',
-    description: '',
-    targetDate: null
+    targetDate: null,
+    projectIds: [],
+    description: ''
   }
   showMilestoneDialog.value = true
 }
 
-const onEditMilestone = (milestone) => {
-  editingMilestone.value = milestone
-  milestoneForm.value = {
-    name: milestone.name,
-    description: milestone.description,
-    targetDate: milestone.targetDate
-  }
-  showMilestoneDialog.value = true
+const onMilestoneClick = (milestone) => {
+  ElMessage.info(`${t('project.viewMilestone')}: ${milestone.name}`)
 }
 
-const onSaveMilestone = async () => {
+const onSaveMilestone = () => {
   if (!milestoneForm.value.name) {
     ElMessage.warning(t('project.milestoneNameRequired'))
     return
   }
-  try {
-    const data = {
-      name: milestoneForm.value.name,
-      description: milestoneForm.value.description,
-      targetDate: milestoneForm.value.targetDate,
-      projectId: projectStore.currentProjectId,
-      status: editingMilestone.value ? undefined : 'PLANNING'
-    }
-    if (editingMilestone.value) {
-      await updateMilestone(editingMilestone.value.id, data)
-    } else {
-      await createMilestone(data)
-    }
-    ElMessage.success(t('project.milestoneSaved'))
-    showMilestoneDialog.value = false
-    loadMilestones()
-  } catch (e) {
-    ElMessage.error(t('project.saveFailed'))
-  }
-}
-
-const onMarkComplete = async (milestone) => {
-  try {
-    await completeMilestone(milestone.id)
-    ElMessage.success(t('project.milestoneCompleted'))
-    loadMilestones()
-  } catch (e) {
-    ElMessage.error(t('project.completeFailed'))
-  }
-}
-
-const onDeleteMilestone = async (milestone) => {
-  try {
-    await ElMessageBox.confirm(
-      t('project.confirmDeleteMilestone'),
-      t('project.deleteMilestone'),
-      { confirmButtonText: t('common.confirm'), cancelButtonText: t('common.cancel'), type: 'warning' }
-    )
-    await deleteMilestone(milestone.id)
-    ElMessage.success(t('project.milestoneDeleted'))
-    loadMilestones()
-  } catch (e) {
-    if (e !== 'cancel') {
-      ElMessage.error(t('project.deleteFailed'))
-    }
-  }
+  ElMessage.success(milestoneForm.value.id ? t('project.milestoneUpdated') : t('project.milestoneCreated'))
+  showMilestoneDialog.value = false
 }
 
 onMounted(() => {
-  loadMilestones()
-})
-
-watch(() => projectStore.currentProjectId, () => {
-  loadMilestones()
+  loadMockData()
 })
 </script>
 

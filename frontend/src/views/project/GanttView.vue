@@ -17,13 +17,13 @@
           <el-button :type="timeScale === 'week' ? 'primary' : 'default'" @click="timeScale = 'week'">{{ $t('project.weekScale') || 'Week' }}</el-button>
           <el-button :type="timeScale === 'month' ? 'primary' : 'default'" @click="timeScale = 'month'">{{ $t('project.monthScale') || 'Month' }}</el-button>
         </el-button-group>
+        <el-button type="primary" @click="onToday">
+          {{ $t('project.today') }}
+        </el-button>
         <el-select v-model="viewMode" :placeholder="$t('project.viewMode')" style="width: 120px">
           <el-option :label="$t('project.tasks')" value="tasks" />
           <el-option :label="$t('project.milestones')" value="milestones" />
         </el-select>
-        <el-button type="primary" @click="onToday">
-          {{ $t('project.today') }}
-        </el-button>
       </div>
     </div>
 
@@ -186,39 +186,39 @@
             </svg>
           </div>
         </div>
-      </div>
 
-      <!-- Milestone Gantt View -->
-      <div v-if="viewMode === 'milestones'" class="milestone-gantt" v-loading="milestoneLoading">
-        <div class="milestone-gantt-header">
-          <div class="milestone-name-col">{{ $t('project.milestoneName') || 'Milestone' }}</div>
-          <div class="milestone-timeline-col">
-            <div class="milestone-timeline-header">
-              <span v-for="period in timelinePeriods" :key="period.key" class="timeline-period-label">
-                {{ period.label }}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="milestone-gantt-body">
-          <div
-            v-for="milestone in milestones"
-            :key="milestone.id"
-            class="milestone-gantt-row"
-          >
-            <div class="milestone-name-col">{{ milestone.name }}</div>
+        <!-- Milestone Gantt View -->
+        <div v-if="viewMode === 'milestones'" class="milestone-gantt" v-loading="milestoneLoading">
+          <div class="milestone-gantt-header">
+            <div class="milestone-name-col">{{ $t('project.milestoneName') || 'Milestone' }}</div>
             <div class="milestone-timeline-col">
-              <div
-                class="milestone-bar"
-                :class="'status-' + (milestone.status || 'planning').toLowerCase()"
-                :style="getMilestoneBarStyle(milestone)"
-              >
-                <span class="milestone-bar-label">{{ milestone.name }}</span>
+              <div class="milestone-timeline-header">
+                <span v-for="period in timelinePeriods" :key="period.key" class="timeline-period-label">
+                  {{ period.label }}
+                </span>
               </div>
             </div>
           </div>
-          <div v-if="milestones.length === 0" class="empty-state">
-            <el-empty :description="$t('project.noMilestones')" />
+          <div class="milestone-gantt-body">
+            <div
+              v-for="milestone in milestones"
+              :key="milestone.id"
+              class="milestone-gantt-row"
+            >
+              <div class="milestone-name-col">{{ milestone.name }}</div>
+              <div class="milestone-timeline-col">
+                <div
+                  class="milestone-bar"
+                  :class="'status-' + (milestone.status || 'planning').toLowerCase()"
+                  :style="getMilestoneBarStyle(milestone)"
+                >
+                  <span class="milestone-bar-label">{{ milestone.name }}</span>
+                </div>
+              </div>
+            </div>
+            <div v-if="milestones.length === 0" class="empty-state">
+              <el-empty :description="$t('project.noMilestones')" />
+            </div>
           </div>
         </div>
       </div>
@@ -286,9 +286,11 @@ import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { getTasksByProject, updateTask, getTaskDependencies } from '@/api/task'
 import { getMilestonesByProject } from '@/api/milestone'
+import { useProjectStore } from '@/stores/project'
 
 const { t } = useI18n()
 const route = useRoute()
+const projectStore = useProjectStore()
 
 const timeScale = ref('week')
 const expandedTasks = ref([])
@@ -297,7 +299,7 @@ const loading = ref(false)
 const showTaskDetail = ref(false)
 const editingTask = ref(null)
 const swimlaneMode = ref('none')
-const viewMode = ref('tasks')
+const viewMode = ref('tasks')  // 'tasks' or 'milestones'
 
 // Drag state
 const isDragging = ref(false)
@@ -309,8 +311,45 @@ const originalWidth = ref(0)
 const ganttTasks = ref([])
 const taskDependencies = ref([])
 const hoveredDependency = ref(null)
+
+// Milestone data
 const milestones = ref([])
 const milestoneLoading = ref(false)
+
+const loadMilestones = async () => {
+  const projectId = projectStore?.currentProjectId || route.params.projectId
+  if (!projectId) return
+  milestoneLoading.value = true
+  try {
+    const res = await getMilestonesByProject(projectId)
+    milestones.value = res.data || []
+  } catch (e) {
+    console.error('Failed to load milestones:', e)
+  } finally {
+    milestoneLoading.value = false
+  }
+}
+
+const getMilestoneBarStyle = (milestone) => {
+  if (!milestone.targetDate) return {}
+  const target = new Date(milestone.targetDate)
+  const today = new Date()
+  const daysDiff = Math.floor((target - today) / (1000 * 60 * 60 * 24))
+  const dayWidth = timeScale.value === 'day' ? 40 : timeScale.value === 'week' ? 120 : 240
+  const left = Math.max(0, daysDiff * dayWidth)
+  const isOverdue = daysDiff < 0 && milestone.status !== 'COMPLETED'
+  return {
+    left: left + 'px',
+    backgroundColor: milestone.status === 'COMPLETED' ? '#10B981' : isOverdue ? '#EF4444' : '#3B82F6'
+  }
+}
+
+// Watch viewMode to load milestones
+watch(viewMode, (newMode) => {
+  if (newMode === 'milestones' && milestones.value.length === 0) {
+    loadMilestones()
+  }
+})
 
 // Flatten tasks for display
 const flatTasks = computed(() => {
@@ -852,33 +891,6 @@ function loadMockTasks() {
   ]
 }
 
-const loadMilestones = async () => {
-  const projectId = route.params.id
-  if (!projectId) return
-  milestoneLoading.value = true
-  try {
-    const res = await getMilestonesByProject(projectId)
-    milestones.value = res.data || []
-  } catch (e) {
-    console.error('Failed to load milestones:', e)
-  } finally {
-    milestoneLoading.value = false
-  }
-}
-
-const getMilestoneBarStyle = (milestone) => {
-  if (!milestone.targetDate) return {}
-  const target = new Date(milestone.targetDate)
-  const today = new Date()
-  const daysDiff = Math.floor((target - today) / (1000 * 60 * 60 * 24))
-  const left = Math.max(0, daysDiff * dayWidth.value)
-  const isOverdue = daysDiff < 0 && milestone.status !== 'COMPLETED'
-  return {
-    left: left + 'px',
-    backgroundColor: milestone.status === 'COMPLETED' ? '#10B981' : isOverdue ? '#EF4444' : '#3B82F6'
-  }
-}
-
 onMounted(() => {
   loadTasks()
   expandedTasks.value = [1] // Expand first epic by default
@@ -891,12 +903,6 @@ watch(flatTasks, async () => {
     await loadDependencies()
   }
 }, { deep: true })
-
-watch(viewMode, (newMode) => {
-  if (newMode === 'milestones') {
-    loadMilestones()
-  }
-})
 </script>
 
 <style scoped>
@@ -1201,46 +1207,53 @@ watch(viewMode, (newMode) => {
   flex: 1;
 }
 
-/* Milestone Gantt Styles */
+/* Milestone Gantt View */
 .milestone-gantt {
+  padding: 0;
   background: var(--el-bg-color);
-  border-radius: 4px;
 }
+
 .milestone-gantt-header {
   display: flex;
-  border-bottom: 1px solid var(--el-border-color);
+  border-bottom: 1px solid var(--pm-border);
   padding: 12px 0;
   font-weight: 600;
+  font-size: 13px;
 }
+
 .milestone-name-col {
   width: 200px;
   flex-shrink: 0;
   padding: 0 12px;
 }
+
 .milestone-timeline-col {
   flex: 1;
   overflow-x: auto;
-  position: relative;
-  min-height: 40px;
 }
+
 .milestone-timeline-header {
   display: flex;
   padding: 0 8px;
 }
+
 .timeline-period-label {
   min-width: 100px;
   font-size: 12px;
   color: var(--el-text-color-secondary);
 }
+
 .milestone-gantt-body {
   padding: 8px 0;
 }
+
 .milestone-gantt-row {
   display: flex;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid var(--el-border-color-light);
+  border-bottom: 1px solid var(--pm-border-light);
 }
+
 .milestone-bar {
   position: absolute;
   height: 24px;
@@ -1252,12 +1265,8 @@ watch(viewMode, (newMode) => {
   align-items: center;
   min-width: 80px;
 }
+
 .milestone-bar.status-planning { background: #3B82F6; }
 .milestone-bar.status-in_progress { background: #F59E0B; }
 .milestone-bar.status-completed { background: #10B981; }
-.milestone-bar-label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 </style>

@@ -39,6 +39,7 @@ export default {
   nav: {
     dashboard: 'Dashboard',
     projects: 'Projects',
+    projectBoard: 'Project Board',
     projectManagement: 'Project Management',
     myBoard: 'My Board',
     sprintBoard: 'Sprint Board',
@@ -59,7 +60,6 @@ export default {
     dictManagement: 'Business Dict',
     myWork: 'My Work',
     projectOverview: 'Project Overview',
-    projectBoard: 'Project Board',
     projectSettings: 'Project Settings',
     myTasks: 'My Tasks',
     myTimesheet: 'My Timesheet',
@@ -232,22 +232,13 @@ export default {
     // Milestones
     milestones: 'Milestones',
     milestonesDesc: 'Manage project milestones',
-    milestoneTimeline: 'Milestone Timeline',
     createMilestone: 'Create Milestone',
     filterByProject: 'Filter by Project',
-    filterByStatus: 'Filter by Status',
     crossProject: 'Cross-project',
     projectMilestones: 'Project Milestones',
     noMilestones: 'No milestones',
-    confirmDeleteMilestone: 'Confirm delete milestone?',
-    milestoneDeleted: 'Milestone deleted',
-    deleteFailed: 'Failed to delete',
-    milestoneSaved: 'Milestone saved',
-    saveFailed: 'Failed to save',
-    milestoneNameRequired: 'Milestone name is required',
-    milestoneCompleted: 'Milestone completed',
-    completeFailed: 'Failed to complete',
-    today: 'Today',
+    viewMode: 'View Mode',
+    tasks: 'Tasks',
     // Project Detail
     board: 'Board',
     sprints: 'Sprints',
@@ -371,7 +362,6 @@ export default {
     actualHours: 'Actual',
     taskStatusConfig: 'Task Status Config',
     // View options
-    viewMode: 'View Mode',
     kanbanView: 'Kanban',
     list: 'List',
     // Kanban columns
