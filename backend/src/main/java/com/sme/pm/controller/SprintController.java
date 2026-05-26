@@ -96,4 +96,22 @@ public class SprintController {
         sprintService.removeTaskFromSprint(taskId);
         return Result.success();
     }
+
+    @PostMapping("/{sprintId}/tasks/batch")
+    public Result<Map<String, Integer>> batchAddTasks(
+        @PathVariable Long sprintId,
+        @RequestBody Map<String, List<Long>> body) {
+        List<Long> taskIds = body.get("taskIds");
+        int count = sprintService.batchAddTasks(sprintId, taskIds);
+        return Result.success(Map.of("movedCount", count));
+    }
+
+    @DeleteMapping("/{sprintId}/tasks/batch")
+    public Result<Map<String, Integer>> batchRemoveTasks(
+        @PathVariable Long sprintId,
+        @RequestBody Map<String, List<Long>> body) {
+        List<Long> taskIds = body.get("taskIds");
+        int count = sprintService.batchRemoveTasks(sprintId, taskIds);
+        return Result.success(Map.of("movedCount", count));
+    }
 }

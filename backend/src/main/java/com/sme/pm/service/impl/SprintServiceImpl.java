@@ -181,6 +181,30 @@ public class SprintServiceImpl extends ServiceImpl<SprintMapper, Sprint> impleme
         taskMapper.updateById(task);
     }
 
+    public int batchAddTasks(Long sprintId, List<Long> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) return 0;
+        for (Long taskId : taskIds) {
+            Task task = taskMapper.selectById(taskId);
+            if (task != null) {
+                task.setSprintId(sprintId);
+                taskMapper.updateById(task);
+            }
+        }
+        return taskIds.size();
+    }
+
+    public int batchRemoveTasks(Long sprintId, List<Long> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) return 0;
+        for (Long taskId : taskIds) {
+            Task task = taskMapper.selectById(taskId);
+            if (task != null && sprintId.equals(task.getSprintId())) {
+                task.setSprintId(null);
+                taskMapper.updateById(task);
+            }
+        }
+        return taskIds.size();
+    }
+
     @Override
     public List<Task> getBacklogTasks(String projectId) {
         LambdaQueryWrapper<Task> wrapper = new LambdaQueryWrapper<>();
