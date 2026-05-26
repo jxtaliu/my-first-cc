@@ -378,7 +378,9 @@ export default {
     removeFromSprint: 'Remove from Sprint',
     backlog: 'Backlog',
     selectSprint: 'Select Sprint',
-    clearSelection: 'Clear Selection'
+    clearSelection: 'Clear Selection',
+    taskMoved: 'Task moved',
+    taskMoveFailed: 'Failed to move task'
   },
   admin: {
     description: 'Role Description',

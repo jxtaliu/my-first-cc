@@ -378,7 +378,9 @@ export default {
     removeFromSprint: '从冲刺移出',
     backlog: 'Backlog',
     selectSprint: '选择冲刺',
-    clearSelection: '清除选择'
+    clearSelection: '清除选择',
+    taskMoved: '任务已移动',
+    taskMoveFailed: '移动任务失败'
   },
   admin: {
     description: '角色描述',

@@ -20,6 +20,7 @@
         :selected-tasks="selectedTasks"
         @task-select="onTaskSelect"
         @task-click="onTaskClick"
+        @drop="onDropTask"
       />
     </div>
 
@@ -27,6 +28,7 @@
     <BatchActionBar
       v-if="selectedTasks.length > 0"
       :selected-count="selectedTasks.length"
+      :sprints="sprints"
       @assign-sprint="onBatchAssignSprint"
       @delete="onBatchDelete"
       @clear="onClearSelection"
@@ -43,7 +45,7 @@ import { useRoute } from 'vue-router'
 import SprintLane from '@/components/sprint/SprintLane.vue'
 import BatchActionBar from '@/components/sprint/BatchActionBar.vue'
 import { getSprints } from '@/api/project'
-import { getTasksByProject } from '@/api/task'
+import { getTasksByProject, updateTask } from '@/api/task'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -135,6 +137,19 @@ const onBatchDelete = () => {
 
 const onClearSelection = () => {
   selectedTasks.value = []
+}
+
+const onDropTask = async ({ taskId, targetSprintId }) => {
+  const task = tasks.value.find(t => t.id === taskId)
+  if (!task || task.sprintId === targetSprintId) return
+
+  try {
+    await updateTask(taskId, { sprintId: targetSprintId })
+    task.sprintId = targetSprintId
+    ElMessage.success(t('project.taskMoved'))
+  } catch (e) {
+    ElMessage.error(t('project.taskMoveFailed'))
+  }
 }
 
 onMounted(() => {
