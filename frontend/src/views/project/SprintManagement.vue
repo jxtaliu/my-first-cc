@@ -19,10 +19,6 @@
             <el-option :label="$t('project.p3')" value="P3" />
           </el-select>
         </div>
-        <el-button type="primary" @click="onCreateSprint">
-          <el-icon><Plus /></el-icon>
-          {{ $t('project.createSprint') }}
-        </el-button>
       </div>
     </div>
 
@@ -60,7 +56,8 @@ import { useRoute } from 'vue-router'
 import SprintLane from '@/components/sprint/SprintLane.vue'
 import BatchActionBar from '@/components/sprint/BatchActionBar.vue'
 import { getSprints, batchAssignTasks, batchRemoveTasks } from '@/api/project'
-import { getTasksByProject, updateTask } from '@/api/task'
+import { getTasksByProject, moveTask } from '@/api/task'
+import { getRequirementTree } from '@/api/requirements'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -68,6 +65,7 @@ const route = useRoute()
 // Refs
 const sprints = ref([])
 const tasks = ref([])
+const backlogTree = ref([])  // Tree structure for backlog
 const selectedTasks = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
@@ -90,24 +88,33 @@ const lanes = computed(() => {
     })
   }
 
+  // Backlog uses the tree structure from getRequirementTree
+  // Filter out tasks that are assigned to any sprint
+  const sprintTaskIds = new Set(tasks.value.filter(t => t.sprintId).map(t => t.id))
+  const filteredBacklogTree = filterBacklogBySprintId(JSON.parse(JSON.stringify(backlogTree.value)), sprintTaskIds)
   const backlogTasks = filterTasks(tasks.value.filter(task => !task.sprintId))
   const backlogLane = {
     id: null,
     name: t('project.backlog'),
     status: 'backlog',
-    taskCount: backlogTasks.length,
-    tasks: backlogTasks,
+    taskCount: backlogTasks.length,  // Count of unassigned tasks (filtered)
+    totalCount: tasks.value.filter(task => !task.sprintId).length,  // Total unassigned tasks
+    tasks: filteredBacklogTree,  // Use filtered tree structure for backlog display
     capacityHours: 0
   }
 
   const sprintLanes = sprints.value.map(sprint => {
-    const sprintTasks = filterTasks(tasks.value.filter(task => task.sprintId === sprint.id))
+    const sprintId = Number(sprint.id)
+    const allSprintTasks = tasks.value.filter(task => Number(task.sprintId) === sprintId)
+    const sprintTasks = filterTasks(allSprintTasks)
     return {
       id: sprint.id,
       name: sprint.name,
       status: sprint.status,
-      taskCount: sprintTasks.length,
+      taskCount: sprintTasks.length,  // Filtered count (shown in header)
+      totalCount: allSprintTasks.length,  // Total tasks in sprint
       tasks: sprintTasks,
+      allTasks: tasks.value,  // Pass ALL project tasks to build full hierarchy (Epic→Feature→Story→Task)
       capacityHours: sprint.capacityHours || 0
     }
   })
@@ -129,7 +136,13 @@ async function loadData() {
     const sprintsRes = await getSprints(projectId)
     sprints.value = sprintsRes.data || sprintsRes || []
 
-    // Load tasks
+    // Load backlog tree using getRequirementTree (returns proper hierarchy)
+    const treeRes = await getRequirementTree(projectId)
+    const rawTree = treeRes.data || []
+    // Filter out invalid leaf nodes (EPIC/FEATURE/STORY that have no TASK/SUBTASK descendants)
+    backlogTree.value = filterInvalidLeaves(rawTree)
+
+    // Load flat tasks for sprint lanes
     const tasksRes = await getTasksByProject(projectId)
     tasks.value = tasksRes.data || tasksRes || []
   } catch (error) {
@@ -194,26 +207,164 @@ const onBatchRemove = async () => {
   }
 }
 
-const onDropTask = async ({ taskId, targetSprintId }) => {
-  console.log('onDropTask called - taskId:', taskId, 'targetSprintId:', targetSprintId)
-  console.log('Available tasks:', tasks.value.map(t => ({ id: t.id, title: t.title })))
+const onDropTask = async ({ taskId, taskType, targetSprintId }) => {
+  console.log('[DEBUG] onDropTask called:', { taskId, taskType, targetSprintId })
   const task = tasks.value.find(t => String(t.id) === String(taskId))
   if (!task) {
-    console.log('Task not found with id:', taskId)
     return
   }
-  if (task.sprintId === targetSprintId) {
-    console.log('Task already in this sprint')
+
+  // Epic/Feature/Story: move all descendant tasks, but don't change parent sprint
+  if (['EPIC', 'FEATURE', 'STORY'].includes(taskType)) {
+    console.log('[DEBUG] Epic/Feature/Story drop:', { taskId, taskType, task })
+    const descendantIds = getDescendantIds(task)
+    console.log('[DEBUG] descendantIds:', descendantIds)
+    if (descendantIds.length === 0) {
+      ElMessage.warning(t('project.noDescendantsToMove'))
+      return
+    }
+    try {
+      const descendants = tasks.value.filter(t => descendantIds.includes(t.id) && ['TASK', 'SUBTASK'].includes(t.type))
+      const targetSprintIdNum = Number(targetSprintId)
+      for (const desc of descendants) {
+        if (Number(desc.sprintId) !== targetSprintIdNum) {
+          await moveTask(desc.id, { sprintId: targetSprintIdNum, projectId: desc.projectId })
+          desc.sprintId = targetSprintId
+        }
+      }
+      // Remove moved tasks and empty ancestors from backlog tree
+      const idsToRemove = new Set([task.id, ...descendantIds])
+      filterBacklogTree(idsToRemove)
+      ElMessage.success(t('project.descendantsMoved', { count: descendants.length }))
+    } catch (e) {
+      ElMessage.error(t('project.moveFailed'))
+    }
+    return
+  }
+
+  // TASK/SUBTASK: normal move
+  console.log('[DEBUG] TASK/SUBTASK drop:', { taskId, taskType, task, targetSprintId })
+  const targetSprintIdNum = Number(targetSprintId)
+  if (Number(task.sprintId) === targetSprintIdNum) {
+    console.log('[DEBUG] Same sprint, no move needed')
     return
   }
 
   try {
-    await updateTask(taskId, { sprintId: targetSprintId, projectId: task.projectId })
+    await moveTask(taskId, { sprintId: targetSprintIdNum, projectId: task.projectId })
     task.sprintId = targetSprintId
+    // Remove from backlog tree and clean up empty ancestors
+    const idsToRemove = new Set([task.id, ...getDescendantIds(task)])
+    filterBacklogTree(idsToRemove)
     ElMessage.success(t('project.taskMoved'))
   } catch (e) {
     ElMessage.error(t('project.taskMoveFailed'))
   }
+}
+
+// Get all descendant task IDs for a parent task
+function getDescendantIds(parentTask) {
+  const result = []
+  const parentId = Number(parentTask.id)
+  const children = tasks.value.filter(t => Number(t.parentId) === parentId)
+  for (const child of children) {
+    result.push(child.id)
+    result.push(...getDescendantIds(child))
+  }
+  return result
+}
+
+// Filter backlog tree: remove tasks with given IDs and clean up empty ancestors
+// Non-TASK/SUBTASK nodes cannot be leaf nodes in backlog
+function filterBacklogTree(idsToRemove) {
+  // Build parent map to check ancestors
+  const parentMap = {}
+  tasks.value.forEach(t => {
+    if (t.parentId) {
+      parentMap[t.id] = t.parentId
+    }
+  })
+
+  // Check if any ancestor of a node is in idsToRemove
+  const hasRemovedAncestor = (nodeId) => {
+    let current = parentMap[nodeId]
+    while (current) {
+      if (idsToRemove.has(current)) return true
+      current = parentMap[current]
+    }
+    return false
+  }
+
+  const removeEmptyAncestors = (nodes) => {
+    const filtered = nodes
+      .filter(node => !idsToRemove.has(node.id) && !hasRemovedAncestor(node.id))
+      .map(node => ({
+        ...node,
+        children: removeEmptyAncestors(node.children || [])
+      }))
+
+    return filtered.filter(node => {
+      // If has children, keep it
+      if (node.children && node.children.length > 0) {
+        return true
+      }
+      // Leaf node: only TASK/SUBTASK can be leaf in backlog
+      if (['TASK', 'SUBTASK'].includes(node.type)) {
+        return true
+      }
+      // Non-TASK/SUBTASK leaf - exclude (empty ancestor)
+      return false
+    })
+  }
+
+  backlogTree.value = removeEmptyAncestors(backlogTree.value)
+}
+
+// Filter invalid leaf nodes from backlog tree on initial load
+// Non-TASK/SUBTASK nodes cannot be leaf nodes in backlog
+function filterInvalidLeaves(nodes) {
+  return nodes.filter(node => {
+    node.children = filterInvalidLeaves(node.children || [])
+
+    // If has children, keep it
+    if (node.children.length > 0) {
+      return true
+    }
+
+    // Leaf node: only TASK/SUBTASK can be leaf in backlog
+    if (['TASK', 'SUBTASK'].includes(node.type)) {
+      return true
+    }
+
+    // Non-TASK/SUBTASK leaf - exclude
+    return false
+  })
+}
+
+// Filter backlog tree to only show tasks with sprintId === null
+function filterBacklogBySprintId(nodes, sprintTaskIds) {
+  return nodes.filter(node => {
+    // Recursively filter children
+    node.children = filterBacklogBySprintId(node.children || [], sprintTaskIds)
+
+    // If this node is in a sprint, exclude it and its children
+    if (sprintTaskIds.has(node.id)) {
+      return false
+    }
+
+    // If has children after filtering, keep it
+    if (node.children.length > 0) {
+      return true
+    }
+
+    // Leaf node: only TASK/SUBTASK can be leaf in backlog
+    if (['TASK', 'SUBTASK'].includes(node.type)) {
+      return true
+    }
+
+    // Non-TASK/SUBTASK leaf - exclude
+    return false
+  })
 }
 
 onMounted(() => {

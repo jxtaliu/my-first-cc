@@ -386,7 +386,10 @@ export default {
     assignFailed: 'Assignment failed',
     tasksRemoved: 'Tasks removed',
     removeFailed: 'Removal failed',
-    searchTasks: 'Search tasks'
+    searchTasks: 'Search tasks',
+    noDescendantsToMove: 'No child tasks to move',
+    descendantsMoved: '{count} child tasks moved',
+    moveFailed: 'Move failed'
   },
   admin: {
     description: 'Role Description',

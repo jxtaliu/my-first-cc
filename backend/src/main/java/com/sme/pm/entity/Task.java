@@ -17,6 +17,7 @@ public class Task {
 
     private String projectId;  // References project.project_id, for fast query
 
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private Long sprintId;
 
     private Long parentId;  // null for root tasks

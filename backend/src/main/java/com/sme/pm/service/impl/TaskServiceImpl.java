@@ -139,6 +139,16 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task move(Task task) {
+        Task existingTask = taskMapper.findById(task.getId());
+        if (existingTask == null) {
+            throw new IllegalArgumentException("Task not found");
+        }
+
+        // Epic/Feature/Story不允许修改sprintId，只能移动其下的TASK/SUBTASK
+        if ("EPIC".equals(existingTask.getType()) || "FEATURE".equals(existingTask.getType()) || "STORY".equals(existingTask.getType())) {
+            throw new IllegalArgumentException(existingTask.getType() + "类型的任务不允许直接设置冲刺");
+        }
+
         taskMapper.updateById(task);
         return task;
     }

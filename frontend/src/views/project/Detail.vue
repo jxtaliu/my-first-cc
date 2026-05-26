@@ -655,7 +655,7 @@ const fetchProject = async () => {
     const res = await getProject(route.params.id)
     project.value = res.data || {}
     // Load kanban columns for both Kanban and SCRUM modes
-    await loadTaskStatuses(route.params.id)
+    await loadTaskStatuses(project.value.projectId)
     if (project.value.sprintMode === 'SCRUM') {
       fetchSprints()
     }
@@ -678,10 +678,10 @@ const fetchTasks = async () => {
 const fetchSprints = async () => {
   sprintsLoading.value = true
   try {
-    const res = await getSprints(route.params.id)
+    const res = await getSprints(project.value.projectId)
     sprints.value = res.data || []
     // Load kanban columns from task_status dict
-    await loadTaskStatuses(route.params.id)
+    await loadTaskStatuses(project.value.projectId)
   } catch (e) {
     // Handle error
   } finally {
@@ -762,10 +762,10 @@ const handleSprintSubmit = async () => {
 
   try {
     if (editingSprint.value) {
-      await updateSprint(route.params.id, editingSprint.value.id, sprintForm)
+      await updateSprint(project.value.projectId, editingSprint.value.id, sprintForm)
       ElMessage.success(t('project.sprintUpdated'))
     } else {
-      await createSprint(route.params.id, sprintForm)
+      await createSprint(project.value.projectId, sprintForm)
       ElMessage.success(t('project.sprintCreated'))
     }
     sprintDialogVisible.value = false
@@ -809,7 +809,7 @@ const resetSprintForm = () => {
 const handleDeleteSprint = async (sprint) => {
   try {
     await ElMessageBox.confirm(t('project.confirmDeleteSprint'), t('common.warning'), { type: 'warning' })
-    await request.delete(`/projects/${route.params.id}/sprints/${sprint.id}`)
+    await request.delete(`/projects/${project.value.projectId}/sprints/${sprint.id}`)
     ElMessage.success(t('project.sprintDeleted'))
     if (currentSprintId.value === sprint.id) {
       currentSprintId.value = null
@@ -826,7 +826,7 @@ const handleDeleteSprint = async (sprint) => {
 
 const handleArchiveSprint = async (sprint) => {
   try {
-    await request.post(`/projects/${route.params.id}/sprints/${sprint.id}/archive`)
+    await request.post(`/projects/${project.value.projectId}/sprints/${sprint.id}/archive`)
     ElMessage.success(t('project.sprintArchived'))
     fetchSprints()
   } catch (e) {
@@ -948,11 +948,11 @@ const toggleUserSelection = (user) => {
 }
 
 const handleSettings = () => {
-  router.push(`/projects/${route.params.id}/settings`)
+  router.push(`/projects/${project.value.projectId}/settings`)
 }
 
 const goToSprints = () => {
-  router.push(`/projects/${route.params.id}/sprints`)
+  router.push(`/projects/${project.value.projectId}/sprints`)
 }
 
 // Sprint board methods
@@ -1052,7 +1052,7 @@ const onSprintTabChange = (tabName) => {
 
 const handleStartSprint = async (sprint) => {
   try {
-    await request.post(`/projects/${route.params.id}/sprints/${sprint.id}/start`)
+    await request.post(`/projects/${project.value.projectId}/sprints/${sprint.id}/start`)
     ElMessage.success(t('project.sprintStarted'))
     await fetchSprints()
   } catch (e) {
@@ -1062,7 +1062,7 @@ const handleStartSprint = async (sprint) => {
 
 const handleCompleteSprint = async (sprint) => {
   try {
-    await request.post(`/projects/${route.params.id}/sprints/${sprint.id}/complete`)
+    await request.post(`/projects/${project.value.projectId}/sprints/${sprint.id}/complete`)
     ElMessage.success(t('project.sprintCompleted'))
     await fetchSprints()
   } catch (e) {
@@ -1076,7 +1076,7 @@ const loadSprintTasks = async () => {
     return
   }
   try {
-    const res = await getSprintTasks(route.params.id, currentSprintId.value)
+    const res = await getSprintTasks(project.value.projectId, currentSprintId.value)
     const rawTasks = res.data || res || []
     sprintTasks.value = rawTasks.map(task => normalizeTask(task))
   } catch (e) {

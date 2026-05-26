@@ -386,7 +386,10 @@ export default {
     assignFailed: '分配失败',
     tasksRemoved: '任务已移出',
     removeFailed: '移出失败',
-    searchTasks: '搜索任务'
+    searchTasks: '搜索任务',
+    noDescendantsToMove: '没有可移动的子任务',
+    descendantsMoved: '已移动 {count} 个子任务',
+    moveFailed: '移动失败'
   },
   admin: {
     description: '角色描述',

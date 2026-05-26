@@ -58,7 +58,7 @@ const routes = [
         component: () => import('@/views/project/SprintBoard.vue')
       },
       {
-        path: 'sprint-management/:projectId',
+        path: 'projects/sprint-management/:projectId',
         name: 'SprintManagement',
         component: () => import('@/views/project/SprintManagement.vue')
       },

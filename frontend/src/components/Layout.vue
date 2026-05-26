@@ -222,7 +222,15 @@ const handleProjectChange = (projectId) => {
   projectStore.setCurrentProject(projectId)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 如果有 token 但没有 user，先获取用户信息
+  if (authStore.token && !authStore.user) {
+    try {
+      await authStore.getCurrentUser()
+    } catch (e) {
+      console.error('Failed to get current user:', e)
+    }
+  }
   if (authStore.user?.id) {
     fetchUnreadCount()
     projectStore.loadProjects()
