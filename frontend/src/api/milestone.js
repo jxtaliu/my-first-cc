@@ -28,6 +28,10 @@ export function deleteMilestone(id) {
   return request.delete(`/v1/milestones/${id}`)
 }
 
+export function completeMilestone(id) {
+  return request.put(`/v1/milestones/${id}/complete`)
+}
+
 export function getDueSoonMilestones(days = 7) {
   return request.get('/v1/milestones/due-soon', { params: { days } })
 }
