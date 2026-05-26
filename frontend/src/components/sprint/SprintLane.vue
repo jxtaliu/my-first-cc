@@ -55,7 +55,7 @@ const onDragLeave = () => {
 const onDrop = (event) => {
   isDragOver.value = false
   const taskId = event.dataTransfer.getData('taskId')
-  emit('drop', { taskId, targetSprintId: lane.id })
+  emit('drop', { taskId, targetSprintId: props.lane.id })
 }
 
 const onDragStart = (event, taskId) => {
