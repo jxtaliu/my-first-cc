@@ -380,7 +380,11 @@ export default {
     selectSprint: '选择冲刺',
     clearSelection: '清除选择',
     taskMoved: '任务已移动',
-    taskMoveFailed: '移动任务失败'
+    taskMoveFailed: '移动任务失败',
+    tasksAssigned: '任务已分配',
+    assignFailed: '分配失败',
+    tasksRemoved: '任务已移出',
+    removeFailed: '移出失败'
   },
   admin: {
     description: '角色描述',

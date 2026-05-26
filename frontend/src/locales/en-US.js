@@ -380,7 +380,11 @@ export default {
     selectSprint: 'Select Sprint',
     clearSelection: 'Clear Selection',
     taskMoved: 'Task moved',
-    taskMoveFailed: 'Failed to move task'
+    taskMoveFailed: 'Failed to move task',
+    tasksAssigned: 'Tasks assigned',
+    assignFailed: 'Assignment failed',
+    tasksRemoved: 'Tasks removed',
+    removeFailed: 'Removal failed'
   },
   admin: {
     description: 'Role Description',

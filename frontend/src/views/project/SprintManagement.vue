@@ -44,7 +44,7 @@ import { Plus } from '@element-plus/icons-vue'
 import { useRoute } from 'vue-router'
 import SprintLane from '@/components/sprint/SprintLane.vue'
 import BatchActionBar from '@/components/sprint/BatchActionBar.vue'
-import { getSprints } from '@/api/project'
+import { getSprints, batchAssignTasks, batchRemoveTasks } from '@/api/project'
 import { getTasksByProject, updateTask } from '@/api/task'
 
 const { t } = useI18n()
@@ -127,8 +127,18 @@ const onTaskClick = (task) => {
   ElMessage.info(`Task clicked: ${task.title}`)
 }
 
-const onBatchAssignSprint = (sprintId) => {
-  ElMessage.info(`Assign to sprint: ${sprintId}`)
+const onBatchAssignSprint = async (targetSprintId) => {
+  try {
+    await batchAssignTasks(targetSprintId, selectedTasks.value)
+    selectedTasks.value.forEach(id => {
+      const task = tasks.value.find(t => t.id === id)
+      if (task) task.sprintId = targetSprintId
+    })
+    selectedTasks.value = []
+    ElMessage.success(t('project.tasksAssigned'))
+  } catch (e) {
+    ElMessage.error(t('project.assignFailed'))
+  }
 }
 
 const onBatchDelete = () => {
@@ -137,6 +147,23 @@ const onBatchDelete = () => {
 
 const onClearSelection = () => {
   selectedTasks.value = []
+}
+
+const onBatchRemove = async () => {
+  const firstTask = tasks.value.find(t => selectedTasks.value.includes(t.id))
+  if (!firstTask?.sprintId) return
+
+  try {
+    await batchRemoveTasks(firstTask.sprintId, selectedTasks.value)
+    selectedTasks.value.forEach(id => {
+      const task = tasks.value.find(t => t.id === id)
+      if (task) task.sprintId = null
+    })
+    selectedTasks.value = []
+    ElMessage.success(t('project.tasksRemoved'))
+  } catch (e) {
+    ElMessage.error(t('project.removeFailed'))
+  }
 }
 
 const onDropTask = async ({ taskId, targetSprintId }) => {

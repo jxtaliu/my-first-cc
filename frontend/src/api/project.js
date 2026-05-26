@@ -83,3 +83,11 @@ export function assignProjectRole(projectId, userId, role) {
 export function removeProjectRole(projectId, userId) {
   return request.delete(`/v1/project-roles/project/${projectId}/user/${userId}`)
 }
+
+export function batchAssignTasks(sprintId, taskIds) {
+  return request.post(`/sprints/${sprintId}/tasks/batch`, { taskIds })
+}
+
+export function batchRemoveTasks(sprintId, taskIds) {
+  return request.delete(`/sprints/${sprintId}/tasks/batch`, { taskIds })
+}
