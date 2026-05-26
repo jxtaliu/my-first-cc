@@ -231,6 +231,7 @@ export default {
     // Milestones
     milestones: '里程碑',
     milestonesDesc: '管理项目里程碑',
+    milestoneTimeline: '里程碑时间轴',
     createMilestone: '创建里程碑',
     filterByProject: '按项目筛选',
     filterByStatus: '按状态筛选',
@@ -245,6 +246,7 @@ export default {
     milestoneNameRequired: '请输入里程碑名称',
     milestoneCompleted: '里程碑已完成',
     completeFailed: '完成失败',
+    today: '今天',
     // Project Detail
     board: '看板',
     sprints: '冲刺',

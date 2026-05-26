@@ -232,6 +232,7 @@ export default {
     // Milestones
     milestones: 'Milestones',
     milestonesDesc: 'Manage project milestones',
+    milestoneTimeline: 'Milestone Timeline',
     createMilestone: 'Create Milestone',
     filterByProject: 'Filter by Project',
     filterByStatus: 'Filter by Status',
@@ -246,6 +247,7 @@ export default {
     milestoneNameRequired: 'Milestone name is required',
     milestoneCompleted: 'Milestone completed',
     completeFailed: 'Failed to complete',
+    today: 'Today',
     // Project Detail
     board: 'Board',
     sprints: 'Sprints',
