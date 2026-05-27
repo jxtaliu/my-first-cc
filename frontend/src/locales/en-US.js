@@ -342,6 +342,7 @@ export default {
     admin: 'Admin',
     taskUpdated: 'Task updated',
     taskCreated: 'Task created',
+    taskStatusUpdated: 'Task status updated',
     sprintCreated: 'Sprint created',
     roleUpdated: 'Role updated',
     memberRemoved: 'Member removed',

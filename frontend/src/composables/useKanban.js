@@ -136,6 +136,7 @@ export function useKanban() {
       assigneeName: apiTask.assigneeName || '',
       projectId: apiTask.projectId,
       sprintId: apiTask.sprintId,
+      parentId: apiTask.parentId || apiTask.parent_id,
       estimateHours: apiTask.estimateHours,
       remainingHours: apiTask.remainingHours,
       actualHours: apiTask.actualHours,

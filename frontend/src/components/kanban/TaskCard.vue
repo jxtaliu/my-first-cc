@@ -98,6 +98,11 @@ const props = defineProps({
   subtaskTooltip: {
     type: String,
     default: ''
+  },
+  // Override progress for parent types (EPIC/FEATURE/STORY)
+  computedProgress: {
+    type: Number,
+    default: null
   }
 })
 
@@ -110,8 +115,9 @@ const isParentType = computed(() => {
 })
 
 const displayProgress = computed(() => {
-  if (isParentType.value && props.task.progress === 0) {
-    return 0
+  // Use computedProgress if provided (for parent types)
+  if (props.computedProgress !== null && props.computedProgress !== undefined) {
+    return props.computedProgress
   }
   return props.task.progress || 0
 })

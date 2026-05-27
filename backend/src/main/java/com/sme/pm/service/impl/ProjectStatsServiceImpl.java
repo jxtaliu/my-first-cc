@@ -1,8 +1,10 @@
 package com.sme.pm.service.impl;
 
+import com.sme.pm.entity.Milestone;
 import com.sme.pm.entity.Project;
 import com.sme.pm.entity.Sprint;
 import com.sme.pm.entity.Task;
+import com.sme.pm.mapper.MilestoneMapper;
 import com.sme.pm.mapper.ProjectMapper;
 import com.sme.pm.mapper.SprintMapper;
 import com.sme.pm.mapper.TaskMapper;
@@ -21,16 +23,20 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
     private final ProjectMapper projectMapper;
     private final SprintMapper sprintMapper;
     private final TaskMapper taskMapper;
+    private final MilestoneMapper milestoneMapper;
 
-    public ProjectStatsServiceImpl(ProjectMapper projectMapper, SprintMapper sprintMapper, TaskMapper taskMapper) {
+    public ProjectStatsServiceImpl(ProjectMapper projectMapper, SprintMapper sprintMapper,
+                                   TaskMapper taskMapper, MilestoneMapper milestoneMapper) {
         this.projectMapper = projectMapper;
         this.sprintMapper = sprintMapper;
         this.taskMapper = taskMapper;
+        this.milestoneMapper = milestoneMapper;
     }
 
     @Override
     public Map<String, Object> getProjectStats(Long projectId) {
         Map<String, Object> stats = new HashMap<>();
+        Map<String, Object> kpi = new HashMap<>();
 
         Project project = projectMapper.findById(projectId);
         if (project == null) {
@@ -38,9 +44,13 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
         }
 
         List<Task> tasks = taskMapper.findByProjectId(project.getProjectId());
+        LocalDate today = LocalDate.now();
+
         int totalTasks = tasks.size();
         int completedTasks = 0;
         int inProgressTasks = 0;
+        int blockedTasks = 0;
+        int overdueTasks = 0;
         int totalEstimateHours = 0;
         int completedHours = 0;
 
@@ -52,7 +62,15 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
                     completedHours += (task.getEstimateHours() != null) ? task.getEstimateHours() : 0;
                 } else if (task.getProgress() > 0) {
                     inProgressTasks++;
+                    // Check if task is overdue
+                    if (task.getDueDate() != null && task.getDueDate().isBefore(today)) {
+                        overdueTasks++;
+                    }
                 }
+            }
+            // Check if task is blocked (status indicates blocked)
+            if ("BLOCKED".equals(task.getStatus())) {
+                blockedTasks++;
             }
         }
 
@@ -65,22 +83,42 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
         // Defect density (placeholder - would need defect tracking)
         double defectDensity = 0;
 
-        // Milestone achievement (placeholder - would need milestone data)
-        double milestoneAchievement = 0;
+        // Milestone achievement (calculate from actual milestones)
+        double milestoneAchievement = calculateMilestoneAchievement(project.getProjectId());
 
+        kpi.put("totalTasks", totalTasks);
+        kpi.put("completed", completedTasks);
+        kpi.put("inProgress", inProgressTasks);
+        kpi.put("blocked", blockedTasks);
+        kpi.put("overdue", overdueTasks);
+
+        stats.put("kpi", kpi);
         stats.put("projectId", projectId);
         stats.put("projectName", project.getName());
         stats.put("totalTasks", totalTasks);
         stats.put("completedTasks", completedTasks);
         stats.put("inProgressTasks", inProgressTasks);
+        stats.put("blockedTasks", blockedTasks);
+        stats.put("overdueTasks", overdueTasks);
         stats.put("completionRate", Math.round(completionRate * 100) / 100.0);
         stats.put("workEfficiency", Math.round(workEfficiency * 100) / 100.0);
         stats.put("defectDensity", defectDensity);
-        stats.put("milestoneAchievement", milestoneAchievement);
+        stats.put("milestoneAchievement", Math.round(milestoneAchievement * 100) / 100.0);
         stats.put("totalEstimateHours", totalEstimateHours);
         stats.put("completedHours", completedHours);
 
         return stats;
+    }
+
+    private double calculateMilestoneAchievement(String projectId) {
+        List<Milestone> milestones = milestoneMapper.findByProjectId(projectId);
+        if (milestones == null || milestones.isEmpty()) {
+            return 0;
+        }
+        long completedCount = milestones.stream()
+                .filter(m -> "COMPLETED".equals(m.getStatus()))
+                .count();
+        return (double) completedCount / milestones.size() * 100;
     }
 
     @Override
@@ -232,5 +270,154 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
         burndown.put("actualBurndown", actualData);
 
         return burndown;
+    }
+
+    @Override
+    public List<Map<String, Object>> getCfdData(Long projectId) {
+        List<Map<String, Object>> cfdData = new ArrayList<>();
+
+        Project project = projectMapper.findById(projectId);
+        if (project == null) {
+            return cfdData;
+        }
+
+        List<Task> tasks = taskMapper.findByProjectId(project.getProjectId());
+        if (tasks.isEmpty()) {
+            return cfdData;
+        }
+
+        // Find date range from tasks
+        LocalDate minDate = LocalDate.now().minusDays(30);
+        LocalDate maxDate = LocalDate.now();
+
+        for (Task task : tasks) {
+            if (task.getCreatedAt() != null) {
+                LocalDate createdDate = task.getCreatedAt().toLocalDate();
+                if (createdDate.isBefore(minDate)) {
+                    minDate = createdDate;
+                }
+            }
+        }
+
+        // Generate daily CFD data
+        LocalDate currentDate = minDate;
+        while (!currentDate.isAfter(maxDate)) {
+            Map<String, Object> dayData = new LinkedHashMap<>();
+            dayData.put("date", currentDate.toString());
+
+            final LocalDate checkDate = currentDate;
+            int todoCount = 0;
+            int inProgressCount = 0;
+            int doneCount = 0;
+
+            for (Task task : tasks) {
+                LocalDateTime createdAt = task.getCreatedAt();
+                if (createdAt == null) continue;
+
+                LocalDate createdDate = createdAt.toLocalDate();
+                if (createdDate.isAfter(checkDate)) continue;
+
+                LocalDateTime completionDate = task.getCompletionDate();
+                if (completionDate != null && completionDate.toLocalDate().isBefore(checkDate)) {
+                    doneCount++;
+                } else if ("DONE".equals(task.getStatus())) {
+                    doneCount++;
+                } else if ("IN_PROGRESS".equals(task.getStatus()) || "IN_REVIEW".equals(task.getStatus())) {
+                    inProgressCount++;
+                } else {
+                    todoCount++;
+                }
+            }
+
+            dayData.put("todo", todoCount);
+            dayData.put("in_progress", inProgressCount);
+            dayData.put("done", doneCount);
+            cfdData.add(dayData);
+
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return cfdData;
+    }
+
+    @Override
+    public List<Map<String, Object>> getHeatmapData(Long projectId) {
+        List<Map<String, Object>> heatmapData = new ArrayList<>();
+
+        Project project = projectMapper.findById(projectId);
+        if (project == null) {
+            return heatmapData;
+        }
+
+        List<Task> tasks = taskMapper.findByProjectId(project.getProjectId());
+
+        // Group by assignee and priority
+        Map<String, Map<String, Long>> heatmapMap = new HashMap<>();
+
+        for (Task task : tasks) {
+            String assignee = task.getAssigneeName();
+            String priority = task.getPriority();
+
+            if (assignee == null) assignee = "Unassigned";
+            if (priority == null) priority = "None";
+
+            heatmapMap.computeIfAbsent(assignee, k -> new HashMap<>())
+                    .merge(priority, 1L, Long::sum);
+        }
+
+        // Convert to list format
+        for (Map.Entry<String, Map<String, Long>> assigneeEntry : heatmapMap.entrySet()) {
+            for (Map.Entry<String, Long> priorityEntry : assigneeEntry.getValue().entrySet()) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("assignee", assigneeEntry.getKey());
+                entry.put("priority", priorityEntry.getKey());
+                entry.put("count", priorityEntry.getValue());
+                heatmapData.add(entry);
+            }
+        }
+
+        return heatmapData;
+    }
+
+    @Override
+    public List<Map<String, Object>> getMilestoneProgress(Long projectId) {
+        List<Map<String, Object>> milestoneData = new ArrayList<>();
+
+        Project project = projectMapper.findById(projectId);
+        if (project == null) {
+            return milestoneData;
+        }
+
+        List<Milestone> milestones = milestoneMapper.findByProjectId(project.getProjectId());
+        List<Task> allTasks = taskMapper.findByProjectId(project.getProjectId());
+
+        for (Milestone milestone : milestones) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("id", milestone.getId());
+            data.put("name", milestone.getName());
+            data.put("status", milestone.getStatus());
+            data.put("targetDate", milestone.getTargetDate());
+
+            // Count tasks for this milestone
+            int total = 0;
+            int completed = 0;
+
+            for (Task task : allTasks) {
+                if (milestone.getId().equals(task.getMilestoneId())) {
+                    total++;
+                    if ("DONE".equals(task.getStatus()) || task.getProgress() == 100) {
+                        completed++;
+                    }
+                }
+            }
+
+            data.put("total", total);
+            data.put("completed", completed);
+            data.put("percent", total > 0 ? Math.round((double) completed / total * 100) : 0);
+
+            milestoneData.add(data);
+        }
+
+        return milestoneData;
     }
 }

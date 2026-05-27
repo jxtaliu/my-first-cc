@@ -67,6 +67,7 @@
           :show-progress="true"
           :is-task-draggable="canChangeStatus"
           :get-subtask-tooltip="getSubtaskDistribution"
+          :get-computed-progress="getTaskProgress"
           @task-click="onTaskClick"
           @task-drop="onTaskDrop"
         />
@@ -114,6 +115,7 @@
                 :task="task"
                 :show-progress="true"
                 :is-draggable="canChangeStatus(task)"
+                :computed-progress="getTaskProgress(task)"
                 :subtask-tooltip="getSubtaskDistribution(task)"
                 @click="onTaskClick"
                 @dragstart="(e) => onTaskDragStart(e, task)"
@@ -162,6 +164,7 @@
                 :task="task"
                 :show-progress="true"
                 :is-draggable="canChangeStatus(task)"
+                :computed-progress="getTaskProgress(task)"
                 :subtask-tooltip="getSubtaskDistribution(task)"
                 @click="onTaskClick"
                 @dragstart="(e) => onTaskDragStart(e, task)"
@@ -208,6 +211,7 @@
                 :task="task"
                 :show-progress="true"
                 :is-draggable="canChangeStatus(task)"
+                :computed-progress="getTaskProgress(task)"
                 :subtask-tooltip="getSubtaskDistribution(task)"
                 @click="onTaskClick"
                 @dragstart="(e) => onTaskDragStart(e, task)"
@@ -254,6 +258,7 @@
                 :task="task"
                 :show-progress="true"
                 :is-draggable="canChangeStatus(task)"
+                :computed-progress="getTaskProgress(task)"
                 :subtask-tooltip="getSubtaskDistribution(task)"
                 @click="onTaskClick"
                 @dragstart="(e) => onTaskDragStart(e, task)"
@@ -299,7 +304,9 @@
                 :key="task.id"
                 :task="task"
                 :show-progress="true"
-                draggable="true"
+                :is-draggable="canChangeStatus(task)"
+                :computed-progress="getTaskProgress(task)"
+                :subtask-tooltip="getSubtaskDistribution(task)"
                 @click="onTaskClick"
                 @dragstart="(e) => onTaskDragStart(e, task)"
               />
@@ -317,7 +324,7 @@
       class="pm-dialog"
     >
       <div class="task-detail-content" v-if="editingTask">
-        <el-form :model="editingTask" label-position="top">
+        <el-form :model="editingTask" label-position="top" :disabled="true">
           <el-form-item :label="$t('project.taskTitle')">
             <el-input v-model="editingTask.title" />
           </el-form-item>
@@ -365,8 +372,7 @@
         </el-form>
       </div>
       <template #footer>
-        <el-button @click="showTaskDetail = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="onSaveTask">{{ $t('common.save') }}</el-button>
+        <el-button @click="showTaskDetail = false">{{ $t('common.close') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -470,42 +476,82 @@ const filteredTasks = computed(() => {
 // Parent types that have derived status from subtasks
 const parentTypes = ['EPIC', 'FEATURE', 'STORY']
 
-// Compute subtask info for each task (count and status distribution)
-const subtaskInfoMap = computed(() => {
-  const infoMap = {}
-  // Build a map of parentId -> children
-  const childrenMap = {}
+// Leaf types that should be counted
+const leafTypes = ['TASK', 'SUBTASK', 'BUG']
+
+// Build a map of id -> children (direct children only)
+const childrenMap = computed(() => {
+  const map = {}
   tasks.value.forEach(task => {
     if (task.parentId) {
-      if (!childrenMap[task.parentId]) childrenMap[task.parentId] = []
-      childrenMap[task.parentId].push(task)
+      if (!map[task.parentId]) map[task.parentId] = []
+      map[task.parentId].push(task)
     }
   })
-  // Calculate info for each parent task
-  Object.keys(childrenMap).forEach(parentId => {
-    const children = childrenMap[parentId]
-    const total = children.length
-    const statusCount = {
-      todo: 0,
-      in_progress: 0,
-      in_review: 0,
-      done: 0
-    }
-    let completedCount = 0
-    children.forEach(child => {
-      const status = child.status?.toLowerCase() || 'todo'
-      if (statusCount[status] !== undefined) statusCount[status]++
-      else statusCount['todo']++
-      if (status === 'done') completedCount++
-    })
-    const progress = total > 0 ? Math.round((completedCount / total) * 100) : 0
-    infoMap[parentId] = {
-      total,
-      progress,
-      statusCount,
-      completedCount
+  return map
+})
+
+// Recursively get all leaf descendants (Task/Subtask/Bug) for a given task
+function getAllLeafDescendants(taskId) {
+  const leaves = []
+  const directChildren = childrenMap.value[taskId] || []
+  directChildren.forEach(child => {
+    if (leafTypes.includes(child.type)) {
+      // It's a leaf node, count it
+      leaves.push(child)
+    } else {
+      // It's an intermediate node (EPIC/FEATURE/STORY), recurse
+      leaves.push(...getAllLeafDescendants(child.id))
     }
   })
+  return leaves
+}
+
+// Compute subtask info for each task (count only leaf nodes: Task/Subtask/Bug)
+const subtaskInfoMap = computed(() => {
+  const infoMap = {}
+
+  // For each parent type task (EPIC, FEATURE, STORY), compute recursive leaf stats
+  tasks.value.forEach(task => {
+    if (parentTypes.includes(task.type)) {
+      const leafDescendants = getAllLeafDescendants(task.id)
+      const total = leafDescendants.length
+
+      if (total === 0) {
+        infoMap[task.id] = {
+          total: 0,
+          progress: 0,
+          statusCount: { todo: 0, in_progress: 0, in_review: 0, done: 0 },
+          completedCount: 0
+        }
+        return
+      }
+
+      const statusCount = {
+        todo: 0,
+        in_progress: 0,
+        in_review: 0,
+        done: 0
+      }
+      let completedCount = 0
+
+      leafDescendants.forEach(child => {
+        const status = child.status?.toLowerCase() || 'todo'
+        if (statusCount[status] !== undefined) statusCount[status]++
+        else statusCount['todo']++
+        if (status === 'done') completedCount++
+      })
+
+      const progress = Math.round((completedCount / total) * 100)
+      infoMap[task.id] = {
+        total,
+        progress,
+        statusCount,
+        completedCount
+      }
+    }
+  })
+
   return infoMap
 })
 
@@ -516,18 +562,43 @@ const getTaskProgress = (task) => {
   return info ? info.progress : 0
 }
 
+// Get derived status for parent types (Epic/Feature/Story)
+const getDerivedStatus = (task) => {
+  // Only apply derived status logic for parent types
+  if (!parentTypes.includes(task.type)) return task.status
+
+  const info = subtaskInfoMap.value[task.id]
+  if (!info || info.total === 0) return 'todo'
+
+  const { statusCount, total } = info
+  const { todo, in_progress, in_review, done } = statusCount
+
+  // Priority: IN_REVIEW > IN_PROGRESS > (DONE or TODO)
+  // 1. If any leaf is IN_REVIEW
+  if (in_review > 0) return 'in_review'
+
+  // 2. If any leaf is IN_PROGRESS
+  if (in_progress > 0) return 'in_progress'
+
+  // 3. If all leaves are DONE (100%)
+  if (done === total) return 'done'
+
+  // 4. Otherwise (all TODO, or mix of TODO and some DONE but not all)
+  return 'todo'
+}
+
 // Get subtask distribution text for tooltip
 const getSubtaskDistribution = (task) => {
   if (!parentTypes.includes(task.type)) return ''
   const info = subtaskInfoMap.value[task.id]
-  if (!info || info.total === 0) return t('project.noSubtasks') || 'No subtasks'
-  const { statusCount, total } = info
+  if (!info || info.total === 0) return `${t('project.' + task.type.toLowerCase())}: 0 ${t('project.tasks')}`
+  const { statusCount, total, progress } = info
   const parts = []
   if (statusCount.todo > 0) parts.push(`${statusCount.todo} ${t('project.todo')}`)
   if (statusCount.in_progress > 0) parts.push(`${statusCount.in_progress} ${t('project.inProgress')}`)
   if (statusCount.in_review > 0) parts.push(`${statusCount.in_review} ${t('project.inReview')}`)
   if (statusCount.done > 0) parts.push(`${statusCount.done} ${t('project.done')}`)
-  return parts.join(', ')
+  return `${t('project.' + task.type.toLowerCase())}: ${total} ${t('project.tasks')} (${progress}%)\n${parts.join(', ')}`
 }
 
 // Check if task type allows direct status change
@@ -535,9 +606,12 @@ const canChangeStatus = (task) => {
   return !parentTypes.includes(task.type)
 }
 
-// Tasks by status (for no swimlane mode)
+// Tasks by status (for no swimlane mode) - using derived status for parent types
 const getTasksByStatus = (status) => {
-  return filteredTasks.value.filter(task => task.status === status)
+  return filteredTasks.value.filter(task => {
+    const effectiveStatus = getDerivedStatus(task)
+    return effectiveStatus === status
+  })
 }
 
 // Tasks by assignee (for assignee swimlane mode)
@@ -558,14 +632,18 @@ const getAssigneeName = (assigneeId) => {
 }
 
 const getTasksByAssigneeAndStatus = (assigneeId, status) => {
-  return filteredTasks.value.filter(task =>
-    String(task.assigneeId || 'unassigned') === String(assigneeId) && task.status === status
-  )
+  return filteredTasks.value.filter(task => {
+    const effectiveStatus = getDerivedStatus(task)
+    return String(task.assigneeId || 'unassigned') === String(assigneeId) && effectiveStatus === status
+  })
 }
 
 // Tasks by priority (for priority swimlane mode)
 const getTasksByPriorityAndStatus = (priority, status) => {
-  return filteredTasks.value.filter(task => task.priority === priority && task.status === status)
+  return filteredTasks.value.filter(task => {
+    const effectiveStatus = getDerivedStatus(task)
+    return task.priority === priority && effectiveStatus === status
+  })
 }
 
 // Get type label
@@ -577,7 +655,10 @@ const getTypeLabel = (type) => {
 
 // Tasks by type and status (for type swimlane mode)
 const getTasksByTypeAndStatus = (type, status) => {
-  return filteredTasks.value.filter(task => task.type === type && task.status === status)
+  return filteredTasks.value.filter(task => {
+    const effectiveStatus = getDerivedStatus(task)
+    return task.type === type && effectiveStatus === status
+  })
 }
 
 // Classify due date into period
@@ -598,7 +679,8 @@ const classifyDueDate = (dueDate) => {
 // Tasks by due date period and status (for due date swimlane mode)
 const getTasksByDueDateAndStatus = (period, status) => {
   return filteredTasks.value.filter(task => {
-    if (task.status !== status) return false
+    const effectiveStatus = getDerivedStatus(task)
+    if (effectiveStatus !== status) return false
     const taskPeriod = classifyDueDate(task.dueDate)
     return taskPeriod === period
   })
@@ -607,8 +689,10 @@ const getTasksByDueDateAndStatus = (period, status) => {
 // Tasks by progress range and status (for progress swimlane mode)
 const getTasksByProgressAndStatus = (rangeKey, status) => {
   return filteredTasks.value.filter(task => {
-    if (task.status !== status) return false
-    const progress = task.progress || 0
+    const effectiveStatus = getDerivedStatus(task)
+    if (effectiveStatus !== status) return false
+    // Use derived progress for parent types, task.progress for leaf types
+    const progress = parentTypes.includes(task.type) ? getTaskProgress(task) : (task.progress || 0)
     if (rangeKey === 'notStarted') return progress === 0
     if (rangeKey === 'inProgress') return progress > 0 && progress < 100
     if (rangeKey === 'completed') return progress === 100

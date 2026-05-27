@@ -31,6 +31,7 @@
         :show-progress="showProgress"
         :is-draggable="isTaskDraggable(task)"
         :subtask-tooltip="getSubtaskTooltip(task)"
+        :computed-progress="getComputedProgress ? getComputedProgress(task) : null"
         @click="onTaskClick"
         @dragstart="onTaskDragStart"
         @dragend="onTaskDragEnd"
@@ -111,6 +112,10 @@ const props = defineProps({
   getSubtaskTooltip: {
     type: Function,
     default: () => ''
+  },
+  getComputedProgress: {
+    type: Function,
+    default: null
   }
 })
 

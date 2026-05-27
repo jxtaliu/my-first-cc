@@ -344,6 +344,7 @@ export default {
     admin: '管理员',
     taskUpdated: '任务已更新',
     taskCreated: '任务已创建',
+    taskStatusUpdated: '任务状态已更新',
     sprintCreated: '冲刺已创建',
     roleUpdated: '角色已更新',
     memberRemoved: '成员已移除',
@@ -447,6 +448,7 @@ export default {
     projectIdRequired: '项目ID不能为空',
     loadProjectFailed: '加载项目数据失败',
     loadTasksFailed: '加载任务失败',
+    loadStatsFailed: '加载统计数据失败',
     updateTaskStatusFailed: '更新任务状态失败',
     createTaskFailed: '创建任务失败',
     saveTaskFailed: '保存任务失败',
@@ -509,7 +511,13 @@ export default {
     trend: '趋势',
     milestoneProgress: '里程碑进度',
     teamWorkDistribution: '团队工作分布',
-    cumulativeFlow: '累积流图'
+    cumulativeFlow: '累积流图',
+    // Stats dashboard keys
+    alphaProject: '项目A',
+    betaProject: '项目B',
+    gammaProject: '项目C',
+    progress: '进度',
+    workEfficiency: '工作效率'
   },
   admin: {
     description: '角色描述',

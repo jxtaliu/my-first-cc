@@ -73,8 +73,7 @@
         <div class="stats-chart-header">
           <h3 class="stats-chart-title">{{ $t('project.burndownChart') }}</h3>
           <el-select v-model="burndownSprint" size="small" style="width: 120px">
-            <el-option label="Sprint 15" value="15" />
-            <el-option label="Sprint 14" value="14" />
+            <el-option v-for="sprint in sprints" :key="sprint.id" :label="sprint.name" :value="sprint.id" />
           </el-select>
         </div>
         <div class="stats-chart-content">
@@ -82,7 +81,7 @@
             :ideal-data="burndownData.idealData"
             :actual-data="burndownData.actualData"
             :x-axis-data="burndownData.xAxisData"
-            :total-points="100"
+            :total-points="burndownData.totalPoints"
           />
         </div>
       </div>
@@ -255,7 +254,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Download } from '@element-plus/icons-vue'
@@ -263,13 +262,15 @@ import StatCard from '@/components/common/StatCard.vue'
 import BurndownChart from '@/components/charts/BurndownChart.vue'
 import CfdChart from '@/components/charts/CfdChart.vue'
 import HeatmapChart from '@/components/charts/HeatmapChart.vue'
-import { getProjectStats } from '@/api/project'
+import { getProjectStats, getCfdData, getHeatmapData, getMilestoneProgress, getSprints, getSprintBurndown } from '@/api/project'
+import { getProjects } from '@/api/project'
 
 const { t } = useI18n()
 
 const selectedProjects = ref([])
 const timeRange = ref('month')
-const burndownSprint = ref('15')
+const burndownSprint = ref('')
+const sprints = ref([])
 const loading = ref(false)
 
 // KPI Stats
@@ -294,7 +295,8 @@ const stats = ref({
 const burndownData = ref({
   idealData: [],
   actualData: [],
-  xAxisData: []
+  xAxisData: [],
+  totalPoints: 0
 })
 
 const cfdData = ref([])
@@ -434,52 +436,117 @@ async function loadStats() {
   loading.value = true
   try {
     const projectId = selectedProjects.value[0]
-    const res = await getProjectStats(projectId)
-    const data = res.data || res
 
-    // Update KPI stats
-    if (data.kpi) {
+    // Load project stats (KPI)
+    const statsRes = await getProjectStats(projectId)
+    const statsData = statsRes.data || statsRes
+
+    // Update KPI stats from kpi object or flat structure
+    if (statsData.kpi) {
       kpiStats.value = {
-        totalTasks: data.kpi.totalTasks || 0,
-        completed: data.kpi.completed || 0,
-        inProgress: data.kpi.inProgress || 0,
-        blocked: data.kpi.blocked || 0,
-        overdue: data.kpi.overdue || 0
+        totalTasks: statsData.kpi.totalTasks || 0,
+        completed: statsData.kpi.completed || 0,
+        inProgress: statsData.kpi.inProgress || 0,
+        blocked: statsData.kpi.blocked || 0,
+        overdue: statsData.kpi.overdue || 0
+      }
+    } else {
+      // Fallback to flat structure
+      kpiStats.value = {
+        totalTasks: statsData.totalTasks || 0,
+        completed: statsData.completedTasks || 0,
+        inProgress: statsData.inProgressTasks || 0,
+        blocked: statsData.blockedTasks || 0,
+        overdue: statsData.overdueTasks || 0
       }
     }
 
-    // Update burndown data
-    if (data.burndown) {
-      burndownData.value = {
-        idealData: data.burndown.ideal || [],
-        actualData: data.burndown.actual || [],
-        xAxisData: data.burndown.days || []
-      }
+    // Update general stats
+    stats.value.taskCompletionRate = statsData.completionRate || statsData.taskCompletionRate || 0
+    stats.value.workEfficiency = statsData.workEfficiency || 0
+    stats.value.milestoneAchievement = statsData.milestoneAchievement || 0
+
+    // Load CFD data
+    try {
+      const cfdRes = await getCfdData(projectId)
+      cfdData.value = (cfdRes.data || cfdRes) || []
+    } catch (e) {
+      console.error('Failed to load CFD data:', e)
+      cfdData.value = []
     }
 
-    // Update CFD data
-    if (data.cfd) {
-      cfdData.value = data.cfd
+    // Load heatmap data
+    try {
+      const heatmapRes = await getHeatmapData(projectId)
+      heatmapData.value = (heatmapRes.data || heatmapRes) || []
+    } catch (e) {
+      console.error('Failed to load heatmap data:', e)
+      heatmapData.value = []
     }
 
-    // Update heatmap data
-    if (data.heatmap) {
-      heatmapData.value = data.heatmap
+    // Load milestone progress
+    try {
+      const milestoneRes = await getMilestoneProgress(projectId)
+      milestoneProgress.value = (milestoneRes.data || milestoneRes) || []
+    } catch (e) {
+      console.error('Failed to load milestone progress:', e)
+      milestoneProgress.value = []
     }
 
-    // Update general stats if available
-    if (data.taskCompletionRate !== undefined) {
-      stats.value.taskCompletionRate = data.taskCompletionRate
-    }
-    if (data.workEfficiency !== undefined) {
-      stats.value.workEfficiency = data.workEfficiency
+    // Load project comparison data
+    if (selectedProjects.value.length > 1) {
+      // For now, just use the first project's stats for comparison display
+      projectComparisons.value = [{
+        id: statsData.projectId,
+        name: statsData.projectName || '项目',
+        statusColor: '#10B981',
+        progress: statsData.completionRate || 0,
+        efficiency: statsData.workEfficiency || 0,
+        quality: 85,
+        collaboration: 80,
+        overall: Math.round((statsData.completionRate || 0) * 0.4 + 85 * 0.2 + 80 * 0.2),
+        trend: 0
+      }]
     }
   } catch (error) {
     console.error('Failed to load project stats:', error)
-    // Use mock data on error
-    loadMockData()
+    ElMessage.error(t('project.loadStatsFailed') || '加载统计数据失败')
   } finally {
     loading.value = false
+  }
+}
+
+// Load sprints for burndown chart
+async function loadSprints(projectId) {
+  if (!projectId) return
+  try {
+    const res = await getSprints(projectId)
+    sprints.value = (res.data || res) || []
+    if (sprints.value.length > 0 && !burndownSprint.value) {
+      burndownSprint.value = sprints.value[0].id
+    }
+  } catch (e) {
+    console.error('Failed to load sprints:', e)
+    sprints.value = []
+  }
+}
+
+// Load burndown data for selected sprint
+async function loadBurndownData(sprintId) {
+  if (!sprintId) return
+  try {
+    const res = await getSprintBurndown(sprintId)
+    const data = res.data || res
+    if (data && data.idealBurndown && data.actualBurndown) {
+      burndownData.value = {
+        idealData: data.idealBurndown.map(p => p.remainingHours),
+        actualData: data.actualBurndown.map(p => p.remainingHours),
+        xAxisData: data.actualBurndown.map(p => p.date ? p.date.slice(5) : ''),
+        totalPoints: data.totalHours || 0
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load burndown data:', e)
   }
 }
 
@@ -525,10 +592,39 @@ function loadMockData() {
   }
 }
 
+// Load projects list
+async function loadProjects() {
+  try {
+    const res = await getProjects()
+    projects.value = (res.data || res) || []
+    if (projects.value.length > 0) {
+      selectedProjects.value = [projects.value[0].id]
+      await loadStats()
+      await loadSprints(selectedProjects.value[0])
+    }
+  } catch (error) {
+    console.error('Failed to load projects:', error)
+    ElMessage.error(t('project.loadProjectsFailed') || '加载项目列表失败')
+  }
+}
+
 onMounted(() => {
-  selectedProjects.value = projects.value.map(p => p.id)
-  loadMockData() // Load mock data by default
-  // loadStats() // Uncomment when API is ready
+  loadProjects()
+})
+
+// Watch for project selection changes
+watch(selectedProjects, () => {
+  if (selectedProjects.value.length > 0) {
+    loadStats()
+    loadSprints(selectedProjects.value[0])
+  }
+})
+
+// Watch for sprint selection changes to load burndown data
+watch(burndownSprint, (newSprintId) => {
+  if (newSprintId) {
+    loadBurndownData(newSprintId)
+  }
 })
 </script>
 

@@ -43,4 +43,19 @@ public class ProjectStatsController {
     public Result<Map<String, Object>> getBurndownData(@PathVariable Long sprintId) {
         return Result.success(projectStatsService.getBurndownData(sprintId));
     }
+
+    @GetMapping("/projects/{projectId}/cfd")
+    public Result<List<Map<String, Object>>> getCfdData(@PathVariable Long projectId) {
+        return Result.success(projectStatsService.getCfdData(projectId));
+    }
+
+    @GetMapping("/projects/{projectId}/heatmap")
+    public Result<List<Map<String, Object>>> getHeatmapData(@PathVariable Long projectId) {
+        return Result.success(projectStatsService.getHeatmapData(projectId));
+    }
+
+    @GetMapping("/projects/{projectId}/milestones/progress")
+    public Result<List<Map<String, Object>>> getMilestoneProgress(@PathVariable Long projectId) {
+        return Result.success(projectStatsService.getMilestoneProgress(projectId));
+    }
 }

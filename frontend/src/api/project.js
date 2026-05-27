@@ -72,6 +72,22 @@ export function getProjectStats(projectId) {
   return request.get(`/v1/projects/${projectId}/stats`)
 }
 
+export function getCfdData(projectId) {
+  return request.get(`/v1/projects/${projectId}/cfd`)
+}
+
+export function getHeatmapData(projectId) {
+  return request.get(`/v1/projects/${projectId}/heatmap`)
+}
+
+export function getMilestoneProgress(projectId) {
+  return request.get(`/v1/projects/${projectId}/milestones/progress`)
+}
+
+export function getSprintBurndown(sprintId) {
+  return request.get(`/v1/sprints/${sprintId}/burndown`)
+}
+
 export function getProjectRoles(projectId) {
   return request.get(`/v1/project-roles/project/${projectId}`)
 }
