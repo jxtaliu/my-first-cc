@@ -752,14 +752,15 @@ const onTaskClick = (task) => {
 
 // Task drop handler (for no swimlane mode)
 const onTaskDrop = async ({ taskId, targetStatus }) => {
-  const task = tasks.value.find(t => t.id === taskId)
+  // dataTransfer stores taskId as string, but task.id is number
+  const task = tasks.value.find(t => t.id === Number(taskId))
   if (!task) return
 
   const oldStatus = task.status
   if (oldStatus === targetStatus) return
 
   try {
-    await apiMoveTask(taskId, { status: targetStatus.toUpperCase(), projectId: projectStore.currentProjectId })
+    await apiMoveTask(Number(taskId), { status: targetStatus.toUpperCase(), projectId: projectStore.currentProjectId })
     task.status = targetStatus
     task.statusId = targetStatus.toUpperCase()
     if (targetStatus === 'done') {

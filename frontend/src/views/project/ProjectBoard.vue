@@ -173,7 +173,7 @@ import KanbanBoard from '@/components/kanban/KanbanBoard.vue'
 import QuickAddDialog from '@/components/kanban/QuickAddDialog.vue'
 import { useKanban } from '@/composables/useKanban'
 import { getProject, getSprints } from '@/api/project'
-import { getTasksByProject, moveTask as apiMoveTask, createTask as apiCreateTask, updateTask as apiUpdateTask } from '@/api/task'
+import { getTasksByProject, moveTask as apiMoveTask, batchMoveTask, createTask as apiCreateTask, updateTask as apiUpdateTask } from '@/api/task'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -309,22 +309,48 @@ const onTaskClick = (task) => {
   showTaskDetail.value = true
 }
 
-const onTaskDrop = async ({ taskId, targetStatus }) => {
-  const task = tasks.value.find(t => t.id === taskId)
-  if (!task) return
-
-  const oldStatus = task.status
-  if (oldStatus === targetStatus) return
+const onTaskDrop = async ({ taskId, taskIds, targetStatus }) => {
+  // Determine which tasks to move (dataTransfer stores strings, but ids are numbers)
+  const idsToMove = (taskIds || (taskId ? [taskId] : [])).map(id => Number(id))
+  if (idsToMove.length === 0) return
 
   try {
-    // Backend now uses statusCode (string) instead of statusId
-    await apiMoveTask(taskId, { status: targetStatus.toUpperCase(), sprintId: currentSprintId.value })
-    task.status = targetStatus
-    task.statusId = targetStatus.toUpperCase()
-    // Recalculate progress based on new status
-    if (targetStatus === 'done') {
-      task.progress = 100
-      task.remainingHours = 0
+    if (idsToMove.length === 1) {
+      // Single task move - use original API
+      const task = tasks.value.find(t => t.id === idsToMove[0])
+      if (!task) return
+
+      const oldStatus = task.status
+      if (oldStatus === targetStatus) return
+
+      await apiMoveTask(idsToMove[0], { status: targetStatus.toUpperCase(), sprintId: currentSprintId.value })
+      task.status = targetStatus
+      task.statusId = targetStatus.toUpperCase()
+      if (targetStatus === 'done') {
+        task.progress = 100
+        task.remainingHours = 0
+      }
+    } else {
+      // Batch move - use new batch API
+      await batchMoveTask({
+        taskIds: idsToMove,
+        targetStatus: targetStatus.toUpperCase(),
+        sprintId: currentSprintId.value,
+        projectId: project.value?.projectId
+      })
+
+      // Update local state for all moved tasks
+      for (const id of idsToMove) {
+        const task = tasks.value.find(t => t.id === id)
+        if (task) {
+          task.status = targetStatus
+          task.statusId = targetStatus.toUpperCase()
+          if (targetStatus === 'done') {
+            task.progress = 100
+            task.remainingHours = 0
+          }
+        }
+      }
     }
     ElMessage.success(t('project.taskStatusUpdated'))
   } catch (error) {

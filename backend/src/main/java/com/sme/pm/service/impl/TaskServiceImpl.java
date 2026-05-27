@@ -149,7 +149,19 @@ public class TaskServiceImpl implements TaskService {
             throw new IllegalArgumentException(existingTask.getType() + "类型的任务不允许直接设置冲刺");
         }
 
-        taskMapper.updateById(task);
+        // 使用 LambdaUpdateWrapper 确保更新非null字段
+        com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Task> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<>();
+        wrapper.eq(Task::getId, task.getId());
+
+        if (task.getStatus() != null) {
+            wrapper.set(Task::getStatus, task.getStatus());
+        }
+        if (task.getSprintId() != null) {
+            wrapper.set(Task::getSprintId, task.getSprintId());
+        }
+
+        taskMapper.update(null, wrapper);
         return task;
     }
 
@@ -442,5 +454,70 @@ public class TaskServiceImpl implements TaskService {
         }
         task.setBugStatusId(bugStatusId);
         taskMapper.updateById(task);
+    }
+
+    // ==================== Batch Operations ====================
+
+    @Override
+    public Map<String, Object> batchMove(List<Long> taskIds, String targetStatus, Long sprintId) {
+        Map<String, Object> result = new HashMap<>();
+        int successCount = 0;
+        int failedCount = 0;
+        List<String> errors = new ArrayList<>();
+
+        if (taskIds == null || taskIds.isEmpty()) {
+            result.put("successCount", 0);
+            result.put("failedCount", 0);
+            return result;
+        }
+
+        for (Long taskId : taskIds) {
+            try {
+                Task task = taskMapper.findById(taskId);
+                if (task == null) {
+                    failedCount++;
+                    errors.add("Task not found: " + taskId);
+                    continue;
+                }
+
+                // EPIC/FEATURE/STORY cannot change sprint
+                if (sprintId != null && ("EPIC".equals(task.getType()) || "FEATURE".equals(task.getType()) || "STORY".equals(task.getType()))) {
+                    failedCount++;
+                    errors.add(task.getType() + " type task cannot change sprint");
+                    continue;
+                }
+
+                // Update status if changed
+                if (targetStatus != null && !targetStatus.equals(task.getStatus())) {
+                    task.setStatus(targetStatus);
+                    if ("DONE".equals(targetStatus)) {
+                        task.setCompletionDate(LocalDateTime.now());
+                        task.setInProgressSince(null);
+                        task.setProgress(100);
+                    } else if ("IN_PROGRESS".equals(targetStatus)) {
+                        task.setInProgressSince(LocalDateTime.now());
+                    }
+                }
+
+                // Update sprint if changed
+                if (sprintId != null && !sprintId.equals(task.getSprintId())) {
+                    task.setSprintId(sprintId);
+                } else if (sprintId == null && task.getSprintId() != null) {
+                    // Moving to backlog
+                    task.setSprintId(null);
+                }
+
+                taskMapper.updateById(task);
+                successCount++;
+            } catch (Exception e) {
+                failedCount++;
+                errors.add("Failed to move task " + taskId + ": " + e.getMessage());
+            }
+        }
+
+        result.put("successCount", successCount);
+        result.put("failedCount", failedCount);
+        result.put("errors", errors);
+        return result;
     }
 }

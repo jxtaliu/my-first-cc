@@ -31,7 +31,6 @@
                 <el-icon v-else><Document /></el-icon>
               </span>
               <span class="node-label">{{ data.title }}</span>
-              <span v-if="data.description" class="node-desc">- {{ data.description }}</span>
             </div>
           </template>
         </el-tree>
@@ -60,7 +59,6 @@
                 <el-icon v-else><Document /></el-icon>
               </span>
               <span class="node-label">{{ data.title }}</span>
-              <span v-if="data.description" class="node-desc">- {{ data.description }}</span>
             </div>
           </template>
         </el-tree>
@@ -365,14 +363,6 @@ const onTaskDragStart = (event, taskId) => {
 
 .node-label {
   font-size: 13px;
-}
-
-.node-desc {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .task-item {

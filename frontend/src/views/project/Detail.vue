@@ -1101,12 +1101,13 @@ const onTaskClick = (task) => {
 }
 
 const onTaskDrop = async ({ taskId, targetStatus }) => {
-  const task = sprintTasks.value.find(t => t.id === taskId)
+  // dataTransfer stores taskId as string, but task.id is number
+  const task = sprintTasks.value.find(t => t.id === Number(taskId))
   if (!task) return
 
   try {
     const newStatusId = statusCodeToId.value[targetStatus]
-    await moveTask(taskId, { statusId: newStatusId, sprintId: currentSprintId.value })
+    await moveTask(Number(taskId), { statusId: newStatusId, sprintId: currentSprintId.value, projectId: project.value.projectId })
     task.status = targetStatus
     task.statusId = newStatusId
     if (targetStatus === 'done') {

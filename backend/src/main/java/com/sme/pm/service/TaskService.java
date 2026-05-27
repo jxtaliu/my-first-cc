@@ -1,11 +1,12 @@
 package com.sme.pm.service;
 
+import java.util.List;
+import java.util.Map;
+
 import com.sme.pm.entity.Task;
 import com.sme.pm.entity.TaskAttachment;
 import com.sme.pm.entity.TaskComment;
 import com.sme.pm.entity.TaskDependency;
-
-import java.util.List;
 
 public interface TaskService {
     Task create(Task task);
@@ -31,6 +32,9 @@ public interface TaskService {
     void removeDependency(Long dependencyId);
     int countBlockingDependencies(Long taskId);
     int countByStatusId(Integer statusId);
+
+    // Batch operations
+    Map<String, Object> batchMove(List<Long> taskIds, String targetStatus, Long sprintId);
 
     // Requirement tree methods
     List<Task> getRequirementTree(String projectId);

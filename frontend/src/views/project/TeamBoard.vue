@@ -329,7 +329,8 @@ const onTaskClick = (task) => {
 }
 
 const onTaskDrop = async ({ taskId, targetStatus }) => {
-  const task = allTasks.value.find(t => t.id === taskId)
+  // dataTransfer stores taskId as string, but task.id is number
+  const task = allTasks.value.find(t => t.id === Number(taskId))
   if (!task) return
 
   const oldStatus = task.status
@@ -337,7 +338,7 @@ const onTaskDrop = async ({ taskId, targetStatus }) => {
 
   try {
     const newStatusId = statusCodeToId.value[targetStatus]
-    await apiMoveTask(taskId, { statusId: newStatusId, sprintId: task.sprintId })
+    await apiMoveTask(Number(taskId), { statusId: newStatusId, sprintId: task.sprintId })
     task.status = targetStatus
     task.statusId = newStatusId
     if (targetStatus === 'done') {

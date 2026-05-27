@@ -73,6 +73,18 @@ public class TaskController {
         return Result.success(taskService.move(task));
     }
 
+    @PutMapping("/batch-move")
+    @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER"}, operation = "move_task")
+    public Result<Map<String, Object>> batchMove(@RequestBody Map<String, Object> request,
+                                                  @RequestParam String projectId) {
+        @SuppressWarnings("unchecked")
+        List<Number> taskIdNumbers = (List<Number>) request.get("taskIds");
+        List<Long> taskIds = taskIdNumbers.stream().map(Number::longValue).toList();
+        String targetStatus = (String) request.get("targetStatus");
+        Long sprintId = request.get("sprintId") != null ? ((Number) request.get("sprintId")).longValue() : null;
+        return Result.success(taskService.batchMove(taskIds, targetStatus, sprintId));
+    }
+
     @PutMapping("/{id}/assign")
     @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER"}, operation = "assign_task")
     public Result<Void> assign(@PathVariable Long id, @RequestParam Long userId) {

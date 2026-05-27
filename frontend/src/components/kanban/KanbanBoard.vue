@@ -11,11 +11,13 @@
       :wip-limit="column.wipLimit"
       :show-progress="showProgress"
       :allow-add="allowAdd"
+      :selected-tasks="selectedTasks"
       @task-click="onTaskClick"
       @task-drag-start="onTaskDragStart"
       @task-drag-end="onTaskDragEnd"
       @task-drop="onTaskDrop"
       @add-task="onAddTask"
+      @toggle-select="onToggleSelect"
     />
   </div>
 </template>
@@ -54,10 +56,11 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['task-click', 'task-drop', 'add-task', 'task-update'])
+const emit = defineEmits(['task-click', 'task-drop', 'add-task', 'task-update', 'selection-change'])
 
 const boardRef = ref(null)
 const draggingTask = ref(null)
+const selectedTasks = ref([])
 
 const getTasksByStatus = (status) => {
   let filtered = props.tasks.filter(task => task.status === status)
@@ -82,12 +85,39 @@ const onTaskDragEnd = (task) => {
   draggingTask.value = null
 }
 
+const onToggleSelect = (task) => {
+  const index = selectedTasks.value.findIndex(t => t.id === task.id)
+  if (index >= 0) {
+    selectedTasks.value.splice(index, 1)
+  } else {
+    selectedTasks.value.push(task)
+  }
+  emit('selection-change', selectedTasks.value)
+}
+
 const onTaskDrop = ({ taskId, targetStatus, targetColumn }) => {
-  emit('task-drop', {
-    taskId,
-    targetStatus,
-    targetColumn
-  })
+  // dataTransfer stores taskId as string, but task.id is number
+  const numericTaskId = Number(taskId)
+  // If we have selected tasks and the dropped task is one of them, move all selected
+  const selectedIds = selectedTasks.value.map(t => t.id)
+  if (selectedIds.includes(numericTaskId) && selectedIds.length > 1) {
+    // Batch move all selected tasks
+    emit('task-drop', {
+      taskIds: selectedIds,
+      targetStatus,
+      targetColumn
+    })
+    // Clear selection after batch move
+    selectedTasks.value = []
+  } else {
+    // Single task move
+    emit('task-drop', {
+      taskId: numericTaskId,
+      taskIds: null,
+      targetStatus,
+      targetColumn
+    })
+  }
 }
 
 const onAddTask = ({ status, columnId }) => {
@@ -107,7 +137,10 @@ const scrollTo = (direction) => {
 
 // Expose methods for parent components
 defineExpose({
-  scrollTo
+  scrollTo,
+  clearSelection: () => {
+    selectedTasks.value = []
+  }
 })
 </script>
 

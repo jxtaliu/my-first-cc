@@ -330,15 +330,17 @@ const onTaskClick = (task) => {
 }
 
 const onTaskDrop = async ({ taskId, targetStatus }) => {
-  const task = tasks.value.find(t => t.id === taskId)
+  // dataTransfer only stores strings, so taskId comes as string but t.id is number
+  const task = tasks.value.find(t => t.id === Number(taskId))
   if (!task) return
 
   const oldStatus = task.status
   if (oldStatus === targetStatus) return
 
+  const projectId = route.params.id
   try {
     // Now using status directly (backend Task.status field stores code)
-    await apiMoveTask(taskId, { status: targetStatus.toUpperCase(), sprintId: currentSprintId.value })
+    await apiMoveTask(taskId, { status: targetStatus.toUpperCase(), sprintId: currentSprintId.value, projectId })
     task.status = targetStatus
     task.statusId = targetStatus.toUpperCase()
     if (targetStatus === 'done') {

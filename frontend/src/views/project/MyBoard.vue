@@ -167,7 +167,8 @@ const onTaskClick = (task) => {
 }
 
 const onTaskDrop = ({ taskId, targetStatus }) => {
-  const task = myTasks.value.find(t => t.id === taskId)
+  // dataTransfer stores taskId as string, but task.id is number
+  const task = myTasks.value.find(t => t.id === Number(taskId))
   if (task) {
     const oldStatus = task.status
     task.status = targetStatus

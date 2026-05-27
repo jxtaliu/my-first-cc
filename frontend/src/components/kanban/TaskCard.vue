@@ -1,7 +1,7 @@
 <template>
   <div
     class="pm-task-card"
-    :class="{ 'non-draggable': !isDraggable }"
+    :class="{ 'non-draggable': !isDraggable, 'task-selected': selected }"
     :data-status="task.status"
     :data-type="task.type"
     :draggable="isDraggable"
@@ -9,6 +9,11 @@
     @dragend="onDragEnd"
     @click="onClick"
   >
+    <!-- Selection Checkbox -->
+    <div class="pm-task-card-checkbox" @click.stop="onToggleSelect">
+      <el-checkbox :model-value="selected" @change="onToggleSelect" />
+    </div>
+
     <!-- Top Row: Priority + Type Badge + Title -->
     <div class="pm-task-card-top">
       <span v-if="task.priority" class="pm-priority-dot" :class="getPriorityClass(task.priority)" :title="task.priority"></span>
@@ -103,10 +108,14 @@ const props = defineProps({
   computedProgress: {
     type: Number,
     default: null
+  },
+  selected: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['click', 'dragstart', 'dragend'])
+const emit = defineEmits(['click', 'dragstart', 'dragend', 'toggle-select'])
 
 const parentTypes = ['EPIC', 'FEATURE', 'STORY']
 
@@ -193,6 +202,10 @@ const onDragEnd = (e) => {
 const onClick = () => {
   emit('click', props.task)
 }
+
+const onToggleSelect = () => {
+  emit('toggle-select', props.task)
+}
 </script>
 
 <style scoped>
@@ -222,6 +235,25 @@ const onClick = () => {
 .pm-task-card.non-draggable {
   cursor: default;
   opacity: 0.9;
+}
+
+.pm-task-card.task-selected {
+  border: 2px solid var(--pm-primary);
+  background: rgba(0, 212, 170, 0.05);
+}
+
+.pm-task-card-checkbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity var(--pm-transition-fast);
+}
+
+.pm-task-card:hover .pm-task-card-checkbox,
+.pm-task-card.task-selected .pm-task-card-checkbox {
+  opacity: 1;
 }
 
 /* Status colors for left border */

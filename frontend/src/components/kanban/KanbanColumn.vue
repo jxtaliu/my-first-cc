@@ -32,9 +32,11 @@
         :is-draggable="isTaskDraggable(task)"
         :subtask-tooltip="getSubtaskTooltip(task)"
         :computed-progress="getComputedProgress ? getComputedProgress(task) : null"
+        :selected="isTaskSelected(task)"
         @click="onTaskClick"
         @dragstart="onTaskDragStart"
         @dragend="onTaskDragEnd"
+        @toggle-select="onToggleSelect"
       />
 
       <!-- Empty State -->
@@ -116,10 +118,14 @@ const props = defineProps({
   getComputedProgress: {
     type: Function,
     default: null
+  },
+  selectedTasks: {
+    type: Array,
+    default: () => []
   }
 })
 
-const emit = defineEmits(['task-click', 'task-drag-start', 'task-drag-end', 'task-drop', 'add-task'])
+const emit = defineEmits(['task-click', 'task-drag-start', 'task-drag-end', 'task-drop', 'add-task', 'toggle-select'])
 
 const isDragOver = ref(false)
 
@@ -127,6 +133,14 @@ const isWipExceeded = computed(() => {
   if (!props.wipLimit) return false
   return props.tasks.length >= props.wipLimit
 })
+
+const isTaskSelected = (task) => {
+  return props.selectedTasks.some(t => t.id === task.id)
+}
+
+const onToggleSelect = (task) => {
+  emit('toggle-select', task)
+}
 
 const onTaskClick = (task) => {
   emit('task-click', task)
