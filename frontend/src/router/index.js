@@ -15,7 +15,7 @@ const routes = [
     children: [
       {
         path: '',
-        redirect: '/dashboard'
+        redirect: '/portfolio-dashboard'
       },
       {
         path: 'dashboard',

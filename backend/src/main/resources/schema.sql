@@ -3,6 +3,13 @@ CREATE DATABASE IF NOT EXISTS sme_pm DEFAULT CHARACTER SET utf8mb4 COLLATE utf8m
 USE sme_pm;
 
 -- ============================================
+-- Schema Evolution History (DDL变更记录)
+-- ============================================
+-- 2026-05: 添加 story_points 列到 task 表
+-- 2026-05: 修改 task.status 列注释为 'TODO/IN_PROGRESS/IN_REVIEW/DONE - references task_status.code'
+-- 以上变更已直接在 CREATE TABLE 语句中体现，无需额外 ALTER TABLE
+
+-- ============================================
 -- Base System Tables (依赖顺序)
 -- ============================================
 
