@@ -717,6 +717,18 @@ export default {
       actual: 'Actual',
       milestoneProgress: 'Milestone Progress',
       teamWorkDistribution: 'Team Distribution',
+      sprintCompletionRate: 'Sprint Completion',
+      releaseCountdown: 'Release Countdown',
+      daysRemaining: 'days',
+      bugDensity: 'Bug Density',
+      bugRatio: 'Bug Ratio',
+      bugDensityLow: 'Low',
+      bugDensityMedium: 'Medium',
+      bugDensityHigh: 'High',
+      perCapitaOutput: 'Per Capita Output',
+      tasksPerPerson: 'tasks/person',
+      teamSize: 'Team Size',
+      releaseReadiness: 'Release Readiness',
 
       // Gantt
       ganttView: 'Gantt View',

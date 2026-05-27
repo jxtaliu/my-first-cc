@@ -717,6 +717,18 @@ export default {
       actual: '实际',
       milestoneProgress: '里程碑进度',
       teamWorkDistribution: '团队工作分布',
+      sprintCompletionRate: 'Sprint完成率',
+      releaseCountdown: '发布倒计时',
+      daysRemaining: '天',
+      bugDensity: '缺陷密度',
+      bugRatio: '缺陷占比',
+      bugDensityLow: '优秀',
+      bugDensityMedium: '中等',
+      bugDensityHigh: '过高',
+      perCapitaOutput: '人均产出',
+      tasksPerPerson: '任务/人',
+      teamSize: '团队规模',
+      releaseReadiness: '发布就绪度',
 
       // Gantt
       ganttView: '甘特图',
