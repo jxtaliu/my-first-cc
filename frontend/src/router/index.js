@@ -23,6 +23,11 @@ const routes = [
         component: () => import('@/views/dashboard/Index.vue')
       },
       {
+        path: 'portfolio-dashboard',
+        name: 'PortfolioDashboard',
+        component: () => import('@/views/dashboard/PortfolioDashboard.vue')
+      },
+      {
         path: 'projects',
         name: 'Projects',
         component: () => import('@/views/project/List.vue')
@@ -61,6 +66,11 @@ const routes = [
         path: 'projects/sprint-board/:id',
         name: 'SprintBoard',
         component: () => import('@/views/project/SprintBoard.vue')
+      },
+      {
+        path: 'projects/kanban/:projectId',
+        name: 'TaskBoard',
+        component: () => import('@/views/project/TaskBoard.vue')
       },
       {
         path: 'projects/sprint-management/:projectId',

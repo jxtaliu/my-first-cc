@@ -72,7 +72,8 @@ export default {
     portfolio: 'Portfolio',
     requirements: '需求管理',
     requirementsList: '需求池',
-    sprintManagement: '冲刺任务'
+    sprintManagement: '冲刺任务',
+    taskBoard: '任务看板'
   },
   dashboard: {
     projects: '项目数',
@@ -82,7 +83,10 @@ export default {
   chart: {
     idealCurve: '理想曲线',
     actualCurve: '实际曲线',
-    remainingWorkload: '剩余工作量'
+    remainingWorkload: '剩余工作量',
+    cumulativeFlow: '累积流图',
+    taskCount: '任务数',
+    taskDistribution: '任务分布'
   },
   notification: {
     title: '通知中心',
@@ -194,6 +198,12 @@ export default {
     name: '项目名称',
     description: '描述',
     type: '类型',
+    type_epic: '史诗',
+    type_feature: '特性',
+    type_story: '故事',
+    type_task: '任务',
+    type_bug: '缺陷',
+    type_subtask: '子任务',
     department: '部门',
     archive: '归档项目',
     restore: '恢复项目',
@@ -268,6 +278,7 @@ export default {
     descriptionPlaceholder: '描述里程碑...',
     ganttView: '甘特图',
     today: '今天',
+    quickAddTask: '快速添加任务',
     // Project Detail
     board: '看板',
     sprints: '冲刺',
@@ -359,6 +370,10 @@ export default {
     p1: 'P1 高',
     p2: 'P2 中',
     p3: 'P3 低',
+    filterByPriority: '按优先级筛选',
+    allPriorities: '全部优先级',
+    filterByType: '按类型筛选',
+    allTypes: '全部类型',
     // Dashboard
     totalTasks: '总任务数',
     doneTasks: '已完成',
@@ -396,8 +411,23 @@ export default {
     byAssignee: '按负责人',
     byPriority: '按优先级',
     byType: '按类型',
+    byDueDate: '按截止日期',
+    byProgress: '按进度',
     unassigned: '未分配',
     other: '其他',
+    // Due date labels
+    overdue: '已逾期',
+    dueToday: '今日',
+    thisWeek: '本周',
+    thisMonth: '本月',
+    later: '之后',
+    noDueDate: '无日期',
+    // Progress labels
+    notStarted: '未开始 (0%)',
+    inProgress: '进行中 (1-99%)',
+    completed: '已完成 (100%)',
+    noSubtasks: '无子任务',
+    subtaskDistribution: '子任务分布',
     // Task dialog
     taskDetail: '任务详情',
     taskTitle: '任务标题',
@@ -438,7 +468,48 @@ export default {
     searchTasks: '搜索任务',
     noDescendantsToMove: '没有可移动的子任务',
     descendantsMoved: '已移动 {count} 个子任务',
-    moveFailed: '移动失败'
+    moveFailed: '移动失败',
+    // Stats Dashboard
+    statsDashboard: '项目统计',
+    statsDashboardDesc: '查看项目效率和质量指标',
+    selectProjects: '选择项目',
+    export: '导出',
+    exportSuccess: '导出成功',
+    taskCompletionRate: '任务完成率',
+    totalTasks: '总任务数',
+    completedTasks: '已完成',
+    inProgressTasks: '进行中',
+    blockedTasks: '阻塞',
+    overdueTasks: '逾期',
+    // Time range
+    thisWeek: '本周',
+    thisMonth: '本月',
+    thisQuarter: '本季度',
+    thisYear: '本年',
+    // Work hours comparison
+    actual: '实际',
+    estimate: '预估',
+    // Overall rating
+    excellent: '优秀',
+    good: '良好',
+    needsImprovement: '需改进',
+    // Team members
+    zhangSan: '张三',
+    liSi: '李四',
+    wangWu: '王五',
+    zhaoLiu: '赵六',
+    // Chart keys
+    burndownChart: '燃尽图',
+    workHoursComparison: '工时对比',
+    projectComparison: '项目对比',
+    projectName: '项目名称',
+    quality: '质量',
+    collaboration: '协作',
+    overall: '综合',
+    trend: '趋势',
+    milestoneProgress: '里程碑进度',
+    teamWorkDistribution: '团队工作分布',
+    cumulativeFlow: '累积流图'
   },
   admin: {
     description: '角色描述',
@@ -691,6 +762,12 @@ export default {
       colDevelopment: '开发完成',
       colTesting: '测试中',
       colDone: '已完成',
+      // CFD status (underscore naming for chart compatibility)
+      todo: '待办',
+      in_progress: '进行中',
+      testing: '测试中',
+      development: '开发完成',
+      done: '已完成',
       // View task
       viewTask: '查看任务',
       // Gantt specific

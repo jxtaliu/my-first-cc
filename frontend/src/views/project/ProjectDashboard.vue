@@ -402,7 +402,7 @@
 
     <!-- Main Content - Two Columns -->
     <div class="dashboard-content">
-      <!-- Left Column -->
+      <!-- Left Column (40%) -->
       <div class="dashboard-left">
         <!-- Task Distribution -->
         <div class="dashboard-card">
@@ -457,26 +457,9 @@
             <el-empty v-else :description="$t('project.noTeamData')" :image-size="60" />
           </div>
         </div>
-
-        <!-- Recent Activity -->
-        <div class="dashboard-card">
-          <div class="card-header">
-            <h3>{{ $t('project.recentActivity') }}</h3>
-          </div>
-          <div class="card-body">
-            <div v-if="recentTasks.length > 0" class="recent-list">
-              <div v-for="task in recentTasks" :key="task.id" class="recent-item">
-                <span class="recent-type" :class="'type-' + task.type?.toLowerCase()">{{ task.type }}</span>
-                <span class="recent-title">{{ task.title }}</span>
-                <span class="recent-time">{{ formatRelativeTime(task.updatedAt) }}</span>
-              </div>
-            </div>
-            <el-empty v-else :description="$t('project.noRecentActivity')" :image-size="60" />
-          </div>
-        </div>
       </div>
 
-      <!-- Right Column -->
+      <!-- Right Column (60%) -->
       <div class="dashboard-right">
         <!-- Sprint Gantt Chart -->
         <div class="dashboard-card">
@@ -579,6 +562,25 @@
           <div class="card-body empty-state" v-else>
             <el-empty :description="$t('project.noMilestones')" :image-size="60" />
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity-section">
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h3>{{ $t('project.recentActivity') }}</h3>
+        </div>
+        <div class="card-body">
+          <div v-if="recentTasks.length > 0" class="recent-list">
+            <div v-for="task in recentTasks" :key="task.id" class="recent-item">
+              <span class="recent-type" :class="'type-' + task.type?.toLowerCase()">{{ task.type }}</span>
+              <span class="recent-title">{{ task.title }}</span>
+              <span class="recent-time">{{ formatRelativeTime(task.updatedAt) }}</span>
+            </div>
+          </div>
+          <el-empty v-else :description="$t('project.noRecentActivity')" :image-size="60" />
         </div>
       </div>
     </div>
@@ -1333,15 +1335,25 @@ onMounted(() => {
 /* Dashboard Content */
 .dashboard-content {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 40% 60%;
   gap: var(--pm-space-lg);
-  align-items: start;
+  margin-bottom: var(--pm-space-lg);
 }
 
 .dashboard-left, .dashboard-right {
   display: flex;
   flex-direction: column;
   gap: var(--pm-space-md);
+}
+
+.dashboard-right {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Recent Activity Section */
+.recent-activity-section {
+  margin-bottom: var(--pm-space-lg);
 }
 
 /* Cards */

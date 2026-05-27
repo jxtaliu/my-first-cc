@@ -72,7 +72,8 @@ export default {
     portfolio: 'Portfolio',
     requirements: 'Requirements',
     requirementsList: 'Requirements Pool',
-    sprintManagement: 'Sprint Tasks'
+    sprintManagement: 'Sprint Tasks',
+    taskBoard: 'Task Board'
   },
   dashboard: {
     projects: 'Projects',
@@ -194,6 +195,12 @@ export default {
     name: 'Project Name',
     description: 'Description',
     type: 'Type',
+    type_epic: 'Epic',
+    type_feature: 'Feature',
+    type_story: 'Story',
+    type_task: 'Task',
+    type_bug: 'Bug',
+    type_subtask: 'Subtask',
     department: 'Department',
     archive: 'Archive Project',
     restore: 'Restore Project',
@@ -269,6 +276,7 @@ export default {
     descriptionPlaceholder: 'Describe the milestone...',
     ganttView: 'Gantt View',
     today: 'Today',
+    quickAddTask: 'Quick Add Task',
     // Project Detail
     board: 'Board',
     sprints: 'Sprints',
@@ -360,6 +368,10 @@ export default {
     p1: 'P1 High',
     p2: 'P2 Medium',
     p3: 'P3 Low',
+    filterByPriority: 'Filter by Priority',
+    allPriorities: 'All Priorities',
+    filterByType: 'Filter by Type',
+    allTypes: 'All Types',
     // Dashboard
     totalTasks: 'Total Tasks',
     doneTasks: 'Done',
@@ -397,8 +409,23 @@ export default {
     byAssignee: 'By Assignee',
     byPriority: 'By Priority',
     byType: 'By Type',
+    byDueDate: 'By Due Date',
+    byProgress: 'By Progress',
     unassigned: 'Unassigned',
     other: 'Other',
+    // Due date labels
+    overdue: 'Overdue',
+    dueToday: 'Today',
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    later: 'Later',
+    noDueDate: 'No Date',
+    // Progress labels
+    notStarted: 'Not Started (0%)',
+    inProgress: 'In Progress (1-99%)',
+    completed: 'Completed (100%)',
+    noSubtasks: 'No subtasks',
+    subtaskDistribution: 'Subtask distribution',
     // Task dialog
     taskDetail: 'Task Detail',
     taskTitle: 'Task Title',

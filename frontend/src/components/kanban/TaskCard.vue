@@ -1,9 +1,10 @@
 <template>
   <div
     class="pm-task-card"
+    :class="{ 'non-draggable': !isDraggable }"
     :data-status="task.status"
     :data-type="task.type"
-    draggable="true"
+    :draggable="isDraggable"
     @dragstart="onDragStart"
     @dragend="onDragEnd"
     @click="onClick"
@@ -25,14 +26,18 @@
         <el-icon size="12"><Clock /></el-icon>
         <span>{{ task.estimateHours }}h</span>
       </div>
-      <div class="pm-task-card-progress" v-if="showProgress && task.progress > 0">
-        <el-progress
-          :percentage="task.progress || 0"
-          :stroke-width="3"
-          :show-text="false"
-          :color="getProgressColor(task.progress)"
-        />
-        <span class="pm-progress-text">{{ task.progress || 0 }}%</span>
+      <div class="pm-task-card-progress" v-if="showProgress && (task.progress > 0 || isParentType)">
+        <el-tooltip :content="subtaskTooltip" :disabled="!isParentType" placement="top">
+          <div class="progress-wrapper">
+            <el-progress
+              :percentage="displayProgress"
+              :stroke-width="3"
+              :show-text="false"
+              :color="getProgressColor(displayProgress)"
+            />
+            <span class="pm-progress-text">{{ displayProgress }}%</span>
+          </div>
+        </el-tooltip>
       </div>
     </div>
 
@@ -85,10 +90,31 @@ const props = defineProps({
   showProgress: {
     type: Boolean,
     default: true
+  },
+  isDraggable: {
+    type: Boolean,
+    default: true
+  },
+  subtaskTooltip: {
+    type: String,
+    default: ''
   }
 })
 
 const emit = defineEmits(['click', 'dragstart', 'dragend'])
+
+const parentTypes = ['EPIC', 'FEATURE', 'STORY']
+
+const isParentType = computed(() => {
+  return parentTypes.includes(props.task.type)
+})
+
+const displayProgress = computed(() => {
+  if (isParentType.value && props.task.progress === 0) {
+    return 0
+  }
+  return props.task.progress || 0
+})
 
 const getPriorityClass = (priority) => {
   const map = {
@@ -145,6 +171,10 @@ const formatDuration = (days) => {
 }
 
 const onDragStart = (e) => {
+  if (!props.isDraggable) {
+    e.preventDefault()
+    return
+  }
   e.dataTransfer.effectAllowed = 'move'
   e.dataTransfer.setData('taskId', props.task.id)
   emit('dragstart', props.task)
@@ -181,6 +211,11 @@ const onClick = () => {
   box-shadow: var(--pm-shadow-lg);
   opacity: 0.95;
   cursor: grabbing;
+}
+
+.pm-task-card.non-draggable {
+  cursor: default;
+  opacity: 0.9;
 }
 
 /* Status colors for left border */
@@ -290,6 +325,14 @@ const onClick = () => {
 
 .pm-task-card-progress .el-progress {
   flex: 1;
+}
+
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  cursor: inherit;
 }
 
 .pm-progress-text {

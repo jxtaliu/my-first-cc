@@ -29,6 +29,8 @@
         :key="task.id"
         :task="task"
         :show-progress="showProgress"
+        :is-draggable="isTaskDraggable(task)"
+        :subtask-tooltip="getSubtaskTooltip(task)"
         @click="onTaskClick"
         @dragstart="onTaskDragStart"
         @dragend="onTaskDragEnd"
@@ -101,6 +103,14 @@ const props = defineProps({
   allowAdd: {
     type: Boolean,
     default: true
+  },
+  isTaskDraggable: {
+    type: Function,
+    default: () => true
+  },
+  getSubtaskTooltip: {
+    type: Function,
+    default: () => ''
   }
 })
 

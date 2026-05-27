@@ -3,9 +3,9 @@
     <el-aside width="200px" class="sidebar">
       <div class="logo">SME PM</div>
       <el-menu :default-active="$route.path" router @select="handleMenuSelect">
-        <el-menu-item index="/dashboard">
-          <el-icon><DataAnalysis /></el-icon>
-          <span>{{ $t('nav.dashboard') }}</span>
+        <el-menu-item index="/portfolio-dashboard">
+          <el-icon><DataBoard /></el-icon>
+          <span>组合仪表盘</span>
         </el-menu-item>
         <!-- 我的工作 -->
         <el-sub-menu index="/my-work">
@@ -39,6 +39,10 @@
           <el-menu-item :index="`/projects/dashboard/${projectStore.currentProjectId}`">
             <el-icon><Grid /></el-icon>
             <span>{{ $t('nav.projectDashboard') }}</span>
+          </el-menu-item>
+          <el-menu-item :index="`/projects/kanban/${projectStore.currentProjectId}`">
+            <el-icon><Grid /></el-icon>
+            <span>{{ $t('nav.taskBoard') }}</span>
           </el-menu-item>
           <el-menu-item :index="`/projects/sprint-management/${projectStore.currentProjectId}`">
             <el-icon><Timer /></el-icon>
@@ -191,7 +195,7 @@ import { useProjectStore } from '@/stores/project'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import NotificationBell from '@/components/common/NotificationBell.vue'
-import { DataAnalysis, Folder, FolderOpened, Flag, TrendCharts, Connection, DocumentCopy, Grid, Timer, User, List, Clock, Bell, Setting, Key, OfficeBuilding, Document } from '@element-plus/icons-vue'
+import { DataAnalysis, DataBoard, Folder, FolderOpened, Flag, TrendCharts, Connection, DocumentCopy, Grid, Timer, User, List, Clock, Bell, Setting, Key, OfficeBuilding, Document } from '@element-plus/icons-vue'
 import { getUnreadCount } from '@/api/notification'
 
 const router = useRouter()
