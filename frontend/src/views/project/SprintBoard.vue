@@ -87,6 +87,7 @@
           :tasks="getTasksByStatus(column.status)"
           :wip-limit="column.wipLimit"
           :show-progress="true"
+          :show-checkbox="false"
           :allow-add="true"
           @task-click="onTaskClick"
           @task-drop="onTaskDrop"

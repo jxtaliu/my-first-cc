@@ -29,6 +29,7 @@
         :key="task.id"
         :task="task"
         :show-progress="showProgress"
+        :show-checkbox="showCheckbox"
         :is-draggable="isTaskDraggable(task)"
         :subtask-tooltip="getSubtaskTooltip(task)"
         :computed-progress="getComputedProgress ? getComputedProgress(task) : null"
@@ -122,6 +123,10 @@ const props = defineProps({
   selectedTasks: {
     type: Array,
     default: () => []
+  },
+  showCheckbox: {
+    type: Boolean,
+    default: true
   }
 })
 

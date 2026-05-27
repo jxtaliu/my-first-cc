@@ -71,6 +71,7 @@
         :tasks="filteredTasks"
         :columns="kanbanColumns"
         :show-progress="true"
+        :show-checkbox="false"
         :allow-add="true"
         :swimlane-mode="swimlaneMode"
         @task-click="onTaskClick"

@@ -47,6 +47,7 @@
               :key="task.id"
               :task="task"
               :show-progress="showProgress"
+              :show-checkbox="showCheckbox"
               @click="onTaskClick(task)"
               @dragstart="onTaskDragStart(task)"
               @dragend="onTaskDragEnd(task)"
@@ -95,6 +96,10 @@ const props = defineProps({
     required: true
   },
   showProgress: {
+    type: Boolean,
+    default: true
+  },
+  showCheckbox: {
     type: Boolean,
     default: true
   },

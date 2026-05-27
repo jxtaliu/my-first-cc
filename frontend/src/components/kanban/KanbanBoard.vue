@@ -10,6 +10,7 @@
       :tasks="getTasksByStatus(column.status)"
       :wip-limit="column.wipLimit"
       :show-progress="showProgress"
+      :show-checkbox="showCheckbox"
       :allow-add="allowAdd"
       :selected-tasks="selectedTasks"
       @task-click="onTaskClick"
@@ -53,6 +54,10 @@ const props = defineProps({
   swimlaneMode: {
     type: String,
     default: 'none' // none, assignee, priority, type
+  },
+  showCheckbox: {
+    type: Boolean,
+    default: true
   }
 })
 

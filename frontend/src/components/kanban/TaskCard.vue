@@ -10,7 +10,7 @@
     @click="onClick"
   >
     <!-- Selection Checkbox -->
-    <div class="pm-task-card-checkbox" @click.stop="onToggleSelect">
+    <div v-if="showCheckbox" class="pm-task-card-checkbox" @click.stop="onToggleSelect">
       <el-checkbox :model-value="selected" @change="onToggleSelect" />
     </div>
 
@@ -112,6 +112,10 @@ const props = defineProps({
   selected: {
     type: Boolean,
     default: false
+  },
+  showCheckbox: {
+    type: Boolean,
+    default: true
   }
 })
 

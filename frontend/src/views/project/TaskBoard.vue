@@ -65,6 +65,7 @@
           :tasks="getTasksByStatus(column.status)"
           :wip-limit="column.wipLimit"
           :show-progress="true"
+          :show-checkbox="false"
           :is-task-draggable="canChangeStatus"
           :get-subtask-tooltip="getSubtaskDistribution"
           :get-computed-progress="getTaskProgress"
