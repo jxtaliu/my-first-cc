@@ -8,9 +8,6 @@
         <h2>{{ project.name }}</h2>
         <el-tag :type="project.sprintMode === 'SCRUM' ? 'success' : 'warning'">{{ project.sprintMode === 'SCRUM' ? $t('project.scrum') : $t('project.kanban') }}</el-tag>
       </div>
-      <div class="header-right">
-        <el-button @click="handleSettings">{{ $t('common.settings') }}</el-button>
-      </div>
     </div>
 
     <el-tabs v-model="activeTab" class="detail-tabs">
