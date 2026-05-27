@@ -209,7 +209,7 @@ const onBatchRemove = async () => {
   }
 }
 
-const onDropTask = async ({ taskId, taskType, targetSprintId }) => {
+const onDropTask = async ({ taskId, taskType, targetSprintId, sourceSprintId }) => {
   // Prevent duplicate processing
   if (isProcessingDrop) {
     return
@@ -225,16 +225,15 @@ const onDropTask = async ({ taskId, taskType, targetSprintId }) => {
 
     // Epic/Feature/Story: move all descendant tasks, but don't change parent sprint
     if (['EPIC', 'FEATURE', 'STORY'].includes(taskType)) {
-      // Get source sprint ID from global dragging task (saved at drag start in SprintLane)
-      const draggingTaskInfo = globalThis.__draggingTask__?.value
-      const sourceSprintId = draggingTaskInfo?.sourceSprintId ?? task.sprintId
+      // Use sourceSprintId from the event (passed from SprintLane)
+      // Fall back to task.sprintId if not provided
+      const effectiveSourceSprintId = sourceSprintId ?? task.sprintId
       const descendantTaskIds = getDescendantIds(task)
 
-      // Filter to TASK/SUBTASK that are in the source lane
+      // Filter to ALL descendants that are in the source lane
       const descendants = tasks.value.filter(t =>
         descendantTaskIds.includes(t.id) &&
-        ['TASK', 'SUBTASK'].includes(t.type) &&
-        (sourceSprintId == null ? !t.sprintId : Number(t.sprintId) === Number(sourceSprintId))
+        (effectiveSourceSprintId == null ? !t.sprintId : Number(t.sprintId) === Number(effectiveSourceSprintId))
       )
 
       if (descendants.length === 0) {

@@ -56,21 +56,9 @@
             <el-icon><TrendCharts /></el-icon>
             <span>{{ $t('nav.projectStats') }}</span>
           </el-menu-item>
-          <el-menu-item index="/projects/gantt">
-            <el-icon><Connection /></el-icon>
-            <span>{{ $t('nav.gantt') }}</span>
-          </el-menu-item>
-          <el-menu-item index="/projects/backlog">
-            <el-icon><List /></el-icon>
-            <span>{{ $t('nav.backlog') }}</span>
-          </el-menu-item>
           <el-menu-item index="/projects/compare">
             <el-icon><DocumentCopy /></el-icon>
             <span>{{ $t('nav.compare') }}</span>
-          </el-menu-item>
-          <el-menu-item index="/projects/portfolio">
-            <el-icon><TrendCharts /></el-icon>
-            <span>{{ $t('nav.portfolio') }}</span>
           </el-menu-item>
         </el-sub-menu>
         <!-- 需求管理 -->
@@ -140,6 +128,10 @@
           <el-menu-item index="/admin/dicts">
             <el-icon><Document /></el-icon>
             <span>{{ $t('nav.dictManagement') }}</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/data-standards">
+            <el-icon><DataAnalysis /></el-icon>
+            <span>{{ $t('nav.dataStandards') }}</span>
           </el-menu-item>
         </el-sub-menu>
       </el-menu>

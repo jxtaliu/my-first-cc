@@ -31,7 +31,7 @@
     </div>
 
     <!-- Comparison Cards -->
-    <div class="compare-metrics-grid" v-if="selectedProjects.length >= 2">
+    <div class="compare-metrics-grid" v-if="selectedProjects.length >= 2" v-loading="loading">
       <!-- Completion Rate -->
       <div class="compare-card">
         <div class="compare-card-header">
@@ -220,6 +220,7 @@ import {
 } from '@element-plus/icons-vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import RadarChart from '@/components/charts/RadarChart.vue'
+import { getProjects, compareProjects } from '@/api/project'
 
 const { t } = useI18n()
 
@@ -232,25 +233,61 @@ const loading = ref(false)
 const chartColors = ['#00D4AA', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#10B981']
 
 // Available projects
-const availableProjects = ref([
-  { id: 1, name: 'SME-PM系统', statusColor: '#10B981' },
-  { id: 2, name: '客户CRM项目', statusColor: '#3B82F6' },
-  { id: 3, name: '电商平台', statusColor: '#F59E0B' },
-  { id: 4, name: '物流系统', statusColor: '#8B5CF6' }
-])
+const availableProjects = ref([])
+
+// Compare data from API
+const compareData = ref([])
+
+// Load available projects
+async function loadProjects() {
+  try {
+    const res = await getProjects()
+    availableProjects.value = (res.data || []).map(p => ({
+      id: p.projectId,
+      name: p.name,
+      statusColor: p.status === 'ACTIVE' ? '#10B981' : '#94A3B8'
+    }))
+    // Default select first 2 projects
+    if (availableProjects.value.length >= 2) {
+      selectedProjects.value = [availableProjects.value[0].id, availableProjects.value[1].id]
+    }
+  } catch (error) {
+    console.error('Failed to load projects:', error)
+  }
+}
+
+// Load comparison data
+async function loadCompareData() {
+  if (selectedProjects.value.length < 2) {
+    compareData.value = []
+    return
+  }
+
+  loading.value = true
+  try {
+    const res = await compareProjects(selectedProjects.value, timeRange.value)
+    compareData.value = res.data || []
+  } catch (error) {
+    console.error('Failed to load compare data:', error)
+    compareData.value = []
+  } finally {
+    loading.value = false
+  }
+}
 
 // Selected project details
 const selectedProjectDetails = computed(() => {
   return selectedProjects.value.map(id => {
     const project = availableProjects.value.find(p => p.id === id)
+    const data = compareData.value.find(d => d.projectId === id)
     return {
       ...project,
-      completionRate: Math.random() * 40 + 60,
-      workEfficiency: Math.random() * 0.6 + 0.7,
-      defectDensity: Math.random() * 3 + 0.5,
-      teamThroughput: Math.floor(Math.random() * 20 + 10),
-      milestoneAchievement: Math.random() * 30 + 70,
-      schedulePerformance: Math.random() * 20 + 80
+      completionRate: data?.completionRate || 0,
+      workEfficiency: data?.workEfficiency || 0,
+      defectDensity: data?.defectDensity || 0,
+      teamThroughput: data?.totalTasks || 0,
+      milestoneAchievement: data?.milestoneAchievement || 0,
+      schedulePerformance: data?.schedulePerformance || 0
     }
   })
 })
@@ -315,13 +352,16 @@ const radarData = computed(() => {
   return selectedProjectDetails.value.map(project => {
     return metrics.map(metric => {
       const value = project[metric]
-      // Normalize to 0-100 scale
+      // Normalize all metrics to 0-100 scale
       if (metric === 'defectDensity') {
+        // Lower is better: 0 defects = 100, 5+ defects = 0
         return Math.max(0, 100 - value * 20)
       }
-      if (metric === 'workEfficiency') {
-        return value * 80
+      if (metric === 'teamThroughput') {
+        // Cap at 100: assume 100 tasks/month is excellent
+        return Math.min(value, 100)
       }
+      // Other metrics are already percentages (0-100)
       return value
     })
   })
@@ -400,11 +440,16 @@ const insights = computed(() => {
 
 // Handle project selection change
 const handleProjectChange = () => {
-  // Reload comparison data when selection changes
+  loadCompareData()
 }
 
+// Watch for time range changes
+watch(timeRange, () => {
+  loadCompareData()
+})
+
 onMounted(() => {
-  // Load available projects
+  loadProjects()
 })
 </script>
 

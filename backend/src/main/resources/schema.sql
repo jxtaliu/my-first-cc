@@ -423,3 +423,71 @@ CREATE TABLE IF NOT EXISTS sprint_reminder_log (
     sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_sprint (sprint_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =============================================================================
+-- Data Standard Tables
+-- =============================================================================
+
+-- Main table
+CREATE TABLE IF NOT EXISTS data_standard (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(50) NOT NULL UNIQUE COMMENT 'Standard code',
+    name VARCHAR(100) NOT NULL COMMENT 'Standard name',
+    type VARCHAR(20) NOT NULL COMMENT 'Type: ENUM/CODE/STRING/NUMBER',
+    description TEXT COMMENT 'Description',
+    owner_id BIGINT COMMENT 'Owner ID',
+    owner_name VARCHAR(50) COMMENT 'Owner name',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT DEFAULT 0,
+    INDEX idx_type (type),
+    INDEX idx_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Enum item table
+CREATE TABLE IF NOT EXISTS data_standard_enum_item (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    standard_id BIGINT NOT NULL,
+    value VARCHAR(100) NOT NULL COMMENT 'Enum value',
+    label VARCHAR(100) NOT NULL COMMENT 'Display label',
+    sort_order INT DEFAULT 0 COMMENT 'Sort order',
+    description VARCHAR(255) COMMENT 'Description',
+    deleted TINYINT DEFAULT 0,
+    FOREIGN KEY (standard_id) REFERENCES data_standard(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Code item table
+CREATE TABLE IF NOT EXISTS data_standard_code_item (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    standard_id BIGINT NOT NULL,
+    format VARCHAR(100) COMMENT 'Format',
+    prefix VARCHAR(50) COMMENT 'Prefix',
+    length INT COMMENT 'Length',
+    example VARCHAR(100) COMMENT 'Example',
+    deleted TINYINT DEFAULT 0,
+    FOREIGN KEY (standard_id) REFERENCES data_standard(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- String item table
+CREATE TABLE IF NOT EXISTS data_standard_string_item (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    standard_id BIGINT NOT NULL,
+    min_length INT DEFAULT 1 COMMENT 'Min length',
+    max_length INT DEFAULT 255 COMMENT 'Max length',
+    pattern VARCHAR(255) COMMENT 'Regex pattern',
+    example VARCHAR(255) COMMENT 'Example',
+    deleted TINYINT DEFAULT 0,
+    FOREIGN KEY (standard_id) REFERENCES data_standard(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Number item table
+CREATE TABLE IF NOT EXISTS data_standard_number_item (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    standard_id BIGINT NOT NULL,
+    min_value DECIMAL(20,6) COMMENT 'Min value',
+    max_value DECIMAL(20,6) COMMENT 'Max value',
+    decimal_places INT DEFAULT 0 COMMENT 'Decimal places',
+    example VARCHAR(100) COMMENT 'Example',
+    deleted TINYINT DEFAULT 0,
+    FOREIGN KEY (standard_id) REFERENCES data_standard(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

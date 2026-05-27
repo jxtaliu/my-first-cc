@@ -72,6 +72,10 @@ export function getProjectStats(projectId) {
   return request.get(`/v1/projects/${projectId}/stats`)
 }
 
+export function compareProjects(projectIds, timeRange) {
+  return request.get('/v1/projects/compare', { params: { ids: projectIds.join(','), timeRange } })
+}
+
 export function getCfdData(projectId) {
   return request.get(`/v1/projects/${projectId}/cfd`)
 }

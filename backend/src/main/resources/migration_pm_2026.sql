@@ -12762,3 +12762,102 @@ UPDATE task SET parent_id = (SELECT id FROM (SELECT id FROM task WHERE task_id='
 UPDATE task SET parent_id = (SELECT id FROM (SELECT id FROM task WHERE task_id='TSK_PRJ_010_4873') t) WHERE task_id='SUB_PRJ_010_0148';
 UPDATE task SET parent_id = (SELECT id FROM (SELECT id FROM task WHERE task_id='TSK_PRJ_010_4874') t) WHERE task_id='SUB_PRJ_010_0149';
 UPDATE task SET parent_id = (SELECT id FROM (SELECT id FROM task WHERE task_id='TSK_PRJ_010_4875') t) WHERE task_id='SUB_PRJ_010_0150';
+-- =============================================================================
+-- 里程碑初始化数据 (2026-05-27)
+-- =============================================================================
+
+-- 里程碑数据 (每个项目4个里程碑)
+INSERT INTO milestone (id, project_id, name, description, target_date, is_cross_project, status, deleted) VALUES
+-- PRJ001 企业内部管理系统
+(1, 'PRJ001', '需求确认', '完成需求分析和确认', '2026-03-01', 0, 'completed', 0),
+(2, 'PRJ001', '开发完成', '完成系统开发和单元测试', '2026-05-01', 0, 'in_progress', 0),
+(3, 'PRJ001', '测试完成', '完成集成测试和系统测试', '2026-06-01', 0, 'in_progress', 0),
+(4, 'PRJ001', '正式上线', '系统正式上线运行', '2026-06-15', 0, 'planning', 0),
+-- PRJ002 移动端App升级项目
+(5, 'PRJ002', '需求与UI确认', '完成需求评审和UI设计确认', '2026-03-15', 0, 'completed', 0),
+(6, 'PRJ002', '功能开发完成', '完成所有功能模块开发', '2026-05-15', 0, 'in_progress', 0),
+(7, 'PRJ002', '测试完成&发布准备', '完成测试并准备发布材料', '2026-06-15', 0, 'in_progress', 0),
+(8, 'PRJ002', 'App Store上线', '应用市场上架', '2026-07-01', 0, 'planning', 0),
+-- PRJ003 数据分析平台
+(9, 'PRJ003', '需求分析完成', '完成业务需求分析', '2026-04-01', 0, 'completed', 0),
+(10, 'PRJ003', '平台开发完成', '完成数据平台核心功能开发', '2026-06-01', 0, 'in_progress', 0),
+(11, 'PRJ003', '数据迁移完成', '完成历史数据迁移', '2026-07-01', 0, 'in_progress', 0),
+(12, 'PRJ003', '平台正式上线', '数据平台正式对外服务', '2026-07-15', 0, 'planning', 0),
+-- PRJ004 电商网站重构
+(13, 'PRJ004', '重构方案确认', '完成技术方案评审', '2026-03-01', 0, 'completed', 0),
+(14, 'PRJ004', '新架构开发完成', '完成新架构开发和迁移', '2026-05-15', 0, 'in_progress', 0),
+(15, 'PRJ004', '全量测试完成', '完成全量回归测试', '2026-06-30', 0, 'in_progress', 0),
+(16, 'PRJ004', '切换上线', '新旧系统切换并上线', '2026-07-15', 0, 'planning', 0),
+-- PRJ005 客户关系管理系统
+(17, 'PRJ005', '业务流程确认', '完成业务流程梳理和确认', '2026-04-01', 0, 'completed', 0),
+(18, 'PRJ005', '核心模块开发完成', '完成CRM核心模块开发', '2026-06-01', 0, 'in_progress', 0),
+(19, 'PRJ005', 'UAT测试完成', '完成用户验收测试', '2026-07-01', 0, 'in_progress', 0),
+(20, 'PRJ005', '系统上线', 'CRM系统正式上线', '2026-07-15', 0, 'planning', 0),
+-- PRJ006 自动化测试框架
+(21, 'PRJ006', '框架设计完成', '完成测试框架技术方案', '2026-03-01', 0, 'completed', 0),
+(22, 'PRJ006', '核心功能开发完成', '完成自动化测试核心功能开发', '2026-04-15', 0, 'in_progress', 0),
+(23, 'PRJ006', '框架集成完成', '完成框架集成和联调', '2026-05-15', 0, 'in_progress', 0),
+(24, 'PRJ006', '正式投入使用', '测试框架正式投入使用', '2026-06-01', 0, 'planning', 0),
+-- PRJ007 财务报表系统
+(25, 'PRJ007', '报表需求确认', '完成财务报表需求确认', '2026-04-01', 0, 'completed', 0),
+(26, 'PRJ007', '报表开发完成', '完成所有报表开发', '2026-06-01', 0, 'in_progress', 0),
+(27, 'PRJ007', '数据验证完成', '完成财务数据验证', '2026-07-01', 0, 'in_progress', 0),
+(28, 'PRJ007', '系统上线', '财务报表系统正式上线', '2026-07-15', 0, 'planning', 0),
+-- PRJ008 文档管理系统
+(29, 'PRJ008', '需求评审完成', '完成需求评审和确认', '2026-03-15', 0, 'completed', 0),
+(30, 'PRJ008', '开发完成', '完成文档管理系统开发', '2026-05-15', 0, 'in_progress', 0),
+(31, 'PRJ008', '测试完成', '完成系统测试', '2026-06-15', 0, 'in_progress', 0),
+(32, 'PRJ008', '正式启用', '文档管理系统正式启用', '2026-07-01', 0, 'planning', 0),
+-- PRJ009 第三方支付集成
+(33, 'PRJ009', '接口方案确认', '完成支付接口技术方案', '2026-03-01', 0, 'completed', 0),
+(34, 'PRJ009', '支付功能开发完成', '完成支付功能开发', '2026-04-15', 0, 'in_progress', 0),
+(35, 'PRJ009', '集成测试完成', '完成支付集成测试', '2026-05-15', 0, 'in_progress', 0),
+(36, 'PRJ009', '正式投产', '支付功能正式投产', '2026-06-01', 0, 'planning', 0),
+-- PRJ010 旧官网改版
+(37, 'PRJ010', '设计稿确认', '完成UI设计稿确认', '2026-02-15', 0, 'completed', 0),
+(38, 'PRJ010', '前端开发完成', '完成前端页面开发', '2026-04-01', 0, 'in_progress', 0),
+(39, 'PRJ010', '内容迁移完成', '完成网站内容迁移', '2026-05-01', 0, 'in_progress', 0),
+(40, 'PRJ010', '新官网上线', '新官网正式上线', '2026-05-15', 0, 'planning', 0);
+
+-- 项目里程碑关联
+INSERT INTO project_milestone (project_id, milestone_id) VALUES
+('PRJ001', 1), ('PRJ001', 2), ('PRJ001', 3), ('PRJ001', 4),
+('PRJ002', 5), ('PRJ002', 6), ('PRJ002', 7), ('PRJ002', 8),
+('PRJ003', 9), ('PRJ003', 10), ('PRJ003', 11), ('PRJ003', 12),
+('PRJ004', 13), ('PRJ004', 14), ('PRJ004', 15), ('PRJ004', 16),
+('PRJ005', 17), ('PRJ005', 18), ('PRJ005', 19), ('PRJ005', 20),
+('PRJ006', 21), ('PRJ006', 22), ('PRJ006', 23), ('PRJ006', 24),
+('PRJ007', 25), ('PRJ007', 26), ('PRJ007', 27), ('PRJ007', 28),
+('PRJ008', 29), ('PRJ008', 30), ('PRJ008', 31), ('PRJ008', 32),
+('PRJ009', 33), ('PRJ009', 34), ('PRJ009', 35), ('PRJ009', 36),
+('PRJ010', 37), ('PRJ010', 38), ('PRJ010', 39), ('PRJ010', 40);
+
+-- =============================================================================
+-- 数据标准 (Data Standards) - 测试数据
+-- 注意: DDL 已移至 schema.sql
+-- =============================================================================
+
+-- 测试数据
+INSERT INTO data_standard (code, name, type, description, owner_id, owner_name) VALUES
+('PRIORITY_TYPE', '优先级枚举', 'ENUM', '任务优先级的枚举定义', 1, '张三'),
+('TASK_STATUS', '任务状态编码', 'CODE', '任务状态的编码规则定义', 1, '李四'),
+('DEPARTMENT_NAME', '部门名称', 'STRING', '部门名称字符规范', 2, '王五'),
+('ESTIMATE_HOURS', '工时数值', 'NUMBER', '预估工时的数值范围', 1, '赵六');
+
+-- 枚举值测试数据
+INSERT INTO data_standard_enum_item (standard_id, value, label, sort_order, description) VALUES
+(1, 'HIGH', '高优先级', 1, '紧急重要任务'),
+(1, 'MEDIUM', '中优先级', 2, '一般任务'),
+(1, 'LOW', '低优先级', 3, '优先度低');
+
+-- 编码型测试数据
+INSERT INTO data_standard_code_item (standard_id, format, prefix, length, example) VALUES
+(2, '[A-Z][A-Z][0-9][0-9][0-9]', 'TSK', 5, 'TSK001');
+
+-- 字符型测试数据
+INSERT INTO data_standard_string_item (standard_id, min_length, max_length, pattern, example) VALUES
+(3, 2, 50, NULL, '技术部');
+
+-- 数值型测试数据
+INSERT INTO data_standard_number_item (standard_id, min_value, max_value, decimal_places, example) VALUES
+(4, 0, 999, 2, '8.5');

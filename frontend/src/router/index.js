@@ -196,6 +196,16 @@ const routes = [
         path: 'admin/dicts',
         name: 'AdminDicts',
         component: () => import('@/views/admin/Dict.vue')
+      },
+      {
+        path: 'admin/data-standards',
+        name: 'DataStandards',
+        component: () => import('@/views/admin/DataStandard.vue')
+      },
+      {
+        path: 'admin/data-standards/:id',
+        name: 'DataStandardDetail',
+        component: () => import('@/views/admin/DataStandardDetail.vue')
       }
     ]
   }

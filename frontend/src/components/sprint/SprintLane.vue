@@ -201,9 +201,12 @@ const handleDragEnd = (node, event) => {
 const handleNodeDrop = (draggingNode, dropNode, position, event) => {
   // The drop was absorbed by el-tree's tree-node, need to emit our own drop event
   // Use the stored draggingTask (which should still be valid)
+  // targetSprintId should be the dropNode's lane (dropNode.id), not props.lane.id (source lane)
   if (draggingTask.value) {
-    const { id: taskId, type: taskType } = draggingTask.value
-    emit('drop', { taskId: String(taskId), taskType, targetSprintId: props.lane.id })
+    const { id: taskId, type: taskType, sourceSprintId } = draggingTask.value
+    // dropNode.id is the target sprint's id (null for backlog)
+    const targetSprintId = dropNode?.id ?? null
+    emit('drop', { taskId: String(taskId), taskType, targetSprintId, sourceSprintId })
   }
 }
 
@@ -250,8 +253,8 @@ const onLaneDrop = (e) => {
   e.stopPropagation()
   isDragOver.value = false
   if (draggingTask.value) {
-    const { id: taskId, type: taskType } = draggingTask.value
-    emit('drop', { taskId: String(taskId), taskType, targetSprintId: props.lane.id })
+    const { id: taskId, type: taskType, sourceSprintId } = draggingTask.value
+    emit('drop', { taskId: String(taskId), taskType, targetSprintId: props.lane.id, sourceSprintId })
     draggingTask.value = null
   }
 }

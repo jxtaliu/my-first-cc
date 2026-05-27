@@ -135,9 +135,9 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
             return 0;
         }
         long completedCount = milestones.stream()
-                .filter(m -> "COMPLETED".equals(m.getStatus()))
+                .filter(m -> "COMPLETED".equalsIgnoreCase(m.getStatus()))
                 .count();
-        return (double) completedCount / milestones.size() * 100;
+        return Math.round((double) completedCount / milestones.size() * 100 * 100) / 100.0;
     }
 
     private List<Map<String, Object>> calculateTypeStats(List<Task> tasks) {
@@ -179,10 +179,61 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
 
         for (String projectId : projectIds) {
             Map<String, Object> projectStats = getProjectStats(projectId);
+            // Add schedule performance calculation
+            double schedulePerformance = calculateSchedulePerformance(projectId);
+            projectStats.put("schedulePerformance", schedulePerformance);
+            // Fix defect density calculation (bugs / total tasks * 100)
+            double defectDensity = calculateDefectDensity(projectId);
+            projectStats.put("defectDensity", defectDensity);
             comparisons.add(projectStats);
         }
 
         return comparisons;
+    }
+
+    private double calculateSchedulePerformance(String projectId) {
+        List<Task> allTasks = taskMapper.findByProjectId(projectId);
+        if (allTasks == null || allTasks.isEmpty()) {
+            return 0;
+        }
+
+        // Only consider completed tasks with due dates
+        List<Task> completedTasks = allTasks.stream()
+                .filter(t -> ("DONE".equals(t.getStatus()) || t.getProgress() == 100)
+                        && t.getDueDate() != null && t.getCompletionDate() != null)
+                .collect(Collectors.toList());
+
+        if (completedTasks.isEmpty()) {
+            return 0;
+        }
+
+        int onTimeCount = 0;
+        for (Task task : completedTasks) {
+            if (!task.getCompletionDate().toLocalDate().isAfter(task.getDueDate())) {
+                onTimeCount++;
+            }
+        }
+
+        return Math.round((double) onTimeCount / completedTasks.size() * 100 * 100) / 100.0;
+    }
+
+    private double calculateDefectDensity(String projectId) {
+        List<Task> allTasks = taskMapper.findByProjectId(projectId);
+        if (allTasks == null || allTasks.isEmpty()) {
+            return 0;
+        }
+
+        long bugCount = allTasks.stream()
+                .filter(t -> "BUG".equals(t.getType()))
+                .count();
+        long totalTasks = allTasks.size();
+
+        if (totalTasks == 0) {
+            return 0;
+        }
+
+        // Return bugs per 100 tasks
+        return Math.round((double) bugCount / totalTasks * 100 * 100) / 100.0;
     }
 
     @Override
