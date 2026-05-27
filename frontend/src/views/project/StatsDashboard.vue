@@ -10,9 +10,9 @@
         <el-select v-model="selectedProjects" multiple :placeholder="$t('project.selectProjects')" style="width: 300px">
           <el-option
             v-for="project in projects"
-            :key="project.id"
+            :key="project.projectId"
             :label="project.name"
-            :value="project.id"
+            :value="project.projectId"
           />
         </el-select>
         <el-select v-model="timeRange" style="width: 150px">
@@ -25,6 +25,23 @@
           <el-icon><Download /></el-icon>
           {{ $t('project.export') }}
         </el-button>
+      </div>
+    </div>
+
+    <!-- Type Stats Row -->
+    <div class="stats-type-grid" v-if="typeStats.length > 0">
+      <div v-for="stat in typeStats" :key="stat.type" class="pm-card stats-type-card">
+        <div class="stats-type-header">
+          <span class="stats-type-name">{{ getTypeName(stat.type) }}</span>
+          <span class="stats-type-count">{{ stat.total }}</span>
+        </div>
+        <div class="stats-type-progress">
+          <div class="stats-type-progress-bar" :style="{ width: (stat.total > 0 ? stat.completionRate : 0) + '%' }"></div>
+        </div>
+        <div class="stats-type-footer">
+          <span class="stats-type-completed">{{ stat.completed }} {{ $t('project.completed') }}</span>
+          <span class="stats-type-rate">{{ stat.total > 0 ? stat.completionRate : 0 }}%</span>
+        </div>
       </div>
     </div>
 
@@ -291,6 +308,21 @@ const stats = ref({
   avgTaskDuration: 3.5
 })
 
+const typeStats = ref([])
+
+// Get localized type name
+function getTypeName(type) {
+  const typeKeyMap = {
+    'EPIC': 'project.type_epic',
+    'FEATURE': 'project.type_feature',
+    'STORY': 'project.type_story',
+    'TASK': 'project.type_task',
+    'SUBTASK': 'project.type_subtask',
+    'BUG': 'project.type_bug'
+  }
+  return t(typeKeyMap[type] || type)
+}
+
 // Chart data
 const burndownData = ref({
   idealData: [],
@@ -466,6 +498,9 @@ async function loadStats() {
     stats.value.workEfficiency = statsData.workEfficiency || 0
     stats.value.milestoneAchievement = statsData.milestoneAchievement || 0
 
+    // Load type stats
+    typeStats.value = statsData.typeStats || []
+
     // Load CFD data
     try {
       const cfdRes = await getCfdData(projectId)
@@ -521,7 +556,9 @@ async function loadSprints(projectId) {
   if (!projectId) return
   try {
     const res = await getSprints(projectId)
-    sprints.value = (res.data || res) || []
+    const sprintList = (res.data || res) || []
+    // Filter out sprints without valid id
+    sprints.value = sprintList.filter(s => s && s.id != null)
     if (sprints.value.length > 0 && !burndownSprint.value) {
       burndownSprint.value = sprints.value[0].id
     }
@@ -596,9 +633,11 @@ function loadMockData() {
 async function loadProjects() {
   try {
     const res = await getProjects()
-    projects.value = (res.data || res) || []
-    if (projects.value.length > 0) {
-      selectedProjects.value = [projects.value[0].id]
+    const projectList = (res.data || res) || []
+    // Filter out projects without valid projectId
+    projects.value = projectList.filter(p => p && p.projectId != null)
+    if (projects.value.length > 0 && projects.value[0].projectId) {
+      selectedProjects.value = [projects.value[0].projectId]
       await loadStats()
       await loadSprints(selectedProjects.value[0])
     }
@@ -643,6 +682,78 @@ watch(burndownSprint, (newSprintId) => {
   grid-template-columns: repeat(6, 1fr);
   gap: var(--pm-space-lg);
   margin-bottom: var(--pm-space-2xl);
+}
+
+.stats-type-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stats-type-card {
+  padding: 16px 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.stats-type-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.stats-type-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.stats-type-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #606266;
+  text-transform: capitalize;
+}
+
+.stats-type-count {
+  font-size: 24px;
+  font-weight: 700;
+  color: #303133;
+}
+
+.stats-type-progress {
+  height: 8px;
+  background: #ebeef5;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.stats-type-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #409eff 0%, #67c23a 100%);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  min-width: 2px;
+}
+
+.stats-type-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.stats-type-completed {
+  color: #909399;
+}
+
+.stats-type-rate {
+  font-weight: 600;
+  color: #409eff;
 }
 
 .stats-charts-row {

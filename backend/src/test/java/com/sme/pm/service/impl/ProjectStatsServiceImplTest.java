@@ -86,11 +86,11 @@ class ProjectStatsServiceImplTest {
     void testGetProjectStats_shouldReturnCompletionRate() {
         // Arrange
         List<Task> tasks = Arrays.asList(completedTask, inProgressTask, notStartedTask);
-        when(projectMapper.findById(1L)).thenReturn(testProject);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
         when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
 
         // Act
-        Map<String, Object> stats = projectStatsService.getProjectStats(1L);
+        Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
 
         // Assert
         assertEquals(1L, stats.get("projectId"));
@@ -109,10 +109,10 @@ class ProjectStatsServiceImplTest {
     @Test
     void testGetProjectStats_shouldReturnEmptyStats_whenProjectNotFound() {
         // Arrange
-        when(projectMapper.findById(999L)).thenReturn(null);
+        when(projectMapper.findByProjectId("NOT_EXIST")).thenReturn(null);
 
         // Act
-        Map<String, Object> stats = projectStatsService.getProjectStats(999L);
+        Map<String, Object> stats = projectStatsService.getProjectStats("NOT_EXIST");
 
         // Assert
         assertTrue(stats.isEmpty());
@@ -128,11 +128,11 @@ class ProjectStatsServiceImplTest {
         taskWithNullEstimate.setProgress(100);
 
         List<Task> tasks = Collections.singletonList(taskWithNullEstimate);
-        when(projectMapper.findById(1L)).thenReturn(testProject);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
         when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
 
         // Act
-        Map<String, Object> stats = projectStatsService.getProjectStats(1L);
+        Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
 
         // Assert
         assertEquals(1, stats.get("totalTasks"));
@@ -159,13 +159,13 @@ class ProjectStatsServiceImplTest {
         task2.setEstimateHours(20);
         task2.setProgress(50);
 
-        when(projectMapper.findById(1L)).thenReturn(testProject);
-        when(projectMapper.findById(2L)).thenReturn(project2);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(projectMapper.findByProjectId("PRJ_002")).thenReturn(project2);
         when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Collections.singletonList(task1));
         when(taskMapper.findByProjectId("PRJ_002")).thenReturn(Collections.singletonList(task2));
 
         // Act
-        List<Map<String, Object>> comparisons = projectStatsService.compareProjects(Arrays.asList(1L, 2L));
+        List<Map<String, Object>> comparisons = projectStatsService.compareProjects(Arrays.asList("PRJ_001", "PRJ_002"));
 
         // Assert
         assertEquals(2, comparisons.size());
@@ -280,11 +280,11 @@ class ProjectStatsServiceImplTest {
         taskWithNullProgress.setProgress(null);
 
         List<Task> tasks = Collections.singletonList(taskWithNullProgress);
-        when(projectMapper.findById(1L)).thenReturn(testProject);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
         when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
 
         // Act
-        Map<String, Object> stats = projectStatsService.getProjectStats(1L);
+        Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
 
         // Assert
         assertEquals(1, stats.get("totalTasks"));
@@ -309,11 +309,11 @@ class ProjectStatsServiceImplTest {
         task2.setProgress(100);
 
         List<Task> tasks = Arrays.asList(task1, task2);
-        when(projectMapper.findById(1L)).thenReturn(testProject);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
         when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
 
         // Act
-        Map<String, Object> stats = projectStatsService.getProjectStats(1L);
+        Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
 
         // Assert
         assertEquals(2, stats.get("totalTasks"));

@@ -72,7 +72,7 @@ export default {
     portfolio: 'Portfolio',
     requirements: '需求管理',
     requirementsList: '需求池',
-    sprintManagement: '冲刺任务',
+    sprintManagement: '任务冲刺',
     taskBoard: '任务看板'
   },
   dashboard: {
@@ -314,7 +314,7 @@ export default {
     sprintActive: '进行中',
     sprintCompletedLabel: '已完成',
     sprintArchived: '已归档',
-    sprintManagement: '冲刺任务',
+    sprintManagement: '任务冲刺',
     fetchSprintsFailed: '获取冲刺列表失败',
     createSprintFailed: '创建冲刺失败',
     startSprintFailed: '开始冲刺失败',

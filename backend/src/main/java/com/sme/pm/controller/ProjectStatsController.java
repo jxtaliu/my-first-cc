@@ -19,21 +19,20 @@ public class ProjectStatsController {
     }
 
     @GetMapping("/projects/{projectId}/stats")
-    public Result<Map<String, Object>> getProjectStats(@PathVariable Long projectId) {
+    public Result<Map<String, Object>> getProjectStats(@PathVariable String projectId) {
         return Result.success(projectStatsService.getProjectStats(projectId));
     }
 
     @GetMapping("/projects/compare")
     public Result<List<Map<String, Object>>> compareProjects(@RequestParam String ids) {
-        List<Long> projectIds = Arrays.stream(ids.split(","))
+        List<String> projectIds = Arrays.stream(ids.split(","))
                 .map(String::trim)
-                .map(Long::parseLong)
                 .toList();
         return Result.success(projectStatsService.compareProjects(projectIds));
     }
 
     @GetMapping("/projects/{projectId}/throughput")
-    public Result<Map<String, Object>> getTeamThroughput(@PathVariable Long projectId,
+    public Result<Map<String, Object>> getTeamThroughput(@PathVariable String projectId,
                                                          @RequestParam(required = false) String startDate,
                                                          @RequestParam(required = false) String endDate) {
         return Result.success(projectStatsService.getTeamThroughput(projectId, startDate, endDate));
@@ -45,17 +44,17 @@ public class ProjectStatsController {
     }
 
     @GetMapping("/projects/{projectId}/cfd")
-    public Result<List<Map<String, Object>>> getCfdData(@PathVariable Long projectId) {
+    public Result<List<Map<String, Object>>> getCfdData(@PathVariable String projectId) {
         return Result.success(projectStatsService.getCfdData(projectId));
     }
 
     @GetMapping("/projects/{projectId}/heatmap")
-    public Result<List<Map<String, Object>>> getHeatmapData(@PathVariable Long projectId) {
+    public Result<List<Map<String, Object>>> getHeatmapData(@PathVariable String projectId) {
         return Result.success(projectStatsService.getHeatmapData(projectId));
     }
 
     @GetMapping("/projects/{projectId}/milestones/progress")
-    public Result<List<Map<String, Object>>> getMilestoneProgress(@PathVariable Long projectId) {
+    public Result<List<Map<String, Object>>> getMilestoneProgress(@PathVariable String projectId) {
         return Result.success(projectStatsService.getMilestoneProgress(projectId));
     }
 }

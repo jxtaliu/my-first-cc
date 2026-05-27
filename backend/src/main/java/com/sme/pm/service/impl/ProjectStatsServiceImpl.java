@@ -34,16 +34,21 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
     }
 
     @Override
-    public Map<String, Object> getProjectStats(Long projectId) {
+    public Map<String, Object> getProjectStats(String projectId) {
         Map<String, Object> stats = new HashMap<>();
         Map<String, Object> kpi = new HashMap<>();
 
-        Project project = projectMapper.findById(projectId);
+        Project project = projectMapper.findByProjectId(projectId);
         if (project == null) {
             return stats;
         }
 
-        List<Task> tasks = taskMapper.findByProjectId(project.getProjectId());
+        List<Task> allTasks = taskMapper.findByProjectId(project.getProjectId());
+        // Only count TASK and SUBTASK types (not EPIC, FEATURE, STORY)
+        List<Task> tasks = allTasks.stream()
+                .filter(t -> "TASK".equals(t.getType()) || "SUBTASK".equals(t.getType()))
+                .collect(Collectors.toList());
+
         LocalDate today = LocalDate.now();
 
         int totalTasks = tasks.size();
@@ -56,18 +61,28 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
 
         for (Task task : tasks) {
             totalEstimateHours += (task.getEstimateHours() != null) ? task.getEstimateHours() : 0;
-            if (task.getProgress() != null) {
-                if (task.getProgress() == 100) {
-                    completedTasks++;
-                    completedHours += (task.getEstimateHours() != null) ? task.getEstimateHours() : 0;
-                } else if (task.getProgress() > 0) {
-                    inProgressTasks++;
-                    // Check if task is overdue
-                    if (task.getDueDate() != null && task.getDueDate().isBefore(today)) {
-                        overdueTasks++;
-                    }
+
+            // Check if task is completed (progress=100 OR status=DONE)
+            boolean isCompleted = (task.getProgress() != null && task.getProgress() == 100)
+                    || "DONE".equals(task.getStatus());
+            // Check if task is in progress (progress>0 OR status=IN_PROGRESS/IN_REVIEW)
+            boolean isInProgress = !isCompleted && (
+                (task.getProgress() != null && task.getProgress() > 0)
+                || "IN_PROGRESS".equals(task.getStatus())
+                || "IN_REVIEW".equals(task.getStatus())
+            );
+
+            if (isCompleted) {
+                completedTasks++;
+                completedHours += (task.getEstimateHours() != null) ? task.getEstimateHours() : 0;
+            } else if (isInProgress) {
+                inProgressTasks++;
+                // Check if task is overdue
+                if (task.getDueDate() != null && task.getDueDate().isBefore(today)) {
+                    overdueTasks++;
                 }
             }
+
             // Check if task is blocked (status indicates blocked)
             if ("BLOCKED".equals(task.getStatus())) {
                 blockedTasks++;
@@ -92,7 +107,11 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
         kpi.put("blocked", blockedTasks);
         kpi.put("overdue", overdueTasks);
 
+        // Calculate type stats (EPIC, FEATURE, STORY, TASK, SUBTASK, BUG)
+        List<Map<String, Object>> typeStats = calculateTypeStats(allTasks);
+
         stats.put("kpi", kpi);
+        stats.put("typeStats", typeStats);
         stats.put("projectId", projectId);
         stats.put("projectName", project.getName());
         stats.put("totalTasks", totalTasks);
@@ -121,11 +140,44 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
         return (double) completedCount / milestones.size() * 100;
     }
 
+    private List<Map<String, Object>> calculateTypeStats(List<Task> tasks) {
+        List<Map<String, Object>> typeStats = new ArrayList<>();
+
+        // Define all task types in specified order
+        String[] allTypes = {"EPIC", "FEATURE", "STORY", "TASK", "SUBTASK", "BUG"};
+
+        for (String type : allTypes) {
+            List<Task> typeTasks = tasks.stream()
+                    .filter(t -> type.equals(t.getType()))
+                    .collect(Collectors.toList());
+
+            int total = typeTasks.size();
+            int completed = 0;
+            for (Task task : typeTasks) {
+                if ((task.getProgress() != null && task.getProgress() == 100)
+                        || "DONE".equals(task.getStatus())) {
+                    completed++;
+                }
+            }
+
+            double completionRate = total > 0 ? (double) completed / total * 100 : 0;
+
+            Map<String, Object> typeStat = new LinkedHashMap<>();
+            typeStat.put("type", type);
+            typeStat.put("total", total);
+            typeStat.put("completed", completed);
+            typeStat.put("completionRate", Math.round(completionRate * 100) / 100.0);
+            typeStats.add(typeStat);
+        }
+
+        return typeStats;
+    }
+
     @Override
-    public List<Map<String, Object>> compareProjects(List<Long> projectIds) {
+    public List<Map<String, Object>> compareProjects(List<String> projectIds) {
         List<Map<String, Object>> comparisons = new ArrayList<>();
 
-        for (Long projectId : projectIds) {
+        for (String projectId : projectIds) {
             Map<String, Object> projectStats = getProjectStats(projectId);
             comparisons.add(projectStats);
         }
@@ -134,10 +186,10 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
     }
 
     @Override
-    public Map<String, Object> getTeamThroughput(Long projectId, String startDate, String endDate) {
+    public Map<String, Object> getTeamThroughput(String projectId, String startDate, String endDate) {
         Map<String, Object> throughput = new HashMap<>();
 
-        Project project = projectMapper.findById(projectId);
+        Project project = projectMapper.findByProjectId(projectId);
         if (project == null) {
             return throughput;
         }
@@ -273,15 +325,18 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
     }
 
     @Override
-    public List<Map<String, Object>> getCfdData(Long projectId) {
+    public List<Map<String, Object>> getCfdData(String projectId) {
         List<Map<String, Object>> cfdData = new ArrayList<>();
 
-        Project project = projectMapper.findById(projectId);
+        Project project = projectMapper.findByProjectId(projectId);
         if (project == null) {
             return cfdData;
         }
 
-        List<Task> tasks = taskMapper.findByProjectId(project.getProjectId());
+        List<Task> allTasks = taskMapper.findByProjectId(project.getProjectId());
+        List<Task> tasks = allTasks.stream()
+                .filter(t -> "TASK".equals(t.getType()) || "SUBTASK".equals(t.getType()))
+                .collect(Collectors.toList());
         if (tasks.isEmpty()) {
             return cfdData;
         }
@@ -341,15 +396,18 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
     }
 
     @Override
-    public List<Map<String, Object>> getHeatmapData(Long projectId) {
+    public List<Map<String, Object>> getHeatmapData(String projectId) {
         List<Map<String, Object>> heatmapData = new ArrayList<>();
 
-        Project project = projectMapper.findById(projectId);
+        Project project = projectMapper.findByProjectId(projectId);
         if (project == null) {
             return heatmapData;
         }
 
-        List<Task> tasks = taskMapper.findByProjectId(project.getProjectId());
+        List<Task> allTasks = taskMapper.findByProjectId(project.getProjectId());
+        List<Task> tasks = allTasks.stream()
+                .filter(t -> "TASK".equals(t.getType()) || "SUBTASK".equals(t.getType()))
+                .collect(Collectors.toList());
 
         // Group by assignee and priority
         Map<String, Map<String, Long>> heatmapMap = new HashMap<>();
@@ -380,10 +438,10 @@ public class ProjectStatsServiceImpl implements IProjectStatsService {
     }
 
     @Override
-    public List<Map<String, Object>> getMilestoneProgress(Long projectId) {
+    public List<Map<String, Object>> getMilestoneProgress(String projectId) {
         List<Map<String, Object>> milestoneData = new ArrayList<>();
 
-        Project project = projectMapper.findById(projectId);
+        Project project = projectMapper.findByProjectId(projectId);
         if (project == null) {
             return milestoneData;
         }
