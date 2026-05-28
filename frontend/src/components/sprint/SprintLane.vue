@@ -73,6 +73,7 @@ import { Folder, FolderOpened, Document } from '@element-plus/icons-vue'
 
 // Use globalThis for truly shared state across all SprintLane instances
 const draggingTask = globalThis.__draggingTask__ || (globalThis.__draggingTask__ = ref(null))
+const dragTargetSprintId = globalThis.__dragTargetSprintId__ || (globalThis.__dragTargetSprintId__ = ref(null))
 
 defineOptions({
   components: {}
@@ -199,19 +200,30 @@ const handleDragEnd = (node, event) => {
 }
 
 const handleNodeDrop = (draggingNode, dropNode, position, event) => {
-  // The drop was absorbed by el-tree's tree-node, need to emit our own drop event
-  // Use the stored draggingTask (which should still be valid)
-  // targetSprintId should be the dropNode's lane (dropNode.id), not props.lane.id (source lane)
+  // Determine actual target: use dragTargetSprintId if set (cross-tree), otherwise use props.lane.id (within-tree)
+  const actualTargetSprintId = dragTargetSprintId.value ?? props.lane.id
+
   if (draggingTask.value) {
     const { id: taskId, type: taskType, sourceSprintId } = draggingTask.value
-    // dropNode.id is the target sprint's id (null for backlog)
-    const targetSprintId = dropNode?.id ?? null
-    emit('drop', { taskId: String(taskId), taskType, targetSprintId, sourceSprintId })
+    // Within-tree drop: both source and target are this lane
+    // Cross-tree drop: source is this lane, but target is different (dragTargetSprintId)
+    const isWithinTree = (sourceSprintId === props.lane.id) && (actualTargetSprintId === props.lane.id)
+
+    if (isWithinTree) {
+      // Within-tree drop - emit drop event
+      const targetSprintId = props.lane.id
+      emit('drop', { taskId: String(taskId), taskType, targetSprintId, sourceSprintId })
+    } else {
+      // Cross-tree drop - emit with actual target from dragTargetSprintId
+      // handleNodeDrop fires on SOURCE tree component
+      emit('drop', { taskId: String(taskId), taskType, targetSprintId: actualTargetSprintId, sourceSprintId })
+    }
   }
 }
 
 const handleTreeDragEnd = (event) => {
-  // Don't clear draggingTask here - let onLaneDrop handle it
+  // Clear drag target when drag ends
+  dragTargetSprintId.value = null
 }
 
 const getTypeClass = (type) => {
@@ -239,12 +251,14 @@ const getTypeLabel = (type) => {
 const onLaneDragOver = (e) => {
   e.preventDefault()
   isDragOver.value = true
+  dragTargetSprintId.value = props.lane.id
 }
 
 const onLaneDragLeave = (e) => {
   // Only reset if leaving the lane entirely
   if (!e.currentTarget.contains(e.relatedTarget)) {
     isDragOver.value = false
+    dragTargetSprintId.value = null
   }
 }
 
@@ -254,8 +268,10 @@ const onLaneDrop = (e) => {
   isDragOver.value = false
   if (draggingTask.value) {
     const { id: taskId, type: taskType, sourceSprintId } = draggingTask.value
-    emit('drop', { taskId: String(taskId), taskType, targetSprintId: props.lane.id, sourceSprintId })
+    const targetSprintId = dragTargetSprintId.value ?? props.lane.id
+    emit('drop', { taskId: String(taskId), taskType, targetSprintId, sourceSprintId })
     draggingTask.value = null
+    dragTargetSprintId.value = null
   }
 }
 
