@@ -230,9 +230,11 @@ const onDropTask = async ({ taskId, taskType, targetSprintId, sourceSprintId }) 
       const effectiveSourceSprintId = sourceSprintId ?? task.sprintId
       const descendantTaskIds = getDescendantIds(task)
 
-      // Filter to ALL descendants that are in the source lane
+      // Filter to ONLY TASK/SUBTASK descendants that are in the source lane
+      // EPIC/FEATURE/STORY are containers and cannot have sprintId changed
       const descendants = tasks.value.filter(t =>
         descendantTaskIds.includes(t.id) &&
+        ['TASK', 'SUBTASK'].includes(t.type) &&
         (effectiveSourceSprintId == null ? !t.sprintId : Number(t.sprintId) === Number(effectiveSourceSprintId))
       )
 
