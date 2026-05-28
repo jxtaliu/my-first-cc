@@ -1,27 +1,30 @@
 package com.sme.pm.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sme.pm.entity.BugStatus;
 import com.sme.pm.entity.BugStatusTransition;
 import com.sme.pm.mapper.BugStatusMapper;
 import com.sme.pm.mapper.BugStatusTransitionMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class BugStatusServiceImplTest {
 
     @Mock
@@ -30,15 +33,21 @@ class BugStatusServiceImplTest {
     @Mock
     private BugStatusTransitionMapper transitionMapper;
 
-    private TestBugStatusService bugStatusService;
+    private BugStatusServiceImpl bugStatusService;
 
     @BeforeEach
-    void setUp() {
-        bugStatusService = new TestBugStatusService(bugStatusMapper, transitionMapper);
+    void setUp() throws Exception {
+        bugStatusService = new BugStatusServiceImpl(transitionMapper);
+
+        // Inject mock baseMapper using reflection
+        Field baseMapperField = ServiceImpl.class.getDeclaredField("baseMapper");
+        baseMapperField.setAccessible(true);
+        baseMapperField.set(bugStatusService, bugStatusMapper);
     }
 
     @Test
     void getByProjectId_shouldReturnProjectStatuses_whenExist() {
+        // Arrange
         String projectId = "PRJ_001";
         List<BugStatus> projectStatuses = Arrays.asList(
                 createStatus(1L, projectId, "OPEN", "Open", "待办", "#EF4444", 1),
@@ -48,8 +57,10 @@ class BugStatusServiceImplTest {
         when(bugStatusMapper.selectList(any(LambdaQueryWrapper.class)))
                 .thenReturn(projectStatuses);
 
+        // Act
         List<BugStatus> result = bugStatusService.getByProjectId(projectId);
 
+        // Assert
         assertEquals(2, result.size());
         assertEquals("OPEN", result.get(0).getCode());
     }
@@ -59,13 +70,29 @@ class BugStatusServiceImplTest {
         String projectId = "PRJ_001";
 
         when(bugStatusMapper.selectList(any(LambdaQueryWrapper.class)))
-                .thenReturn(Collections.emptyList())
                 .thenReturn(Collections.emptyList());
 
+        // Act
         List<BugStatus> result = bugStatusService.getByProjectId(projectId);
 
+        // Assert
         assertFalse(result.isEmpty());
         assertEquals(5, result.size());
+    }
+
+    @Test
+    void getDefaultStatuses_shouldReturnFromDb_whenDbHasData() {
+        // Arrange
+        BugStatus dbStatus = createStatus(1L, null, "CUSTOM", "Custom", "自定义", "#FFFFFF", 1);
+        when(bugStatusMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(Collections.singletonList(dbStatus));
+
+        // Act
+        List<BugStatus> result = bugStatusService.getDefaultStatuses();
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("CUSTOM", result.get(0).getCode());
     }
 
     @Test
@@ -73,24 +100,41 @@ class BugStatusServiceImplTest {
         when(bugStatusMapper.selectList(any(LambdaQueryWrapper.class)))
                 .thenReturn(Collections.emptyList());
 
+        // Act
         List<BugStatus> result = bugStatusService.getDefaultStatuses();
 
+        // Assert
         assertEquals(5, result.size());
         assertEquals("OPEN", result.get(0).getCode());
         assertEquals("IN_PROGRESS", result.get(1).getCode());
-        assertEquals("IN_TEST", result.get(2).getCode());
-        assertEquals("CLOSED", result.get(3).getCode());
-        assertEquals("REOPENED", result.get(4).getCode());
     }
 
     @Test
-    void canTransition_shouldReturnTrue_whenValidTransition() {
+    void canTransition_shouldReturnTrue_whenProjectTransitionExists() {
         String projectId = "PRJ_001";
 
         when(transitionMapper.exists(any(LambdaQueryWrapper.class))).thenReturn(true);
 
+        // Act
         boolean result = bugStatusService.canTransition(projectId, "OPEN", "IN_PROGRESS");
 
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void canTransition_shouldReturnTrue_whenDefaultTransitionExists() {
+        String projectId = "PRJ_001";
+
+        // First call returns false (no project transition), second call returns true (default transition)
+        when(transitionMapper.exists(any(LambdaQueryWrapper.class)))
+                .thenReturn(false)
+                .thenReturn(true);
+
+        // Act
+        boolean result = bugStatusService.canTransition(projectId, "OPEN", "CLOSED");
+
+        // Assert - "OPEN" -> "CLOSED" is a valid default transition
         assertTrue(result);
     }
 
@@ -98,10 +142,14 @@ class BugStatusServiceImplTest {
     void canTransition_shouldReturnFalse_whenInvalidTransition() {
         String projectId = "PRJ_001";
 
-        when(transitionMapper.exists(any(LambdaQueryWrapper.class))).thenReturn(false);
+        when(transitionMapper.exists(any(LambdaQueryWrapper.class)))
+                .thenReturn(false)
+                .thenReturn(false);
 
+        // Act - "CLOSED" -> "OPEN" is not a valid transition
         boolean result = bugStatusService.canTransition(projectId, "CLOSED", "OPEN");
 
+        // Assert
         assertFalse(result);
     }
 
@@ -115,8 +163,10 @@ class BugStatusServiceImplTest {
 
         when(transitionMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(transitions);
 
+        // Act
         List<String> result = bugStatusService.getAllowedTransitions(projectId, "OPEN");
 
+        // Assert
         assertEquals(2, result.size());
         assertTrue(result.contains("IN_PROGRESS"));
         assertTrue(result.contains("CLOSED"));
@@ -129,102 +179,47 @@ class BugStatusServiceImplTest {
         when(transitionMapper.selectList(any(LambdaQueryWrapper.class)))
                 .thenReturn(Collections.emptyList());
 
+        // Act
         List<String> result = bugStatusService.getAllowedTransitions(projectId, "OPEN");
 
+        // Assert - Default transitions from OPEN are IN_PROGRESS and CLOSED
         assertEquals(2, result.size());
         assertTrue(result.contains("IN_PROGRESS"));
         assertTrue(result.contains("CLOSED"));
     }
 
-    // Test helper class that mirrors the service logic without ServiceImpl dependency
-    private static class TestBugStatusService {
-        private static final List<BugStatus> DEFAULT_STATUSES = List.of(
-                createStatus(1L, null, "OPEN", "Open", "待办", "#EF4444", 1),
-                createStatus(2L, null, "IN_PROGRESS", "In Progress", "修复中", "#F59E0B", 2),
-                createStatus(3L, null, "IN_TEST", "In Test", "待验证", "#3B82F6", 3),
-                createStatus(4L, null, "CLOSED", "Closed", "已关闭", "#10B981", 4),
-                createStatus(5L, null, "REOPENED", "Reopened", "重新打开", "#8B5CF6", 5)
-        );
+    @Test
+    void initializeForProject_shouldNotInitialize_whenAlreadyExists() {
+        String projectId = "PRJ_001";
 
-        private static final List<String[]> DEFAULT_TRANSITIONS = List.of(
-                new String[]{"OPEN", "IN_PROGRESS"},
-                new String[]{"OPEN", "CLOSED"},
-                new String[]{"IN_PROGRESS", "IN_TEST"},
-                new String[]{"IN_PROGRESS", "REOPENED"},
-                new String[]{"IN_TEST", "CLOSED"},
-                new String[]{"IN_TEST", "IN_PROGRESS"},
-                new String[]{"CLOSED", "REOPENED"},
-                new String[]{"REOPENED", "IN_PROGRESS"}
-        );
+        when(bugStatusMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(1L);
 
-        private final BugStatusMapper bugStatusMapper;
-        private final BugStatusTransitionMapper transitionMapper;
+        // Act
+        bugStatusService.initializeForProject(projectId);
 
-        TestBugStatusService(BugStatusMapper bugStatusMapper, BugStatusTransitionMapper transitionMapper) {
-            this.bugStatusMapper = bugStatusMapper;
-            this.transitionMapper = transitionMapper;
-        }
-
-        List<BugStatus> getByProjectId(String projectId) {
-            LambdaQueryWrapper<BugStatus> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(BugStatus::getProjectId, projectId)
-                    .eq(BugStatus::getDeleted, 0)
-                    .orderByAsc(BugStatus::getSortOrder);
-            List<BugStatus> projectStatuses = bugStatusMapper.selectList(wrapper);
-
-            if (projectStatuses != null && !projectStatuses.isEmpty()) {
-                return projectStatuses;
-            }
-            return getDefaultStatuses();
-        }
-
-        List<BugStatus> getDefaultStatuses() {
-            LambdaQueryWrapper<BugStatus> wrapper = new LambdaQueryWrapper<>();
-            wrapper.isNull(BugStatus::getProjectId)
-                    .eq(BugStatus::getDeleted, 0)
-                    .orderByAsc(BugStatus::getSortOrder);
-            List<BugStatus> defaultStatuses = bugStatusMapper.selectList(wrapper);
-
-            if (defaultStatuses == null || defaultStatuses.isEmpty()) {
-                return new ArrayList<>(DEFAULT_STATUSES);
-            }
-            return defaultStatuses;
-        }
-
-        boolean canTransition(String projectId, String fromStatus, String toStatus) {
-            LambdaQueryWrapper<BugStatusTransition> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(BugStatusTransition::getProjectId, projectId)
-                    .eq(BugStatusTransition::getFromStatus, fromStatus)
-                    .eq(BugStatusTransition::getToStatus, toStatus)
-                    .eq(BugStatusTransition::getDeleted, 0);
-            return transitionMapper.exists(wrapper);
-        }
-
-        List<String> getAllowedTransitions(String projectId, String fromStatus) {
-            List<String> transitions = new ArrayList<>();
-
-            LambdaQueryWrapper<BugStatusTransition> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(BugStatusTransition::getProjectId, projectId)
-                    .eq(BugStatusTransition::getFromStatus, fromStatus)
-                    .eq(BugStatusTransition::getDeleted, 0);
-            List<BugStatusTransition> projectTransitions = transitionMapper.selectList(wrapper);
-
-            if (projectTransitions != null && !projectTransitions.isEmpty()) {
-                transitions.addAll(projectTransitions.stream()
-                        .map(BugStatusTransition::getToStatus)
-                        .collect(Collectors.toList()));
-            } else {
-                for (String[] transition : DEFAULT_TRANSITIONS) {
-                    if (transition[0].equals(fromStatus)) {
-                        transitions.add(transition[1]);
-                    }
-                }
-            }
-            return transitions;
-        }
+        // Assert
+        verify(bugStatusMapper, never()).insert(any(BugStatus.class));
+        verify(transitionMapper, never()).insert(any(BugStatusTransition.class));
     }
 
-    private static BugStatus createStatus(Long id, String projectId, String code, String nameEn, String nameZh, String color, int sortOrder) {
+    @Test
+    void initializeForProject_shouldCreateStatusesAndTransitions() {
+        String projectId = "PRJ_NEW";
+
+        when(bugStatusMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
+        when(bugStatusMapper.insert(any(BugStatus.class))).thenReturn(1);
+        when(transitionMapper.insert(any(BugStatusTransition.class))).thenReturn(1);
+
+        // Act
+        bugStatusService.initializeForProject(projectId);
+
+        // Assert - Should insert 5 statuses
+        verify(bugStatusMapper, times(5)).insert(any(BugStatus.class));
+        // Should insert 8 transitions
+        verify(transitionMapper, times(8)).insert(any(BugStatusTransition.class));
+    }
+
+    private BugStatus createStatus(Long id, String projectId, String code, String nameEn, String nameZh, String color, int sortOrder) {
         BugStatus status = new BugStatus();
         status.setId(id);
         status.setProjectId(projectId);

@@ -1,5 +1,6 @@
 package com.sme.pm.service.impl;
 
+import com.sme.pm.entity.Milestone;
 import com.sme.pm.entity.Project;
 import com.sme.pm.entity.Sprint;
 import com.sme.pm.entity.Task;
@@ -336,5 +337,400 @@ class ProjectStatsServiceImplTest {
         assertEquals(0, stats.get("inProgressTasks"));
         assertEquals(100.0, stats.get("completionRate"));
         assertEquals(100.0, stats.get("workEfficiency"));
+    }
+
+    @Test
+    void testGetProjectStats_shouldCountBlockedTasks() {
+        // Arrange
+        Task blockedTask = new Task();
+        blockedTask.setId(1L);
+        blockedTask.setProjectId("PRJ_001");
+        blockedTask.setType("TASK");
+        blockedTask.setStatus("BLOCKED");
+        blockedTask.setProgress(50);
+
+        List<Task> tasks = Collections.singletonList(blockedTask);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
+
+        // Act
+        Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
+
+        // Assert
+        assertEquals(1, stats.get("blockedTasks"));
+    }
+
+    @Test
+    void testGetProjectStats_shouldCountOverdueTasks() {
+        // Arrange
+        Task overdueTask = new Task();
+        overdueTask.setId(1L);
+        overdueTask.setProjectId("PRJ_001");
+        overdueTask.setType("TASK");
+        overdueTask.setStatus("IN_PROGRESS");
+        overdueTask.setProgress(50);
+        overdueTask.setDueDate(LocalDate.now().minusDays(1)); // Overdue
+
+        List<Task> tasks = Collections.singletonList(overdueTask);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
+
+        // Act
+        Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
+
+        // Assert
+        assertEquals(1, stats.get("overdueTasks"));
+    }
+
+    @Test
+    void testGetProjectStats_shouldNotCountEpicFeatureStory() {
+        // Arrange
+        Task epicTask = new Task();
+        epicTask.setId(1L);
+        epicTask.setProjectId("PRJ_001");
+        epicTask.setType("EPIC");
+        epicTask.setProgress(100);
+
+        Task featureTask = new Task();
+        featureTask.setId(2L);
+        featureTask.setProjectId("PRJ_001");
+        featureTask.setType("FEATURE");
+        featureTask.setProgress(100);
+
+        Task storyTask = new Task();
+        storyTask.setId(3L);
+        storyTask.setProjectId("PRJ_001");
+        storyTask.setType("STORY");
+        storyTask.setProgress(100);
+
+        Task regularTask = new Task();
+        regularTask.setId(4L);
+        regularTask.setProjectId("PRJ_001");
+        regularTask.setType("TASK");
+        regularTask.setProgress(100);
+
+        List<Task> tasks = Arrays.asList(epicTask, featureTask, storyTask, regularTask);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
+
+        // Act
+        Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
+
+        // Assert - only TASK and SUBTASK are counted
+        assertEquals(1, stats.get("totalTasks"));
+        assertEquals(1, stats.get("completedTasks"));
+    }
+
+    @Test
+    void testGetProjectStats_shouldIncludeTypeStats() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setProjectId("PRJ_001");
+        task.setType("TASK");
+        task.setProgress(100);
+
+        Task bug = new Task();
+        bug.setId(2L);
+        bug.setProjectId("PRJ_001");
+        bug.setType("BUG");
+        bug.setProgress(50);
+
+        List<Task> tasks = Arrays.asList(task, bug);
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(tasks);
+
+        // Act
+        Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
+
+        // Assert
+        assertNotNull(stats.get("typeStats"));
+        assertTrue(stats.get("typeStats") instanceof List);
+    }
+
+    @Test
+    void testGetTeamThroughput_shouldReturnEmpty_whenNoCompletedTasks() {
+        // Arrange
+        Task uncompletedTask = new Task();
+        uncompletedTask.setId(1L);
+        uncompletedTask.setProjectId("PRJ_001");
+        uncompletedTask.setCompletionDate(null); // Not completed
+
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Collections.singletonList(uncompletedTask));
+
+        // Act
+        Map<String, Object> throughput = projectStatsService.getTeamThroughput("PRJ_001", null, null);
+
+        // Assert
+        assertEquals(0, throughput.get("totalCompleted"));
+        assertNotNull(throughput.get("weeklyThroughput"));
+        assertNotNull(throughput.get("dailyThroughput"));
+    }
+
+    @Test
+    void testGetTeamThroughput_shouldFilterByDateRange() {
+        // Arrange
+        // task1 created within range and completed within range
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setProjectId("PRJ_001");
+        task1.setCompletionDate(LocalDateTime.now().minusDays(5));
+        task1.setCreatedAt(LocalDateTime.now().minusDays(6)); // Within date range
+
+        // task2 created outside range
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setProjectId("PRJ_001");
+        task2.setCompletionDate(LocalDateTime.now().minusDays(20));
+        task2.setCreatedAt(LocalDateTime.now().minusDays(25)); // Outside range
+
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Arrays.asList(task1, task2));
+
+        // Act
+        String startDate = LocalDate.now().minusDays(7).toString();
+        String endDate = LocalDate.now().toString();
+        Map<String, Object> throughput = projectStatsService.getTeamThroughput("PRJ_001", startDate, endDate);
+
+        // Assert - only task1 should be counted (created within range and completed)
+        assertEquals(1, throughput.get("totalCompleted"));
+        assertEquals(startDate, throughput.get("startDate"));
+        assertEquals(endDate, throughput.get("endDate"));
+    }
+
+    @Test
+    void testGetTeamThroughput_shouldReturnEmpty_whenProjectNotFound() {
+        // Arrange
+        when(projectMapper.findByProjectId("NOT_EXIST")).thenReturn(null);
+
+        // Act
+        Map<String, Object> throughput = projectStatsService.getTeamThroughput("NOT_EXIST", null, null);
+
+        // Assert
+        assertTrue(throughput.isEmpty());
+    }
+
+    @Test
+    void testGetCfdData_shouldReturnEmpty_whenProjectNotFound() {
+        // Arrange
+        when(projectMapper.findByProjectId("NOT_EXIST")).thenReturn(null);
+
+        // Act
+        List<Map<String, Object>> cfdData = projectStatsService.getCfdData("NOT_EXIST");
+
+        // Assert
+        assertTrue(cfdData.isEmpty());
+    }
+
+    @Test
+    void testGetCfdData_shouldReturnEmpty_whenNoTasks() {
+        // Arrange
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Collections.emptyList());
+
+        // Act
+        List<Map<String, Object>> cfdData = projectStatsService.getCfdData("PRJ_001");
+
+        // Assert
+        assertTrue(cfdData.isEmpty());
+    }
+
+    @Test
+    void testGetCfdData_shouldGenerateDataForTasks() {
+        // Arrange
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setProjectId("PRJ_001");
+        task1.setType("TASK");
+        task1.setStatus("IN_PROGRESS");
+        task1.setCreatedAt(LocalDateTime.now().minusDays(5));
+
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setProjectId("PRJ_001");
+        task2.setType("TASK");
+        task2.setStatus("DONE");
+        task2.setCreatedAt(LocalDateTime.now().minusDays(10));
+        task2.setCompletionDate(LocalDateTime.now().minusDays(3));
+
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Arrays.asList(task1, task2));
+
+        // Act
+        List<Map<String, Object>> cfdData = projectStatsService.getCfdData("PRJ_001");
+
+        // Assert
+        assertFalse(cfdData.isEmpty());
+        Map<String, Object> firstDay = cfdData.get(0);
+        assertNotNull(firstDay.get("date"));
+        assertNotNull(firstDay.get("todo"));
+        assertNotNull(firstDay.get("in_progress"));
+        assertNotNull(firstDay.get("done"));
+    }
+
+    @Test
+    void testGetHeatmapData_shouldReturnEmpty_whenProjectNotFound() {
+        // Arrange
+        when(projectMapper.findByProjectId("NOT_EXIST")).thenReturn(null);
+
+        // Act
+        List<Map<String, Object>> heatmapData = projectStatsService.getHeatmapData("NOT_EXIST");
+
+        // Assert
+        assertTrue(heatmapData.isEmpty());
+    }
+
+    @Test
+    void testGetHeatmapData_shouldGroupByAssigneeAndPriority() {
+        // Arrange
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setProjectId("PRJ_001");
+        task1.setType("TASK");
+        task1.setAssigneeName("John");
+        task1.setPriority("P1");
+
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setProjectId("PRJ_001");
+        task2.setType("TASK");
+        task2.setAssigneeName("John");
+        task2.setPriority("P1");
+
+        Task task3 = new Task();
+        task3.setId(3L);
+        task3.setProjectId("PRJ_001");
+        task3.setType("TASK");
+        task3.setAssigneeName("Jane");
+        task3.setPriority("P2");
+
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Arrays.asList(task1, task2, task3));
+
+        // Act
+        List<Map<String, Object>> heatmapData = projectStatsService.getHeatmapData("PRJ_001");
+
+        // Assert
+        assertEquals(2, heatmapData.size()); // John+P1 (count=2), Jane+P2 (count=1)
+    }
+
+    @Test
+    void testGetHeatmapData_shouldHandleNullAssigneeAndPriority() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setProjectId("PRJ_001");
+        task.setType("TASK");
+        task.setAssigneeName(null);
+        task.setPriority(null);
+
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Collections.singletonList(task));
+
+        // Act
+        List<Map<String, Object>> heatmapData = projectStatsService.getHeatmapData("PRJ_001");
+
+        // Assert
+        assertEquals(1, heatmapData.size());
+        assertEquals("Unassigned", heatmapData.get(0).get("assignee"));
+        assertEquals("None", heatmapData.get(0).get("priority"));
+    }
+
+    @Test
+    void testGetMilestoneProgress_shouldReturnEmpty_whenProjectNotFound() {
+        // Arrange
+        when(projectMapper.findByProjectId("NOT_EXIST")).thenReturn(null);
+
+        // Act
+        List<Map<String, Object>> milestoneData = projectStatsService.getMilestoneProgress("NOT_EXIST");
+
+        // Assert
+        assertTrue(milestoneData.isEmpty());
+    }
+
+    @Test
+    void testGetMilestoneProgress_shouldCalculateProgress() {
+        // Arrange
+        Milestone milestone = new Milestone();
+        milestone.setId(1L);
+        milestone.setName("M1");
+        milestone.setStatus("ACTIVE");
+        milestone.setTargetDate(LocalDate.now().plusDays(30));
+
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setMilestoneId(1L);
+        task1.setStatus("DONE");
+        task1.setProgress(100);
+
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setMilestoneId(1L);
+        task2.setStatus("IN_PROGRESS");
+        task2.setProgress(50);
+
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(milestoneMapper.findByProjectId("PRJ_001")).thenReturn(Collections.singletonList(milestone));
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Arrays.asList(task1, task2));
+
+        // Act
+        List<Map<String, Object>> milestoneData = projectStatsService.getMilestoneProgress("PRJ_001");
+
+        // Assert
+        assertEquals(1, milestoneData.size());
+        assertEquals(2, milestoneData.get(0).get("total"));
+        assertEquals(1, milestoneData.get(0).get("completed"));
+    }
+
+    @Test
+    void testGetMilestoneProgress_shouldHandleMilestoneWithNoTasks() {
+        // Arrange
+        Milestone milestone = new Milestone();
+        milestone.setId(1L);
+        milestone.setName("Empty Milestone");
+        milestone.setStatus("ACTIVE");
+
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(milestoneMapper.findByProjectId("PRJ_001")).thenReturn(Collections.singletonList(milestone));
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Collections.emptyList());
+
+        // Act
+        List<Map<String, Object>> milestoneData = projectStatsService.getMilestoneProgress("PRJ_001");
+
+        // Assert
+        assertEquals(1, milestoneData.size());
+        assertEquals(0, milestoneData.get(0).get("total"));
+        // percent is 0 which could be Integer or Long depending on Math.round return
+        assertEquals(0L, milestoneData.get(0).get("percent"));
+    }
+
+    @Test
+    void testCompareProjects_shouldCalculateSchedulePerformanceAndDefectDensity() {
+        // Arrange
+        Task completedTask = new Task();
+        completedTask.setId(1L);
+        completedTask.setProjectId("PRJ_001");
+        completedTask.setStatus("DONE");
+        completedTask.setProgress(100);
+        completedTask.setDueDate(LocalDate.now().minusDays(1));
+        completedTask.setCompletionDate(LocalDateTime.now().minusDays(2));
+
+        Task bugTask = new Task();
+        bugTask.setId(2L);
+        bugTask.setProjectId("PRJ_001");
+        bugTask.setType("BUG");
+        bugTask.setProgress(0); // Set progress to avoid NPE
+
+        when(projectMapper.findByProjectId("PRJ_001")).thenReturn(testProject);
+        when(taskMapper.findByProjectId("PRJ_001")).thenReturn(Arrays.asList(completedTask, bugTask));
+
+        // Act
+        List<Map<String, Object>> comparisons = projectStatsService.compareProjects(Collections.singletonList("PRJ_001"));
+
+        // Assert
+        assertEquals(1, comparisons.size());
+        assertNotNull(comparisons.get(0).get("schedulePerformance"));
+        assertNotNull(comparisons.get(0).get("defectDensity"));
     }
 }

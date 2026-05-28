@@ -1,7 +1,6 @@
 package com.sme.pm.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sme.pm.entity.DictCode;
 import com.sme.pm.entity.TaskStatus;
@@ -210,5 +209,52 @@ class TaskStatusServiceImplTest {
 
         TaskStatus savedStatus = captor.getValue();
         assertEquals("PRJ_TEST", savedStatus.getProjectId());
+    }
+
+    @Test
+    void initializeFromDict_shouldParseColorFromExtraJson() {
+        when(taskStatusMapper.selectList(any(LambdaQueryWrapper.class)))
+            .thenReturn(Collections.emptyList());
+
+        DictCode dictCode = new DictCode();
+        dictCode.setCode("TODO");
+        dictCode.setName("To Do");
+        dictCode.setNameEn("To Do");
+        dictCode.setNameZh("待办");
+        dictCode.setSortOrder(1);
+        dictCode.setExtra("{\"color\": \"#FF0000\"}");
+
+        when(dictCodeMapper.findByTypeCode("task_status"))
+            .thenReturn(Collections.singletonList(dictCode));
+
+        taskStatusService.initializeFromDict("PRJ_COLOR_TEST");
+
+        ArgumentCaptor<TaskStatus> captor = ArgumentCaptor.forClass(TaskStatus.class);
+        verify(taskStatusMapper).insert(captor.capture());
+
+        TaskStatus savedStatus = captor.getValue();
+        assertEquals("#FF0000", savedStatus.getColor());
+    }
+
+    @Test
+    void initializeFromDict_shouldHandleInvalidExtraJson() {
+        when(taskStatusMapper.selectList(any(LambdaQueryWrapper.class)))
+            .thenReturn(Collections.emptyList());
+
+        DictCode dictCode = new DictCode();
+        dictCode.setCode("TODO");
+        dictCode.setName("To Do");
+        dictCode.setNameEn("To Do");
+        dictCode.setNameZh("待办");
+        dictCode.setSortOrder(1);
+        dictCode.setExtra("invalid json"); // Invalid JSON should not crash
+
+        when(dictCodeMapper.findByTypeCode("task_status"))
+            .thenReturn(Collections.singletonList(dictCode));
+
+        // Should not throw exception
+        taskStatusService.initializeFromDict("PRJ_INVALID_JSON");
+
+        verify(taskStatusMapper).insert(any(TaskStatus.class));
     }
 }
