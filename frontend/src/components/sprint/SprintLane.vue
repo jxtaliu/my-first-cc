@@ -16,12 +16,13 @@
           :props="treeProps"
           node-key="id"
           :expand-on-click-node="false"
-          default-expand-all
           draggable
           @node-click="handleNodeClick"
           @node-drag-start="handleDragStart"
           @node-drag-end="handleDragEnd"
           @node-drop="handleNodeDrop"
+          @node-expand="handleNodeExpand"
+          @node-collapse="handleNodeCollapse"
         >
           <template #default="{ data }">
             <div class="tree-node" :class="`type-${data.type?.toLowerCase()}`">
@@ -43,13 +44,14 @@
           :props="treeProps"
           node-key="id"
           :expand-on-click-node="false"
-          default-expand-all
           draggable
           @node-click="handleNodeClick"
           @node-drag-start="handleDragStart"
           @node-drag-end="handleDragEnd"
           @node-drop="handleNodeDrop"
           @dragend="handleTreeDragEnd"
+          @node-expand="handleNodeExpand"
+          @node-collapse="handleNodeCollapse"
         >
           <template #default="{ data }">
             <div class="tree-node" :class="`type-${data.type?.toLowerCase()}`">
@@ -68,7 +70,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { Folder, FolderOpened, Document } from '@element-plus/icons-vue'
 
 // Use globalThis for truly shared state across all SprintLane instances
@@ -92,10 +94,175 @@ const isDragOver = ref(false)
 const treeRef = ref()
 const sprintTreeRef = ref()
 
+// Expanded keys for tree state persistence
+const backlogExpandedKeys = ref([])
+const sprintExpandedKeys = ref([])
+
+// Storage key based on lane id
+const STORAGE_VERSION = 'v2' // Increment to force clear old data
+const getStorageKey = (type) => {
+  const laneId = props.lane.id ?? 'backlog'
+  return `sprint-tree-expanded-${STORAGE_VERSION}-${laneId}-${type}`
+}
+
+// Clear old localStorage keys (without version prefix)
+const clearOldStorageKeys = () => {
+  const keysToRemove = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && key.startsWith('sprint-tree-expanded-') && !key.includes(`-${STORAGE_VERSION}-`)) {
+      keysToRemove.push(key)
+    }
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key))
+}
+
+// Clear old keys on init
+clearOldStorageKeys()
+
+// Load expanded state from localStorage for specific lane type
+const loadExpandedState = (laneType) => {
+  try {
+    const key = getStorageKey(laneType)
+    const stored = localStorage.getItem(key)
+    const parsed = stored ? JSON.parse(stored) : []
+    if (laneType === 'backlog') {
+      backlogExpandedKeys.value = parsed
+    } else {
+      sprintExpandedKeys.value = parsed
+    }
+  } catch (e) {
+    console.warn('Failed to load tree expanded state:', e)
+  }
+}
+
+// Save expanded state to localStorage for specific lane type
+const saveExpandedState = (laneType) => {
+  try {
+    const key = getStorageKey(laneType)
+    const valueToSave = laneType === 'backlog' ? backlogExpandedKeys.value : sprintExpandedKeys.value
+    localStorage.setItem(key, JSON.stringify(valueToSave))
+  } catch (e) {
+    console.warn('Failed to save tree expanded state:', e)
+  }
+}
+
+// Handle node expand
+const handleNodeExpand = (data, node, vm) => {
+  const key = String(data.id)
+  const treeInstance = isBacklog.value ? treeRef.value : sprintTreeRef.value
+  const laneType = isBacklog.value ? 'backlog' : 'sprint'
+
+  // Add to expanded keys and save
+  if (isBacklog.value) {
+    if (!backlogExpandedKeys.value.includes(key)) {
+      backlogExpandedKeys.value.push(key)
+      saveExpandedState(laneType)
+    }
+  } else {
+    if (!sprintExpandedKeys.value.includes(key)) {
+      sprintExpandedKeys.value.push(key)
+      saveExpandedState(laneType)
+    }
+  }
+
+  // Ensure el-tree node is expanded (in case event fired without actual expand)
+  if (treeInstance) {
+    const treeNode = treeInstance.getNode(key)
+    if (treeNode && !treeNode.expanded) {
+      treeNode.expand()
+    }
+  }
+}
+
+// Handle node collapse
+const handleNodeCollapse = (data, node, vm) => {
+  const key = String(data.id)
+  const laneType = isBacklog.value ? 'backlog' : 'sprint'
+
+  // Update state - el-tree has already handled the visual collapse
+  if (isBacklog.value) {
+    backlogExpandedKeys.value = backlogExpandedKeys.value.filter(k => k !== key)
+  } else {
+    sprintExpandedKeys.value = sprintExpandedKeys.value.filter(k => k !== key)
+  }
+  saveExpandedState(laneType)
+}
+
+// Get current expanded keys based on lane type
+const getCurrentExpandedKeys = () => {
+  return isBacklog.value ? backlogExpandedKeys : sprintExpandedKeys
+}
+
+// Restore expanded state after data loads using tree instance methods
+const restoreExpandedState = async () => {
+  await nextTick()
+  const expandedKeys = isBacklog.value ? backlogExpandedKeys.value : sprintExpandedKeys.value
+  const treeInstance = isBacklog.value ? treeRef.value : sprintTreeRef.value
+
+  if (!treeInstance || !expandedKeys || expandedKeys.length === 0) {
+    return
+  }
+
+  // Collect all node IDs in this tree (including nested children)
+  const getAllNodeIds = (nodes, ids = new Set()) => {
+    for (const node of nodes) {
+      ids.add(String(node.id))
+      if (node.children && node.children.length > 0) {
+        getAllNodeIds(node.children, ids)
+      }
+    }
+    return ids
+  }
+  const validNodeIds = getAllNodeIds(treeInstance.data)
+
+  // Use getNode + node.expand() to expand saved nodes ONLY if they exist in this tree
+  for (const key of expandedKeys) {
+    if (!validNodeIds.has(key)) {
+      continue
+    }
+    const node = treeInstance.getNode(key)
+    if (node && !node.expanded) {
+      node.expand()
+    }
+  }
+}
+
 // Check if this is a backlog lane (no id)
 const isBacklog = computed(() => {
   return props.lane.id === null
 })
+
+// Watch for tree data changes and restore expanded state
+watch(
+  () => props.lane.tasks,
+  (newTasks, oldTasks) => {
+    // Always restore when data changes (task moved to/from)
+    if (isBacklog.value && newTasks && newTasks.length > 0) {
+      // Backlog
+      loadExpandedState('backlog')
+      nextTick(() => restoreExpandedState())
+    } else if (!isBacklog.value && newTasks && newTasks.length > 0) {
+      // Sprint
+      loadExpandedState('sprint')
+      nextTick(() => restoreExpandedState())
+    }
+  },
+  { immediate: true }
+)
+
+// Also watch for sprintLaneTreeData changes
+watch(
+  () => props.lane.allTasks,
+  (newAllTasks, oldAllTasks) => {
+    // Always restore when sprint data changes (task moved out)
+    if (!isBacklog.value && newAllTasks && newAllTasks.length > 0) {
+      loadExpandedState('sprint')
+      nextTick(() => restoreExpandedState())
+    }
+  },
+  { immediate: true }
+)
 
 // Sprint lane tasks - only show Task and Subtask (not Epic/Feature/Story)
 const sprintLaneTasks = computed(() => {
