@@ -31,15 +31,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = getTokenFromRequest(request);
 
-        if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
-            Long userId = tokenProvider.getUserIdFromToken(token);
+        try {
+            if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
+                Long userId = tokenProvider.getUserIdFromToken(token);
 
-            // Note: In production, load user properly from userId in token
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, List.of());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                // Note: In production, load user properly from userId in token
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception e) {
+            // Log and continue - don't let authentication errors block the request
+            logger.error("Cannot set user authentication", e);
         }
 
         filterChain.doFilter(request, response);

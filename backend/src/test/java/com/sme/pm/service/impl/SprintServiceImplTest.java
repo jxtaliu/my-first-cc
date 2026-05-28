@@ -76,6 +76,10 @@ class SprintServiceImplTest {
         testProject.setName("Test Project");
     }
 
+    /**
+     * 测试场景：计算冲刺 velocity - 存在已完成和未完成任务
+     * 预期：仅已完成（progress=100）的任务工时计入 velocity
+     */
     @Test
     void testCalculateVelocity_shouldSumCompletedTaskHours() {
         // Arrange
@@ -91,6 +95,10 @@ class SprintServiceImplTest {
         verify(taskMapper).findBySprintId(1L);
     }
 
+    /**
+     * 测试场景：计算冲刺 capacity - 冲刺存在且有 capacityHours
+     * 预期：返回冲刺的 capacityHours 字段值
+     */
     @Test
     void testCalculateCapacity_shouldReturnSprintCapacityHours() {
         // Arrange
@@ -103,6 +111,10 @@ class SprintServiceImplTest {
         assertEquals(80, capacity);
     }
 
+    /**
+     * 测试场景：获取冲刺统计信息 - 存在已完成和未完成任务
+     * 预期：返回 totalTasks=2, completedTasks=1, remainingTasks=1, velocity=8
+     */
     @Test
     void testGetSprintStats_shouldReturnCorrectStats() {
         // Arrange
@@ -120,6 +132,10 @@ class SprintServiceImplTest {
         assertEquals(8, stats.get("velocity")); // Only completed task hours
     }
 
+    /**
+     * 测试场景：添加任务到冲刺 - 冲刺和任务都存在
+     * 预期：任务被分配到指定冲刺，sprintId 被更新
+     */
     @Test
     void testAddTaskToSprint_shouldUpdateTaskSprintId() {
         // Arrange
@@ -134,6 +150,10 @@ class SprintServiceImplTest {
         verify(taskMapper).updateById(testTask1);
     }
 
+    /**
+     * 测试场景：添加任务到冲刺 - 冲刺不存在
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void testAddTaskToSprint_shouldThrowException_whenSprintNotFound() {
         // Arrange
@@ -145,6 +165,10 @@ class SprintServiceImplTest {
         });
     }
 
+    /**
+     * 测试场景：添加任务到冲刺 - 任务不存在
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void testAddTaskToSprint_shouldThrowException_whenTaskNotFound() {
         // Arrange
@@ -157,6 +181,10 @@ class SprintServiceImplTest {
         });
     }
 
+    /**
+     * 测试场景：从冲刺移除任务 - 任务存在且在冲刺中
+     * 预期：任务的 sprintId 被设置为 null
+     */
     @Test
     void testRemoveTaskFromSprint_shouldSetSprintIdToNull() {
         // Arrange
@@ -170,6 +198,10 @@ class SprintServiceImplTest {
         verify(taskMapper).updateById(testTask1);
     }
 
+    /**
+     * 测试场景：从冲刺移除任务 - 任务不存在
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void testRemoveTaskFromSprint_shouldThrowException_whenTaskNotFound() {
         // Arrange
@@ -181,6 +213,10 @@ class SprintServiceImplTest {
         });
     }
 
+    /**
+     * 测试场景：获取待办任务列表 - 存在未分配到冲刺的任务
+     * 预期：返回 sprintId 为 null 的任务列表
+     */
     @Test
     void testGetBacklogTasks_shouldReturnTasksWithNoSprint() {
         // Arrange
@@ -199,6 +235,10 @@ class SprintServiceImplTest {
         assertNull(backlogTasks.get(0).getSprintId());
     }
 
+    /**
+     * 测试场景：计算冲刺 velocity - 冲刺没有任何任务
+     * 预期：返回 0
+     */
     @Test
     void testCalculateVelocity_shouldReturnZero_whenNoTasks() {
         // Arrange
@@ -211,6 +251,10 @@ class SprintServiceImplTest {
         assertEquals(0, velocity);
     }
 
+    /**
+     * 测试场景：计算冲刺 velocity - 冲刺不存在
+     * 预期：返回 0
+     */
     @Test
     void testCalculateVelocity_shouldReturnZero_whenSprintNotFound() {
         // Arrange
@@ -223,6 +267,10 @@ class SprintServiceImplTest {
         assertEquals(0, velocity);
     }
 
+    /**
+     * 测试场景：计算冲刺 capacity - 冲刺不存在
+     * 预期：返回 0
+     */
     @Test
     void testCalculateCapacity_shouldReturnZero_whenSprintNotFound() {
         // Arrange
@@ -235,6 +283,10 @@ class SprintServiceImplTest {
         assertEquals(0, capacity);
     }
 
+    /**
+     * 测试场景：获取冲刺统计信息 - 任务进度为 null
+     * 预期：null 进度不视为已完成
+     */
     @Test
     void testGetSprintStats_shouldHandleNullProgress() {
         // Arrange
@@ -259,6 +311,10 @@ class SprintServiceImplTest {
 
     // ==================== create Tests ====================
 
+    /**
+     * 测试场景：创建冲刺 - 有效输入
+     * 预期：冲刺状态设置为 PLANNING 并插入数据库
+     */
     @Test
     void create_shouldSetStatusToPlanning_andInsertSprint() {
         // Arrange
@@ -276,6 +332,10 @@ class SprintServiceImplTest {
         verify(sprintMapper).insert(sprint);
     }
 
+    /**
+     * 测试场景：创建冲刺 - projectId 为 null
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void create_shouldThrowException_whenProjectIdIsNull() {
         // Arrange
@@ -291,6 +351,10 @@ class SprintServiceImplTest {
         assertTrue(exception.getMessage().contains("projectId不能为空"));
     }
 
+    /**
+     * 测试场景：创建冲刺 - projectId 为空字符串
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void create_shouldThrowException_whenProjectIdIsEmpty() {
         // Arrange
@@ -306,6 +370,10 @@ class SprintServiceImplTest {
         assertTrue(exception.getMessage().contains("projectId不能为空"));
     }
 
+    /**
+     * 测试场景：创建冲刺 - name 为 null
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void create_shouldThrowException_whenNameIsNull() {
         // Arrange
@@ -321,6 +389,10 @@ class SprintServiceImplTest {
         assertTrue(exception.getMessage().contains("name不能为空"));
     }
 
+    /**
+     * 测试场景：创建冲刺 - name 为空字符串
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void create_shouldThrowException_whenNameIsEmpty() {
         // Arrange
@@ -338,6 +410,10 @@ class SprintServiceImplTest {
 
     // ==================== update Tests ====================
 
+    /**
+     * 测试场景：更新冲刺 - 有效输入
+     * 预期：调用 sprintMapper.updateById
+     */
     @Test
     void update_shouldCallUpdateById() {
         // Arrange
@@ -357,6 +433,10 @@ class SprintServiceImplTest {
 
     // ==================== delete Tests ====================
 
+    /**
+     * 测试场景：删除冲刺 - 冲刺存在
+     * 预期：调用 sprintMapper.deleteById
+     */
     @Test
     void delete_shouldCallDeleteById() {
         // Arrange
@@ -371,6 +451,10 @@ class SprintServiceImplTest {
 
     // ==================== startSprint Tests ====================
 
+    /**
+     * 测试场景：启动冲刺 - 冲刺存在且状态为 PLANNING
+     * 预期：冲刺状态变为 ACTIVE，startDate 被设置
+     */
     @Test
     void startSprint_shouldSetStatusToActiveAndSetStartDate() {
         // Arrange
@@ -392,6 +476,10 @@ class SprintServiceImplTest {
         verify(sprintMapper).updateById(sprint);
     }
 
+    /**
+     * 测试场景：启动冲刺 - 冲刺不存在
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void startSprint_shouldThrowException_whenSprintNotFound() {
         // Arrange
@@ -407,6 +495,10 @@ class SprintServiceImplTest {
 
     // ==================== completeSprint Tests ====================
 
+    /**
+     * 测试场景：完成冲刺 - 冲刺存在且状态为 ACTIVE
+     * 预期：冲刺状态变为 COMPLETED，endDate 被设置
+     */
     @Test
     void completeSprint_shouldSetStatusToCompletedAndSetEndDate() {
         // Arrange
@@ -428,6 +520,10 @@ class SprintServiceImplTest {
         verify(sprintMapper).updateById(sprint);
     }
 
+    /**
+     * 测试场景：完成冲刺 - 冲刺不存在
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void completeSprint_shouldThrowException_whenSprintNotFound() {
         // Arrange
@@ -443,6 +539,10 @@ class SprintServiceImplTest {
 
     // ==================== findByProjectId Tests ====================
 
+    /**
+     * 测试场景：根据项目ID查询冲刺列表 - 存在多个冲刺
+     * 预期：返回项目下所有冲刺列表
+     */
     @Test
     void findByProjectId_shouldReturnSprints() {
         // Arrange
@@ -464,6 +564,10 @@ class SprintServiceImplTest {
         verify(sprintMapper).findByProjectId("PRJ_001");
     }
 
+    /**
+     * 测试场景：根据项目ID查询冲刺列表 - 项目下无冲刺
+     * 预期：返回空列表
+     */
     @Test
     void findByProjectId_shouldReturnEmptyList_whenNoSprints() {
         // Arrange
@@ -478,6 +582,10 @@ class SprintServiceImplTest {
 
     // ==================== findById Tests ====================
 
+    /**
+     * 测试场景：根据ID查询冲刺 - 冲刺存在
+     * 预期：返回冲刺对象
+     */
     @Test
     void findById_shouldReturnSprint() {
         // Arrange
@@ -492,6 +600,10 @@ class SprintServiceImplTest {
         verify(sprintMapper).findById(1L);
     }
 
+    /**
+     * 测试场景：根据ID查询冲刺 - 冲刺不存在
+     * 预期：返回 null
+     */
     @Test
     void findById_shouldReturnNull_whenNotFound() {
         // Arrange
@@ -506,6 +618,10 @@ class SprintServiceImplTest {
 
     // ==================== batchAddTasks Tests ====================
 
+    /**
+     * 测试场景：批量添加任务到冲刺 - taskIds 为 null
+     * 预期：返回 0，无数据库交互
+     */
     @Test
     void batchAddTasks_shouldReturnZero_whenTaskIdsIsNull() {
         // Act
@@ -516,6 +632,10 @@ class SprintServiceImplTest {
         verifyNoMoreInteractions(taskMapper);
     }
 
+    /**
+     * 测试场景：批量添加任务到冲刺 - taskIds 为空列表
+     * 预期：返回 0，无数据库交互
+     */
     @Test
     void batchAddTasks_shouldReturnZero_whenTaskIdsIsEmpty() {
         // Act
@@ -526,6 +646,10 @@ class SprintServiceImplTest {
         verifyNoMoreInteractions(taskMapper);
     }
 
+    /**
+     * 测试场景：批量添加任务到冲刺 - 多个任务存在
+     * 预期：所有任务被分配到指定冲刺，返回成功数量
+     */
     @Test
     void batchAddTasks_shouldAddTasksToSprint() {
         // Arrange
@@ -550,6 +674,10 @@ class SprintServiceImplTest {
         assertEquals(1L, task2.getSprintId());
     }
 
+    /**
+     * 测试场景：批量添加任务到冲刺 - 部分任务不存在
+     * 预期：跳过不存在的任务，返回实际添加数量
+     */
     @Test
     void batchAddTasks_shouldSkipNullTasks() {
         // Arrange
@@ -568,6 +696,10 @@ class SprintServiceImplTest {
     // and cannot be properly mocked in unit tests. This is a known limitation.
     // The method is tested for null/empty input handling only.
 
+    /**
+     * 测试场景：批量从冲刺移除任务 - taskIds 为 null
+     * 预期：返回 0
+     */
     @Test
     void batchRemoveTasks_shouldReturnZero_whenTaskIdsIsNull() {
         // Act
@@ -577,6 +709,10 @@ class SprintServiceImplTest {
         assertEquals(0, count);
     }
 
+    /**
+     * 测试场景：批量从冲刺移除任务 - taskIds 为空列表
+     * 预期：返回 0
+     */
     @Test
     void batchRemoveTasks_shouldReturnZero_whenTaskIdsIsEmpty() {
         // Act
@@ -588,6 +724,10 @@ class SprintServiceImplTest {
 
     // ==================== calculateVelocity Edge Cases ====================
 
+    /**
+     * 测试场景：计算冲刺 velocity - 不同进度的任务混合
+     * 预期：仅 progress=100 的任务计入 velocity
+     */
     @Test
     void calculateVelocity_shouldOnlyCountCompletedTasks() {
         // Arrange
@@ -616,6 +756,10 @@ class SprintServiceImplTest {
         assertEquals(10, velocity); // Only completed task counts
     }
 
+    /**
+     * 测试场景：计算冲刺 velocity - 任务预估工时为 null
+     * 预期：null 预估工时贡献 0
+     */
     @Test
     void calculateVelocity_shouldHandleNullEstimateHours() {
         // Arrange
@@ -635,6 +779,10 @@ class SprintServiceImplTest {
 
     // ==================== addTaskToSprint with Milestone ====================
 
+    /**
+     * 测试场景：添加任务到冲刺 - 冲刺有关联里程碑，任务无里程碑
+     * 预期：任务自动关联冲刺的里程碑
+     */
     @Test
     void addTaskToSprint_shouldAutoLinkMilestone_whenSprintHasMilestone() {
         // Arrange
@@ -659,6 +807,10 @@ class SprintServiceImplTest {
         verify(taskMapper).updateById(taskWithoutMilestone);
     }
 
+    /**
+     * 测试场景：添加任务到冲刺 - 冲刺有关联里程碑，任务已有里程碑
+     * 预期：任务的现有里程碑不被覆盖
+     */
     @Test
     void addTaskToSprint_shouldNotOverwriteTaskMilestone() {
         // Arrange
@@ -685,6 +837,10 @@ class SprintServiceImplTest {
 
     // ==================== getSprintStats Edge Cases ====================
 
+    /**
+     * 测试场景：获取冲刺统计信息 - 所有任务都已完成
+     * 预期：正确计算 velocity 和 capacity
+     */
     @Test
     void getSprintStats_shouldCalculateCorrectVelocityAndCapacity() {
         // Arrange

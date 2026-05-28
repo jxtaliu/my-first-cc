@@ -1,6 +1,5 @@
 package com.sme.pm.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sme.pm.entity.Notification;
 import com.sme.pm.mapper.NotificationMapper;
@@ -14,49 +13,34 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
 
     @Override
     public List<Notification> findByUserId(Long userId) {
-        LambdaQueryWrapper<Notification> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Notification::getUserId, userId)
-               .eq(Notification::getDeleted, 0)
-               .orderByDesc(Notification::getCreatedAt);
-        return list(wrapper);
+        return baseMapper.findByUserId(userId);
     }
 
     @Override
     public List<Notification> findUnreadByUserId(Long userId) {
-        LambdaQueryWrapper<Notification> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Notification::getUserId, userId)
-               .eq(Notification::getIsRead, false)
-               .eq(Notification::getDeleted, 0)
-               .orderByDesc(Notification::getCreatedAt);
-        return list(wrapper);
+        return baseMapper.findUnreadByUserId(userId);
     }
 
     @Override
     public int countUnread(Long userId) {
-        LambdaQueryWrapper<Notification> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Notification::getUserId, userId)
-               .eq(Notification::getIsRead, false)
-               .eq(Notification::getDeleted, 0);
-        return (int) count(wrapper);
+        return baseMapper.countUnread(userId);
     }
 
     @Override
     public void markAsRead(Long id) {
-        Notification notification = getById(id);
+        Notification notification = baseMapper.findById(id);
         if (notification != null) {
             notification.setIsRead(1);
-            updateById(notification);
+            baseMapper.updateById(notification);
         }
     }
 
     @Override
     public void markAllAsRead(Long userId) {
-        LambdaQueryWrapper<Notification> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Notification::getUserId, userId)
-               .eq(Notification::getIsRead, 0)
-               .eq(Notification::getDeleted, 0);
-        List<Notification> unread = list(wrapper);
-        unread.forEach(n -> n.setIsRead(1));
-        updateBatchById(unread);
+        List<Notification> unread = baseMapper.findUnreadByUserId(userId);
+        unread.forEach(n -> {
+            n.setIsRead(1);
+            baseMapper.updateById(n);
+        });
     }
 }

@@ -72,6 +72,10 @@ class TaskServiceImplTest {
         );
     }
 
+    /**
+     * 测试场景：创建任务 - 无父任务
+     * 预期：任务 depth 设置为 1
+     */
     @Test
     void create_shouldSetDepth1_whenNoParent() {
         Task task = new Task();
@@ -88,6 +92,10 @@ class TaskServiceImplTest {
         verify(taskMapper).insert(task);
     }
 
+    /**
+     * 测试场景：创建任务 - 有父任务
+     * 预期：任务 depth = 父任务 depth + 1
+     */
     @Test
     void create_shouldSetDepthParentPlus1_whenHasParent() {
         Task parentTask = new Task();
@@ -110,6 +118,10 @@ class TaskServiceImplTest {
         verify(taskMapper).insert(childTask);
     }
 
+    /**
+     * 测试场景：创建任务 - depth 超过最大层级限制
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void create_shouldThrowException_whenDepthExceedsMax() {
         Task parentTask = new Task();
@@ -132,6 +144,10 @@ class TaskServiceImplTest {
         assertTrue(exception.getMessage().contains("Maximum task hierarchy depth"));
     }
 
+    /**
+     * 测试场景：更新任务 - 有效输入
+     * 预期：调用 taskMapper.updateById 并返回更新后的任务
+     */
     @Test
     void update_shouldUpdateTaskAndReturn() {
         Task task = new Task();
@@ -148,6 +164,10 @@ class TaskServiceImplTest {
         verify(taskMapper).updateById(task);
     }
 
+    /**
+     * 测试场景：删除任务 - 任务存在
+     * 预期：调用 taskMapper.deleteById
+     */
     @Test
     void delete_shouldCallDeleteById() {
         Long taskId = 1L;
@@ -157,6 +177,10 @@ class TaskServiceImplTest {
         verify(taskMapper).deleteById(taskId);
     }
 
+    /**
+     * 测试场景：根据ID查询任务 - 任务存在
+     * 预期：返回任务对象
+     */
     @Test
     void getById_shouldReturnTask() {
         Long taskId = 1L;
@@ -173,6 +197,10 @@ class TaskServiceImplTest {
         verify(taskMapper).findById(taskId);
     }
 
+    /**
+     * 测试场景：根据冲刺ID查询任务列表
+     * 预期：返回指定冲刺的所有任务
+     */
     @Test
     void listBySprint_shouldReturnTasks() {
         Long sprintId = 1L;
@@ -193,6 +221,10 @@ class TaskServiceImplTest {
         verify(taskMapper).findBySprintId(sprintId);
     }
 
+    /**
+     * 测试场景：根据父任务ID查询子任务
+     * 预期：返回父任务的所有直接子任务
+     */
     @Test
     void listByParent_shouldReturnChildTasks() {
         Long parentId = 1L;
@@ -213,6 +245,10 @@ class TaskServiceImplTest {
         verify(taskMapper).findByParentId(parentId);
     }
 
+    /**
+     * 测试场景：分配任务 - 任务和用户都存在
+     * 预期：发布 TaskAssignedEvent 事件
+     */
     @Test
     void assign_shouldPublishTaskAssignedEvent() {
         Long taskId = 1L;
@@ -240,6 +276,10 @@ class TaskServiceImplTest {
         assertEquals("Task Assigned", capturedEvent.getTitle());
     }
 
+    /**
+     * 测试场景：更新任务状态 - 状态变更
+     * 预期：发布 TaskStatusChangedEvent 事件
+     */
     @Test
     void updateStatus_shouldPublishTaskStatusChangedEvent() {
         Long taskId = 1L;
@@ -280,6 +320,10 @@ class TaskServiceImplTest {
         assertEquals(newStatusCode, capturedEvent.getNewStatusCode());
     }
 
+    /**
+     * 测试场景：更新任务状态 - 变为进行中
+     * 预期：设置 inProgressSince 时间戳
+     */
     @Test
     void updateStatus_shouldSetInProgressSince_whenMovingToInProgress() {
         Long taskId = 1L;
@@ -309,6 +353,10 @@ class TaskServiceImplTest {
         assertNotNull(result.getInProgressSince());
     }
 
+    /**
+     * 测试场景：更新任务状态 - 变为完成
+     * 预期：设置 completionDate，清空 inProgressSince，progress 设为 100
+     */
     @Test
     void updateStatus_shouldSetCompletionDateAndProgress_whenMovingToDone() {
         Long taskId = 1L;
@@ -341,6 +389,10 @@ class TaskServiceImplTest {
         assertNull(result.getInProgressSince());
     }
 
+    /**
+     * 测试场景：检查任务状态转换 - 检查阻塞依赖
+     * 预期：委托给 taskDependencyService 检查
+     */
     @Test
     void canTransitionTo_shouldCheckBlockingDependencies() {
         Long taskId = 1L;
@@ -356,6 +408,10 @@ class TaskServiceImplTest {
 
     // ==================== Requirement Tree Tests ====================
 
+    /**
+     * 测试场景：获取需求树 - 项目包含 Epic 和 Feature
+     * 预期：返回所有 Epic 和 Feature 节点
+     */
     @Test
     void getRequirementTree_shouldReturnEpicsAndFeatures() {
         String projectId = "PRJ_001";
@@ -371,6 +427,10 @@ class TaskServiceImplTest {
         assertEquals(2, result.size());
     }
 
+    /**
+     * 测试场景：获取需求的直接子节点
+     * 预期：返回父任务的所有直接子任务
+     */
     @Test
     void getRequirementChildren_shouldReturnDirectChildren() {
         Long parentId = 1L;
@@ -386,6 +446,10 @@ class TaskServiceImplTest {
         assertEquals(2, result.size());
     }
 
+    /**
+     * 测试场景：获取项目的 Bug 列表
+     * 预期：返回类型为 BUG 的所有任务
+     */
     @Test
     void getBugs_shouldReturnBugsForProject() {
         String projectId = "PRJ_001";
@@ -402,6 +466,10 @@ class TaskServiceImplTest {
         assertEquals("BUG", result.get(0).getType());
     }
 
+    /**
+     * 测试场景：更新 Bug 状态
+     * 预期：任务的 bugStatusId 被更新
+     */
     @Test
     void updateBugStatus_shouldUpdateBugStatusId() {
         Long taskId = 1L;
@@ -421,6 +489,10 @@ class TaskServiceImplTest {
         verify(taskMapper).updateById(task);
     }
 
+    /**
+     * 测试场景：移动需求 - 指定新父任务
+     * 预期：更新 parentId 和 depth
+     */
     @Test
     void moveRequirement_shouldUpdateParentAndDepth_whenNewParentProvided() {
         Long taskId = 1L;
@@ -445,6 +517,10 @@ class TaskServiceImplTest {
         verify(taskMapper).updateById(task);
     }
 
+    /**
+     * 测试场景：移动需求 - 新父任务为 null（移到根级别）
+     * 预期：parentId 设为 null，depth 重置为 1
+     */
     @Test
     void moveRequirement_shouldResetToDepth1_whenNewParentIsNull() {
         Long taskId = 1L;
@@ -464,6 +540,10 @@ class TaskServiceImplTest {
         verify(taskMapper).updateById(task);
     }
 
+    /**
+     * 测试场景：移动需求 - 任务不存在
+     * 预期：不调用 updateById
+     */
     @Test
     void moveRequirement_shouldDoNothing_whenTaskNotFound() {
         Long taskId = 999L;
@@ -476,6 +556,10 @@ class TaskServiceImplTest {
         verify(taskMapper, never()).updateById(any(Task.class));
     }
 
+    /**
+     * 测试场景：获取需求子树 - 无子节点
+     * 预期：返回空列表
+     */
     @Test
     void getRequirementSubtree_shouldReturnEmptyList_whenNoChildren() {
         Long parentId = 1L;
@@ -493,6 +577,10 @@ class TaskServiceImplTest {
     // LambdaUpdateWrapper cannot be properly mocked in unit tests.
     // Successful move cases are covered by batchMove tests.
 
+    /**
+     * 测试场景：移动任务 - 任务不存在
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void move_shouldThrowException_whenTaskNotFound() {
         // Arrange
@@ -511,6 +599,10 @@ class TaskServiceImplTest {
         assertTrue(exception.getMessage().contains("Task not found"));
     }
 
+    /**
+     * 测试场景：移动任务 - EPIC 类型不允许直接设置冲刺
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void move_shouldThrowException_whenMovingEpicToSprint() {
         // Arrange
@@ -536,6 +628,10 @@ class TaskServiceImplTest {
         assertTrue(exception.getMessage().contains("EPIC类型的任务不允许直接设置冲刺"));
     }
 
+    /**
+     * 测试场景：移动任务 - FEATURE 类型不允许直接设置冲刺
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void move_shouldThrowException_whenMovingFeatureToSprint() {
         // Arrange
@@ -561,6 +657,10 @@ class TaskServiceImplTest {
         assertTrue(exception.getMessage().contains("FEATURE类型的任务不允许直接设置冲刺"));
     }
 
+    /**
+     * 测试场景：移动任务 - STORY 类型不允许直接设置冲刺
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void move_shouldThrowException_whenMovingStoryToSprint() {
         // Arrange
@@ -588,6 +688,10 @@ class TaskServiceImplTest {
 
     // ==================== BatchMove Tests ====================
 
+    /**
+     * 测试场景：批量移动任务 - taskIds 为 null
+     * 预期：返回 successCount=0, failedCount=0
+     */
     @Test
     void batchMove_shouldReturnZeroCounts_whenTaskIdsIsNull() {
         // Act
@@ -598,6 +702,10 @@ class TaskServiceImplTest {
         assertEquals(0, result.get("failedCount"));
     }
 
+    /**
+     * 测试场景：批量移动任务 - taskIds 为空列表
+     * 预期：返回 successCount=0, failedCount=0
+     */
     @Test
     void batchMove_shouldReturnZeroCounts_whenTaskIdsIsEmpty() {
         // Act
@@ -608,6 +716,10 @@ class TaskServiceImplTest {
         assertEquals(0, result.get("failedCount"));
     }
 
+    /**
+     * 测试场景：批量移动任务 - 单个任务移动到冲刺
+     * 预期：任务被分配到指定冲刺
+     */
     @Test
     void batchMove_shouldMoveSingleTaskToSprint() {
         // Arrange
@@ -632,6 +744,10 @@ class TaskServiceImplTest {
         assertEquals(100L, task.getSprintId());
     }
 
+    /**
+     * 测试场景：批量移动任务 - 多个任务移动到冲刺
+     * 预期：所有任务都被分配到指定冲刺
+     */
     @Test
     void batchMove_shouldMoveMultipleTasksToSprint() {
         // Arrange
@@ -663,6 +779,10 @@ class TaskServiceImplTest {
         assertEquals(100L, task2.getSprintId());
     }
 
+    /**
+     * 测试场景：批量移动任务 - 移动到待办（sprintId 为 null）
+     * 预期：任务的 sprintId 被设置为 null
+     */
     @Test
     void batchMove_shouldMoveTaskToBacklog_whenSprintIdIsNull() {
         // Arrange
@@ -686,6 +806,10 @@ class TaskServiceImplTest {
         assertNull(task.getSprintId());
     }
 
+    /**
+     * 测试场景：批量移动任务 - EPIC 类型跳过
+     * 预期：EPIC 任务不改变 sprintId，计为失败
+     */
     @Test
     void batchMove_shouldSkipEpicTask_whenMovingToSprint() {
         // Arrange
@@ -708,6 +832,10 @@ class TaskServiceImplTest {
         assertNull(epicTask.getSprintId()); // Epic should NOT have sprintId changed
     }
 
+    /**
+     * 测试场景：批量移动任务 - FEATURE 类型跳过
+     * 预期：FEATURE 任务不改变 sprintId，计为失败
+     */
     @Test
     void batchMove_shouldSkipFeatureTask_whenMovingToSprint() {
         // Arrange
@@ -730,6 +858,10 @@ class TaskServiceImplTest {
         assertNull(featureTask.getSprintId()); // Feature should NOT have sprintId changed
     }
 
+    /**
+     * 测试场景：批量移动任务 - STORY 类型跳过
+     * 预期：STORY 任务不改变 sprintId，计为失败
+     */
     @Test
     void batchMove_shouldSkipStoryTask_whenMovingToSprint() {
         // Arrange
@@ -752,6 +884,10 @@ class TaskServiceImplTest {
         assertNull(storyTask.getSprintId()); // Story should NOT have sprintId changed
     }
 
+    /**
+     * 测试场景：批量移动任务 - 任务不存在
+     * 预期：计为失败，记录错误信息
+     */
     @Test
     void batchMove_shouldSkipTaskNotFound() {
         // Arrange
@@ -770,6 +906,10 @@ class TaskServiceImplTest {
         assertTrue(errors.get(0).contains("Task not found: 999"));
     }
 
+    /**
+     * 测试场景：批量移动任务 - 同时指定目标状态
+     * 预期：任务同时被移动到冲刺并更新状态
+     */
     @Test
     void batchMove_shouldUpdateStatus_whenTargetStatusProvided() {
         // Arrange
@@ -793,6 +933,10 @@ class TaskServiceImplTest {
         assertEquals("DONE", task.getStatus());
     }
 
+    /**
+     * 测试场景：批量移动任务 - 移动到完成状态
+     * 预期：设置 completionDate、progress=100，清空 inProgressSince
+     */
     @Test
     void batchMove_shouldSetCompletionDate_whenMovingToDone() {
         // Arrange
@@ -819,6 +963,10 @@ class TaskServiceImplTest {
         assertNull(task.getInProgressSince());
     }
 
+    /**
+     * 测试场景：批量移动任务 - 移动到进行中状态
+     * 预期：设置 inProgressSince 时间戳
+     */
     @Test
     void batchMove_shouldSetInProgressSince_whenMovingToInProgress() {
         // Arrange
@@ -843,6 +991,10 @@ class TaskServiceImplTest {
         assertNotNull(task.getInProgressSince());
     }
 
+    /**
+     * 测试场景：批量移动任务 - 混合成功和失败
+     * 预期：TASK 类型成功，EPIC 类型失败
+     */
     @Test
     void batchMove_shouldHandleMixedSuccessAndFailure() {
         // Arrange
@@ -885,6 +1037,10 @@ class TaskServiceImplTest {
 
     // ==================== Additional create tests for error paths ====================
 
+    /**
+     * 测试场景：创建任务 - projectId 为空字符串
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void create_shouldThrowException_whenProjectIdIsEmpty() {
         Task task = new Task();
@@ -899,6 +1055,10 @@ class TaskServiceImplTest {
         assertTrue(exception.getMessage().contains("projectId不能为空"));
     }
 
+    /**
+     * 测试场景：创建任务 - title 为空字符串
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void create_shouldThrowException_whenTitleIsEmpty() {
         Task task = new Task();
@@ -913,6 +1073,10 @@ class TaskServiceImplTest {
         assertTrue(exception.getMessage().contains("title不能为空"));
     }
 
+    /**
+     * 测试场景：创建任务 - 未提供 taskId
+     * 预期：自动生成以 TSK 开头的 taskId
+     */
     @Test
     void create_shouldGenerateTaskId_whenNotProvided() {
         Task task = new Task();
@@ -932,6 +1096,10 @@ class TaskServiceImplTest {
         assertTrue(result.getTaskId().startsWith("TSK"));
     }
 
+    /**
+     * 测试场景：创建任务 - taskId 已存在
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void create_shouldThrowException_whenDuplicateTaskId() {
         Task task = new Task();
@@ -949,6 +1117,10 @@ class TaskServiceImplTest {
         assertTrue(exception.getMessage().contains("任务ID已存在"));
     }
 
+    /**
+     * 测试场景：创建任务 - 未指定 status
+     * 预期：默认设置为 TODO
+     */
     @Test
     void create_shouldSetDefaultStatus_whenNotSpecified() {
         Task task = new Task();
@@ -964,6 +1136,10 @@ class TaskServiceImplTest {
         assertEquals("TODO", result.getStatus());
     }
 
+    /**
+     * 测试场景：创建任务 - 未指定 progress
+     * 预期：默认设置为 0
+     */
     @Test
     void create_shouldSetDefaultProgress_whenNotSpecified() {
         Task task = new Task();
@@ -981,6 +1157,10 @@ class TaskServiceImplTest {
 
     // ==================== update tests ====================
 
+    /**
+     * 测试场景：更新任务 - id 为 null
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void update_shouldThrowException_whenIdIsNull() {
         Task task = new Task();
@@ -994,6 +1174,10 @@ class TaskServiceImplTest {
         assertTrue(exception.getMessage().contains("id不能为空"));
     }
 
+    /**
+     * 测试场景：更新任务 - title 为空字符串
+     * 预期：抛出 IllegalArgumentException
+     */
     @Test
     void update_shouldThrowException_whenTitleIsEmptyString() {
         Task task = new Task();
@@ -1009,6 +1193,10 @@ class TaskServiceImplTest {
 
     // ==================== Comment tests ====================
 
+    /**
+     * 测试场景：添加任务评论 - 设置 taskId 并保存
+     * 预期：comment.taskId 被设置，调用 save
+     */
     @Test
     void addComment_shouldSetTaskIdAndSave() {
         Long taskId = 1L;
@@ -1023,6 +1211,10 @@ class TaskServiceImplTest {
         verify(taskCommentService).save(comment);
     }
 
+    /**
+     * 测试场景：获取任务评论列表
+     * 预期：返回指定任务的所有评论
+     */
     @Test
     void getComments_shouldReturnComments() {
         Long taskId = 1L;
@@ -1040,6 +1232,10 @@ class TaskServiceImplTest {
 
     // ==================== Attachment tests ====================
 
+    /**
+     * 测试场景：添加任务附件 - 设置 taskId 并上传
+     * 预期：attachment.taskId 被设置，调用 uploadAttachment
+     */
     @Test
     void addAttachment_shouldSetTaskIdAndUpload() {
         Long taskId = 1L;
@@ -1052,6 +1248,10 @@ class TaskServiceImplTest {
         verify(taskAttachmentService).uploadAttachment(attachment);
     }
 
+    /**
+     * 测试场景：获取任务附件列表
+     * 预期：返回指定任务的所有附件
+     */
     @Test
     void getAttachments_shouldReturnAttachments() {
         Long taskId = 1L;
@@ -1066,6 +1266,10 @@ class TaskServiceImplTest {
         verify(taskAttachmentService).findByTaskId(taskId);
     }
 
+    /**
+     * 测试场景：删除任务附件
+     * 预期：调用 deleteAttachment
+     */
     @Test
     void deleteAttachment_shouldCallDelete() {
         Long attachmentId = 1L;
@@ -1077,6 +1281,10 @@ class TaskServiceImplTest {
 
     // ==================== Dependency tests ====================
 
+    /**
+     * 测试场景：添加任务依赖 - 设置 taskId 并保存
+     * 预期：dependency.taskId 被设置，调用 save
+     */
     @Test
     void addDependency_shouldSetTaskIdAndSave() {
         Long taskId = 1L;
@@ -1093,6 +1301,10 @@ class TaskServiceImplTest {
         verify(taskDependencyService).save(dependency);
     }
 
+    /**
+     * 测试场景：移除任务依赖
+     * 预期：调用 removeById
+     */
     @Test
     void removeDependency_shouldCallRemove() {
         Long dependencyId = 1L;
@@ -1102,6 +1314,10 @@ class TaskServiceImplTest {
         verify(taskDependencyService).removeById(dependencyId);
     }
 
+    /**
+     * 测试场景：获取任务依赖列表
+     * 预期：返回指定任务的所有依赖
+     */
     @Test
     void getDependencies_shouldReturnDependencies() {
         Long taskId = 1L;
@@ -1116,6 +1332,10 @@ class TaskServiceImplTest {
         verify(taskDependencyService).findByTaskId(taskId);
     }
 
+    /**
+     * 测试场景：获取阻塞此任务的依赖
+     * 预期：返回依赖此任务的所有依赖关系
+     */
     @Test
     void getBlockingDependencies_shouldReturnBlockingDeps() {
         Long taskId = 1L;
@@ -1131,6 +1351,10 @@ class TaskServiceImplTest {
         verify(taskDependencyService).findByDependsOnTaskId(taskId);
     }
 
+    /**
+     * 测试场景：统计阻塞依赖数量
+     * 预期：返回阻塞此任务的数量
+     */
     @Test
     void countBlockingDependencies_shouldReturnCount() {
         Long taskId = 1L;
@@ -1145,6 +1369,10 @@ class TaskServiceImplTest {
 
     // ==================== List methods tests ====================
 
+    /**
+     * 测试场景：根据项目ID查询任务列表
+     * 预期：返回项目下所有任务
+     */
     @Test
     void listByProject_shouldReturnTasks() {
         String projectId = "PRJ_001";
@@ -1159,6 +1387,10 @@ class TaskServiceImplTest {
         verify(taskMapper).findByProjectIdWithUser(projectId);
     }
 
+    /**
+     * 测试场景：根据负责人查询任务列表
+     * 预期：返回负责人下的所有任务
+     */
     @Test
     void listByAssignee_shouldReturnTasks() {
         Long assigneeId = 1L;
@@ -1175,6 +1407,10 @@ class TaskServiceImplTest {
 
     // ==================== countByStatusId test ====================
 
+    /**
+     * 测试场景：根据状态ID统计任务数量
+     * 预期：返回指定状态的任务数量
+     */
     @Test
     void countByStatusId_shouldReturnCount() {
         Integer statusId = 5;
@@ -1189,6 +1425,10 @@ class TaskServiceImplTest {
 
     // ==================== canTransitionTo test ====================
 
+    /**
+     * 测试场景：检查任务状态转换 - 委托给依赖服务
+     * 预期：委托给 taskDependencyService 检查
+     */
     @Test
     void canTransitionTo_shouldDelegateToDependencyService() {
         Long taskId = 1L;
@@ -1204,6 +1444,10 @@ class TaskServiceImplTest {
 
     // ==================== Requirement Tree tests ====================
 
+    /**
+     * 测试场景：获取需求树 - 构建正确的层级结构
+     * 预期：Epic 为根节点，包含 Feature 子节点，Feature 包含 Story 子节点
+     */
     @Test
     void getRequirementTree_shouldBuildCorrectHierarchy() {
         String projectId = "PRJ_001";
@@ -1234,6 +1478,10 @@ class TaskServiceImplTest {
         assertEquals(1, result.get(0).getChildren().size()); // Epic has feature as child
     }
 
+    /**
+     * 测试场景：获取需求树 - 孤立任务视为根节点
+     * 预期：父节点不存在的任务被视为根节点
+     */
     @Test
     void getRequirementTree_shouldTreatOrphanTasksAsRoot() {
         String projectId = "PRJ_001";
