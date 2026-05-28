@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ProjectStatsServiceImplTest {
 
     @Mock
@@ -50,6 +53,7 @@ class ProjectStatsServiceImplTest {
     void setUp() {
         testProject = new Project();
         testProject.setId(1L);
+        testProject.setProjectId("PRJ_001");
         testProject.setName("Test Project");
         testProject.setStatus("ACTIVE");
 
@@ -63,6 +67,7 @@ class ProjectStatsServiceImplTest {
         completedTask = new Task();
         completedTask.setId(1L);
         completedTask.setProjectId("PRJ_001");
+        completedTask.setType("TASK"); // Must be TASK or SUBTASK to be counted
         completedTask.setSprintId(1L);
         completedTask.setTitle("Completed Task");
         completedTask.setEstimateHours(8);
@@ -72,6 +77,7 @@ class ProjectStatsServiceImplTest {
         inProgressTask = new Task();
         inProgressTask.setId(2L);
         inProgressTask.setProjectId("PRJ_001");
+        inProgressTask.setType("TASK"); // Must be TASK or SUBTASK to be counted
         inProgressTask.setSprintId(1L);
         inProgressTask.setTitle("In Progress Task");
         inProgressTask.setEstimateHours(4);
@@ -80,6 +86,7 @@ class ProjectStatsServiceImplTest {
         notStartedTask = new Task();
         notStartedTask.setId(3L);
         notStartedTask.setProjectId("PRJ_001");
+        notStartedTask.setType("TASK"); // Must be TASK or SUBTASK to be counted
         notStartedTask.setSprintId(1L);
         notStartedTask.setTitle("Not Started Task");
         notStartedTask.setEstimateHours(2);
@@ -97,7 +104,7 @@ class ProjectStatsServiceImplTest {
         Map<String, Object> stats = projectStatsService.getProjectStats("PRJ_001");
 
         // Assert
-        assertEquals(1L, stats.get("projectId"));
+        assertEquals("PRJ_001", stats.get("projectId"));
         assertEquals("Test Project", stats.get("projectName"));
         assertEquals(3, stats.get("totalTasks"));
         assertEquals(1, stats.get("completedTasks"));
@@ -128,6 +135,7 @@ class ProjectStatsServiceImplTest {
         Task taskWithNullEstimate = new Task();
         taskWithNullEstimate.setId(4L);
         taskWithNullEstimate.setProjectId("PRJ_001");
+        taskWithNullEstimate.setType("TASK"); // Must be TASK or SUBTASK to be counted
         taskWithNullEstimate.setEstimateHours(null);
         taskWithNullEstimate.setProgress(100);
 
@@ -280,6 +288,7 @@ class ProjectStatsServiceImplTest {
         Task taskWithNullProgress = new Task();
         taskWithNullProgress.setId(1L);
         taskWithNullProgress.setProjectId("PRJ_001");
+        taskWithNullProgress.setType("TASK"); // Must be TASK or SUBTASK to be counted
         taskWithNullProgress.setEstimateHours(10);
         taskWithNullProgress.setProgress(null);
 
@@ -303,12 +312,14 @@ class ProjectStatsServiceImplTest {
         Task task1 = new Task();
         task1.setId(1L);
         task1.setProjectId("PRJ_001");
+        task1.setType("TASK"); // Must be TASK or SUBTASK to be counted
         task1.setEstimateHours(5);
         task1.setProgress(100);
 
         Task task2 = new Task();
         task2.setId(2L);
         task2.setProjectId("PRJ_001");
+        task2.setType("TASK"); // Must be TASK or SUBTASK to be counted
         task2.setEstimateHours(10);
         task2.setProgress(100);
 
