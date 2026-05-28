@@ -1,6 +1,9 @@
 package com.sme.pm.service.impl;
 
 import com.sme.pm.entity.Task;
+import com.sme.pm.entity.TaskAttachment;
+import com.sme.pm.entity.TaskComment;
+import com.sme.pm.entity.TaskDependency;
 import com.sme.pm.entity.TaskStatus;
 import com.sme.pm.event.TaskAssignedEvent;
 import com.sme.pm.event.TaskStatusChangedEvent;
@@ -878,6 +881,374 @@ class TaskServiceImplTest {
         List<String> errors = (List<String>) result.get("errors");
         assertEquals(1, errors.size());
         assertTrue(errors.get(0).contains("EPIC"));
+    }
+
+    // ==================== Additional create tests for error paths ====================
+
+    @Test
+    void create_shouldThrowException_whenProjectIdIsEmpty() {
+        Task task = new Task();
+        task.setProjectId("");
+        task.setType("TASK");
+        task.setTitle("Test");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.create(task)
+        );
+        assertTrue(exception.getMessage().contains("projectId不能为空"));
+    }
+
+    @Test
+    void create_shouldThrowException_whenTitleIsEmpty() {
+        Task task = new Task();
+        task.setProjectId("PRJ_001");
+        task.setType("TASK");
+        task.setTitle("");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.create(task)
+        );
+        assertTrue(exception.getMessage().contains("title不能为空"));
+    }
+
+    @Test
+    void create_shouldGenerateTaskId_whenNotProvided() {
+        Task task = new Task();
+        task.setProjectId("PRJ_001");
+        task.setType("TASK");
+        task.setTitle("Test Task");
+        task.setTaskId(null);
+
+        when(taskIdSequenceMapper.insertIfNotExists(any(), any())).thenReturn(1);
+        when(taskIdSequenceMapper.incrementSeq(any(), any())).thenReturn(1);
+        when(taskIdSequenceMapper.getCurrentSeq(any(), any())).thenReturn(1);
+        when(taskMapper.insert(any(Task.class))).thenReturn(1);
+
+        Task result = taskService.create(task);
+
+        assertNotNull(result.getTaskId());
+        assertTrue(result.getTaskId().startsWith("TSK"));
+    }
+
+    @Test
+    void create_shouldThrowException_whenDuplicateTaskId() {
+        Task task = new Task();
+        task.setProjectId("PRJ_001");
+        task.setType("TASK");
+        task.setTitle("Test Task");
+        task.setTaskId("TSK001");
+
+        when(taskMapper.findByTaskId("TSK001")).thenReturn(new Task());
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.create(task)
+        );
+        assertTrue(exception.getMessage().contains("任务ID已存在"));
+    }
+
+    @Test
+    void create_shouldSetDefaultStatus_whenNotSpecified() {
+        Task task = new Task();
+        task.setProjectId("PRJ_001");
+        task.setType("TASK");
+        task.setTitle("Test Task");
+        task.setStatus(null);
+
+        when(taskMapper.insert(any(Task.class))).thenReturn(1);
+
+        Task result = taskService.create(task);
+
+        assertEquals("TODO", result.getStatus());
+    }
+
+    @Test
+    void create_shouldSetDefaultProgress_whenNotSpecified() {
+        Task task = new Task();
+        task.setProjectId("PRJ_001");
+        task.setType("TASK");
+        task.setTitle("Test Task");
+        task.setProgress(null);
+
+        when(taskMapper.insert(any(Task.class))).thenReturn(1);
+
+        Task result = taskService.create(task);
+
+        assertEquals(0, result.getProgress());
+    }
+
+    // ==================== update tests ====================
+
+    @Test
+    void update_shouldThrowException_whenIdIsNull() {
+        Task task = new Task();
+        task.setId(null);
+        task.setTitle("Test");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.update(task)
+        );
+        assertTrue(exception.getMessage().contains("id不能为空"));
+    }
+
+    @Test
+    void update_shouldThrowException_whenTitleIsEmptyString() {
+        Task task = new Task();
+        task.setId(1L);
+        task.setTitle("");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.update(task)
+        );
+        assertTrue(exception.getMessage().contains("title不能为空字符串"));
+    }
+
+    // ==================== Comment tests ====================
+
+    @Test
+    void addComment_shouldSetTaskIdAndSave() {
+        Long taskId = 1L;
+        TaskComment comment = new TaskComment();
+        comment.setContent("Test comment");
+
+        when(taskCommentService.save(any(TaskComment.class))).thenReturn(true);
+
+        taskService.addComment(taskId, comment);
+
+        assertEquals(taskId, comment.getTaskId());
+        verify(taskCommentService).save(comment);
+    }
+
+    @Test
+    void getComments_shouldReturnComments() {
+        Long taskId = 1L;
+        TaskComment comment = new TaskComment();
+        comment.setId(1L);
+        comment.setContent("Test comment");
+
+        when(taskCommentService.findByTaskId(taskId)).thenReturn(Collections.singletonList(comment));
+
+        List<TaskComment> result = taskService.getComments(taskId);
+
+        assertEquals(1, result.size());
+        verify(taskCommentService).findByTaskId(taskId);
+    }
+
+    // ==================== Attachment tests ====================
+
+    @Test
+    void addAttachment_shouldSetTaskIdAndUpload() {
+        Long taskId = 1L;
+        TaskAttachment attachment = new TaskAttachment();
+        attachment.setFileName("test.pdf");
+
+        taskService.addAttachment(taskId, attachment);
+
+        assertEquals(taskId, attachment.getTaskId());
+        verify(taskAttachmentService).uploadAttachment(attachment);
+    }
+
+    @Test
+    void getAttachments_shouldReturnAttachments() {
+        Long taskId = 1L;
+        TaskAttachment attachment = new TaskAttachment();
+        attachment.setId(1L);
+
+        when(taskAttachmentService.findByTaskId(taskId)).thenReturn(Collections.singletonList(attachment));
+
+        List<TaskAttachment> result = taskService.getAttachments(taskId);
+
+        assertEquals(1, result.size());
+        verify(taskAttachmentService).findByTaskId(taskId);
+    }
+
+    @Test
+    void deleteAttachment_shouldCallDelete() {
+        Long attachmentId = 1L;
+
+        taskService.deleteAttachment(attachmentId);
+
+        verify(taskAttachmentService).deleteAttachment(attachmentId);
+    }
+
+    // ==================== Dependency tests ====================
+
+    @Test
+    void addDependency_shouldSetTaskIdAndSave() {
+        Long taskId = 1L;
+        TaskDependency dependency = new TaskDependency();
+        dependency.setDependsOnTaskId(2L);
+
+        when(taskDependencyService.findByDependsOnTaskId(taskId)).thenReturn(Collections.emptyList());
+        when(taskMapper.findById(taskId)).thenReturn(new Task());
+        when(taskDependencyService.save(any(TaskDependency.class))).thenReturn(true);
+
+        taskService.addDependency(taskId, dependency);
+
+        assertEquals(taskId, dependency.getTaskId());
+        verify(taskDependencyService).save(dependency);
+    }
+
+    @Test
+    void removeDependency_shouldCallRemove() {
+        Long dependencyId = 1L;
+
+        taskService.removeDependency(dependencyId);
+
+        verify(taskDependencyService).removeById(dependencyId);
+    }
+
+    @Test
+    void getDependencies_shouldReturnDependencies() {
+        Long taskId = 1L;
+        TaskDependency dependency = new TaskDependency();
+        dependency.setId(1L);
+
+        when(taskDependencyService.findByTaskId(taskId)).thenReturn(Collections.singletonList(dependency));
+
+        List<TaskDependency> result = taskService.getDependencies(taskId);
+
+        assertEquals(1, result.size());
+        verify(taskDependencyService).findByTaskId(taskId);
+    }
+
+    @Test
+    void getBlockingDependencies_shouldReturnBlockingDeps() {
+        Long taskId = 1L;
+        TaskDependency dependency = new TaskDependency();
+        dependency.setId(1L);
+
+        when(taskDependencyService.findByDependsOnTaskId(taskId))
+            .thenReturn(Collections.singletonList(dependency));
+
+        List<TaskDependency> result = taskService.getBlockingDependencies(taskId);
+
+        assertEquals(1, result.size());
+        verify(taskDependencyService).findByDependsOnTaskId(taskId);
+    }
+
+    @Test
+    void countBlockingDependencies_shouldReturnCount() {
+        Long taskId = 1L;
+
+        when(taskDependencyService.countBlockingDependencies(taskId)).thenReturn(5);
+
+        int result = taskService.countBlockingDependencies(taskId);
+
+        assertEquals(5, result);
+        verify(taskDependencyService).countBlockingDependencies(taskId);
+    }
+
+    // ==================== List methods tests ====================
+
+    @Test
+    void listByProject_shouldReturnTasks() {
+        String projectId = "PRJ_001";
+        Task task = new Task();
+        task.setId(1L);
+
+        when(taskMapper.findByProjectIdWithUser(projectId)).thenReturn(Collections.singletonList(task));
+
+        List<Task> result = taskService.listByProject(projectId);
+
+        assertEquals(1, result.size());
+        verify(taskMapper).findByProjectIdWithUser(projectId);
+    }
+
+    @Test
+    void listByAssignee_shouldReturnTasks() {
+        Long assigneeId = 1L;
+        Task task = new Task();
+        task.setId(1L);
+
+        when(taskMapper.findByAssigneeId(assigneeId)).thenReturn(Collections.singletonList(task));
+
+        List<Task> result = taskService.listByAssignee(assigneeId);
+
+        assertEquals(1, result.size());
+        verify(taskMapper).findByAssigneeId(assigneeId);
+    }
+
+    // ==================== countByStatusId test ====================
+
+    @Test
+    void countByStatusId_shouldReturnCount() {
+        Integer statusId = 5;
+
+        when(taskMapper.countByStatusId(statusId)).thenReturn(10);
+
+        int result = taskService.countByStatusId(statusId);
+
+        assertEquals(10, result);
+        verify(taskMapper).countByStatusId(statusId);
+    }
+
+    // ==================== canTransitionTo test ====================
+
+    @Test
+    void canTransitionTo_shouldDelegateToDependencyService() {
+        Long taskId = 1L;
+        String targetStatus = "IN_PROGRESS";
+
+        when(taskDependencyService.canTransitionTo(taskId, targetStatus)).thenReturn(true);
+
+        boolean result = taskService.canTransitionTo(taskId, targetStatus);
+
+        assertTrue(result);
+        verify(taskDependencyService).canTransitionTo(taskId, targetStatus);
+    }
+
+    // ==================== Requirement Tree tests ====================
+
+    @Test
+    void getRequirementTree_shouldBuildCorrectHierarchy() {
+        String projectId = "PRJ_001";
+
+        Task epic = new Task();
+        epic.setId(1L);
+        epic.setType("EPIC");
+        epic.setProjectId(projectId);
+
+        Task feature = new Task();
+        feature.setId(2L);
+        feature.setType("FEATURE");
+        feature.setParentId(1L);
+        feature.setProjectId(projectId);
+
+        Task story = new Task();
+        story.setId(3L);
+        story.setType("STORY");
+        story.setParentId(2L);
+        story.setProjectId(projectId);
+
+        when(taskMapper.selectList(any()))
+            .thenReturn(Arrays.asList(epic, feature, story));
+
+        List<Task> result = taskService.getRequirementTree(projectId);
+
+        assertEquals(1, result.size()); // Only epic is root
+        assertEquals(1, result.get(0).getChildren().size()); // Epic has feature as child
+    }
+
+    @Test
+    void getRequirementTree_shouldTreatOrphanTasksAsRoot() {
+        String projectId = "PRJ_001";
+
+        Task orphan = new Task();
+        orphan.setId(1L);
+        orphan.setType("EPIC");
+        orphan.setParentId(999L); // Parent doesn't exist
+        orphan.setProjectId(projectId);
+
+        when(taskMapper.selectList(any())).thenReturn(Collections.singletonList(orphan));
+
+        List<Task> result = taskService.getRequirementTree(projectId);
+
+        assertEquals(1, result.size()); // Orphan treated as root
     }
 
     private Task createTask(Long id, String title, String type, String projectId) {

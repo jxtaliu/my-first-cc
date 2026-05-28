@@ -256,4 +256,463 @@ class SprintServiceImplTest {
         assertEquals(0, stats.get("completedTasks")); // Null progress is not completed
         assertEquals(1, stats.get("remainingTasks"));
     }
+
+    // ==================== create Tests ====================
+
+    @Test
+    void create_shouldSetStatusToPlanning_andInsertSprint() {
+        // Arrange
+        Sprint sprint = new Sprint();
+        sprint.setProjectId("PRJ_001");
+        sprint.setName("New Sprint");
+
+        when(sprintMapper.insert(any(Sprint.class))).thenReturn(1);
+
+        // Act
+        Sprint result = sprintService.create(sprint);
+
+        // Assert
+        assertEquals("PLANNING", result.getStatus());
+        verify(sprintMapper).insert(sprint);
+    }
+
+    @Test
+    void create_shouldThrowException_whenProjectIdIsNull() {
+        // Arrange
+        Sprint sprint = new Sprint();
+        sprint.setProjectId(null);
+        sprint.setName("New Sprint");
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sprintService.create(sprint)
+        );
+        assertTrue(exception.getMessage().contains("projectId不能为空"));
+    }
+
+    @Test
+    void create_shouldThrowException_whenProjectIdIsEmpty() {
+        // Arrange
+        Sprint sprint = new Sprint();
+        sprint.setProjectId("");
+        sprint.setName("New Sprint");
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sprintService.create(sprint)
+        );
+        assertTrue(exception.getMessage().contains("projectId不能为空"));
+    }
+
+    @Test
+    void create_shouldThrowException_whenNameIsNull() {
+        // Arrange
+        Sprint sprint = new Sprint();
+        sprint.setProjectId("PRJ_001");
+        sprint.setName(null);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sprintService.create(sprint)
+        );
+        assertTrue(exception.getMessage().contains("name不能为空"));
+    }
+
+    @Test
+    void create_shouldThrowException_whenNameIsEmpty() {
+        // Arrange
+        Sprint sprint = new Sprint();
+        sprint.setProjectId("PRJ_001");
+        sprint.setName("");
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sprintService.create(sprint)
+        );
+        assertTrue(exception.getMessage().contains("name不能为空"));
+    }
+
+    // ==================== update Tests ====================
+
+    @Test
+    void update_shouldCallUpdateById() {
+        // Arrange
+        Sprint sprint = new Sprint();
+        sprint.setId(1L);
+        sprint.setName("Updated Sprint");
+
+        when(sprintMapper.updateById(sprint)).thenReturn(1);
+
+        // Act
+        Sprint result = sprintService.update(sprint);
+
+        // Assert
+        assertNotNull(result);
+        verify(sprintMapper).updateById(sprint);
+    }
+
+    // ==================== delete Tests ====================
+
+    @Test
+    void delete_shouldCallDeleteById() {
+        // Arrange
+        Long sprintId = 1L;
+
+        // Act
+        sprintService.delete(sprintId);
+
+        // Assert
+        verify(sprintMapper).deleteById(sprintId);
+    }
+
+    // ==================== startSprint Tests ====================
+
+    @Test
+    void startSprint_shouldSetStatusToActiveAndSetStartDate() {
+        // Arrange
+        Sprint sprint = new Sprint();
+        sprint.setId(1L);
+        sprint.setProjectId("PRJ_001");
+        sprint.setName("Sprint 1");
+        sprint.setStatus("PLANNING");
+
+        when(sprintMapper.findById(1L)).thenReturn(sprint);
+        when(sprintMapper.updateById(sprint)).thenReturn(1);
+
+        // Act
+        Sprint result = sprintService.startSprint(1L);
+
+        // Assert
+        assertEquals("ACTIVE", result.getStatus());
+        assertNotNull(result.getStartDate());
+        verify(sprintMapper).updateById(sprint);
+    }
+
+    @Test
+    void startSprint_shouldThrowException_whenSprintNotFound() {
+        // Arrange
+        when(sprintMapper.findById(999L)).thenReturn(null);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sprintService.startSprint(999L)
+        );
+        assertTrue(exception.getMessage().contains("Sprint not found"));
+    }
+
+    // ==================== completeSprint Tests ====================
+
+    @Test
+    void completeSprint_shouldSetStatusToCompletedAndSetEndDate() {
+        // Arrange
+        Sprint sprint = new Sprint();
+        sprint.setId(1L);
+        sprint.setProjectId("PRJ_001");
+        sprint.setName("Sprint 1");
+        sprint.setStatus("ACTIVE");
+
+        when(sprintMapper.findById(1L)).thenReturn(sprint);
+        when(sprintMapper.updateById(sprint)).thenReturn(1);
+
+        // Act
+        Sprint result = sprintService.completeSprint(1L);
+
+        // Assert
+        assertEquals("COMPLETED", result.getStatus());
+        assertNotNull(result.getEndDate());
+        verify(sprintMapper).updateById(sprint);
+    }
+
+    @Test
+    void completeSprint_shouldThrowException_whenSprintNotFound() {
+        // Arrange
+        when(sprintMapper.findById(999L)).thenReturn(null);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> sprintService.completeSprint(999L)
+        );
+        assertTrue(exception.getMessage().contains("Sprint not found"));
+    }
+
+    // ==================== findByProjectId Tests ====================
+
+    @Test
+    void findByProjectId_shouldReturnSprints() {
+        // Arrange
+        Sprint sprint1 = new Sprint();
+        sprint1.setId(1L);
+        sprint1.setProjectId("PRJ_001");
+
+        Sprint sprint2 = new Sprint();
+        sprint2.setId(2L);
+        sprint2.setProjectId("PRJ_001");
+
+        when(sprintMapper.findByProjectId("PRJ_001")).thenReturn(Arrays.asList(sprint1, sprint2));
+
+        // Act
+        List<Sprint> result = sprintService.findByProjectId("PRJ_001");
+
+        // Assert
+        assertEquals(2, result.size());
+        verify(sprintMapper).findByProjectId("PRJ_001");
+    }
+
+    @Test
+    void findByProjectId_shouldReturnEmptyList_whenNoSprints() {
+        // Arrange
+        when(sprintMapper.findByProjectId("PRJ_999")).thenReturn(Collections.emptyList());
+
+        // Act
+        List<Sprint> result = sprintService.findByProjectId("PRJ_999");
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    // ==================== findById Tests ====================
+
+    @Test
+    void findById_shouldReturnSprint() {
+        // Arrange
+        when(sprintMapper.findById(1L)).thenReturn(testSprint);
+
+        // Act
+        Sprint result = sprintService.findById(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        verify(sprintMapper).findById(1L);
+    }
+
+    @Test
+    void findById_shouldReturnNull_whenNotFound() {
+        // Arrange
+        when(sprintMapper.findById(999L)).thenReturn(null);
+
+        // Act
+        Sprint result = sprintService.findById(999L);
+
+        // Assert
+        assertNull(result);
+    }
+
+    // ==================== batchAddTasks Tests ====================
+
+    @Test
+    void batchAddTasks_shouldReturnZero_whenTaskIdsIsNull() {
+        // Act
+        int count = sprintService.batchAddTasks(1L, null);
+
+        // Assert
+        assertEquals(0, count);
+        verifyNoMoreInteractions(taskMapper);
+    }
+
+    @Test
+    void batchAddTasks_shouldReturnZero_whenTaskIdsIsEmpty() {
+        // Act
+        int count = sprintService.batchAddTasks(1L, Collections.emptyList());
+
+        // Assert
+        assertEquals(0, count);
+        verifyNoMoreInteractions(taskMapper);
+    }
+
+    @Test
+    void batchAddTasks_shouldAddTasksToSprint() {
+        // Arrange
+        Task task1 = new Task();
+        task1.setId(10L);
+        task1.setProjectId("PRJ_001");
+
+        Task task2 = new Task();
+        task2.setId(11L);
+        task2.setProjectId("PRJ_001");
+
+        when(taskMapper.selectById(10L)).thenReturn(task1);
+        when(taskMapper.selectById(11L)).thenReturn(task2);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        // Act
+        int count = sprintService.batchAddTasks(1L, Arrays.asList(10L, 11L));
+
+        // Assert
+        assertEquals(2, count);
+        assertEquals(1L, task1.getSprintId());
+        assertEquals(1L, task2.getSprintId());
+    }
+
+    @Test
+    void batchAddTasks_shouldSkipNullTasks() {
+        // Arrange
+        when(taskMapper.selectById(10L)).thenReturn(null);
+
+        // Act
+        int count = sprintService.batchAddTasks(1L, Collections.singletonList(10L));
+
+        // Assert
+        assertEquals(0, count);
+    }
+
+    // ==================== batchRemoveTasks Tests ====================
+
+    // Note: batchRemoveTasks uses LambdaUpdateWrapper which requires MyBatis-Plus entity metadata
+    // and cannot be properly mocked in unit tests. This is a known limitation.
+    // The method is tested for null/empty input handling only.
+
+    @Test
+    void batchRemoveTasks_shouldReturnZero_whenTaskIdsIsNull() {
+        // Act
+        int count = sprintService.batchRemoveTasks(1L, null);
+
+        // Assert
+        assertEquals(0, count);
+    }
+
+    @Test
+    void batchRemoveTasks_shouldReturnZero_whenTaskIdsIsEmpty() {
+        // Act
+        int count = sprintService.batchRemoveTasks(1L, Collections.emptyList());
+
+        // Assert
+        assertEquals(0, count);
+    }
+
+    // ==================== calculateVelocity Edge Cases ====================
+
+    @Test
+    void calculateVelocity_shouldOnlyCountCompletedTasks() {
+        // Arrange
+        Task completedTask = new Task();
+        completedTask.setId(1L);
+        completedTask.setProgress(100);
+        completedTask.setEstimateHours(10);
+
+        Task incompleteTask = new Task();
+        incompleteTask.setId(2L);
+        incompleteTask.setProgress(50);
+        incompleteTask.setEstimateHours(10);
+
+        Task zeroProgressTask = new Task();
+        zeroProgressTask.setId(3L);
+        zeroProgressTask.setProgress(0);
+        zeroProgressTask.setEstimateHours(10);
+
+        when(taskMapper.findBySprintId(1L))
+            .thenReturn(Arrays.asList(completedTask, incompleteTask, zeroProgressTask));
+
+        // Act
+        int velocity = sprintService.calculateVelocity(1L);
+
+        // Assert
+        assertEquals(10, velocity); // Only completed task counts
+    }
+
+    @Test
+    void calculateVelocity_shouldHandleNullEstimateHours() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setProgress(100);
+        task.setEstimateHours(null);
+
+        when(taskMapper.findBySprintId(1L)).thenReturn(Collections.singletonList(task));
+
+        // Act
+        int velocity = sprintService.calculateVelocity(1L);
+
+        // Assert
+        assertEquals(0, velocity); // Null estimate contributes 0
+    }
+
+    // ==================== addTaskToSprint with Milestone ====================
+
+    @Test
+    void addTaskToSprint_shouldAutoLinkMilestone_whenSprintHasMilestone() {
+        // Arrange
+        Sprint sprintWithMilestone = new Sprint();
+        sprintWithMilestone.setId(1L);
+        sprintWithMilestone.setProjectId("PRJ_001");
+        sprintWithMilestone.setMilestoneId(100L);
+
+        Task taskWithoutMilestone = new Task();
+        taskWithoutMilestone.setId(1L);
+        taskWithoutMilestone.setProjectId("PRJ_001");
+        taskWithoutMilestone.setMilestoneId(null);
+
+        when(sprintMapper.findById(1L)).thenReturn(sprintWithMilestone);
+        when(taskMapper.findById(1L)).thenReturn(taskWithoutMilestone);
+
+        // Act
+        sprintService.addTaskToSprint(1L, 1L);
+
+        // Assert
+        assertEquals(100L, taskWithoutMilestone.getMilestoneId());
+        verify(taskMapper).updateById(taskWithoutMilestone);
+    }
+
+    @Test
+    void addTaskToSprint_shouldNotOverwriteTaskMilestone() {
+        // Arrange
+        Sprint sprintWithMilestone = new Sprint();
+        sprintWithMilestone.setId(1L);
+        sprintWithMilestone.setProjectId("PRJ_001");
+        sprintWithMilestone.setMilestoneId(100L);
+
+        Task taskWithMilestone = new Task();
+        taskWithMilestone.setId(1L);
+        taskWithMilestone.setProjectId("PRJ_001");
+        taskWithMilestone.setMilestoneId(200L); // Already has milestone
+
+        when(sprintMapper.findById(1L)).thenReturn(sprintWithMilestone);
+        when(taskMapper.findById(1L)).thenReturn(taskWithMilestone);
+
+        // Act
+        sprintService.addTaskToSprint(1L, 1L);
+
+        // Assert
+        assertEquals(200L, taskWithMilestone.getMilestoneId()); // Should remain unchanged
+        verify(taskMapper).updateById(taskWithMilestone);
+    }
+
+    // ==================== getSprintStats Edge Cases ====================
+
+    @Test
+    void getSprintStats_shouldCalculateCorrectVelocityAndCapacity() {
+        // Arrange
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setProgress(100);
+        task1.setEstimateHours(8);
+
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setProgress(100);
+        task2.setEstimateHours(4);
+
+        Sprint sprint = new Sprint();
+        sprint.setId(1L);
+        sprint.setCapacityHours(80);
+
+        when(taskMapper.findBySprintId(1L)).thenReturn(Arrays.asList(task1, task2));
+        when(sprintMapper.findById(1L)).thenReturn(sprint);
+
+        // Act
+        Map<String, Object> stats = sprintService.getSprintStats(1L);
+
+        // Assert
+        assertEquals(2, stats.get("totalTasks"));
+        assertEquals(2, stats.get("completedTasks"));
+        assertEquals(0, stats.get("remainingTasks"));
+        assertEquals(12, stats.get("velocity")); // 8 + 4
+        assertEquals(80, stats.get("capacity"));
+    }
 }

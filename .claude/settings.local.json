@@ -60,7 +60,8 @@
       "Bash(java *)",
       "Bash(update-alternatives --list java)",
       "Read(//usr/lib/jvm/**)",
-      "Bash(fuser -k 8080/tcp)"
+      "Bash(fuser -k 8080/tcp)",
+      "WebFetch(domain:minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com)"
     ],
     "defaultMode": "dontAsk"
   }
