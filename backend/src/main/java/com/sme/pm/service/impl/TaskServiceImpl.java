@@ -157,8 +157,12 @@ public class TaskServiceImpl implements TaskService {
         if (task.getStatus() != null) {
             wrapper.set(Task::getStatus, task.getStatus());
         }
+        // sprintId 可以设置为 null（移动到 Backlog），所以不检查 != null
         if (task.getSprintId() != null) {
             wrapper.set(Task::getSprintId, task.getSprintId());
+        } else {
+            // 显式设置为 null（移动到 Backlog）
+            wrapper.set(Task::getSprintId, null);
         }
 
         taskMapper.update(null, wrapper);
