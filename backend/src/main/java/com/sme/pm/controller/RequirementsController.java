@@ -9,6 +9,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 需求控制器
+ * 提供需求（Epic、Feature、Story）管理相关API，包括需求树查询、子需求、需求移动等
+ *
+ * 用法：
+ * - GET /api/v1/tasks/requirements/tree - 获取项目需求树（Epic和Feature）
+ * - GET /api/v1/tasks/requirements/{id}/children - 获取需求的直接子需求
+ * - GET /api/v1/tasks/requirements/{id}/subtree - 获取需求的完整子树
+ * - PUT /api/v1/tasks/requirements/move - 移动/重排序需求
+ */
 @RestController
 @RequestMapping("/api/v1/tasks/requirements")
 @RequireProjectRole(memberOnly = true)
@@ -21,7 +31,9 @@ public class RequirementsController {
     }
 
     /**
-     * Get requirement tree (Epic and Feature only - top level)
+     * 获取项目需求树（仅返回Epic和Feature作为顶层节点）
+     * @param projectId 项目ID
+     * @return 需求树结构（包含子节点层级）
      */
     @GetMapping("/tree")
     public Result<List<Task>> getRequirementTree(@RequestParam String projectId) {
@@ -29,7 +41,9 @@ public class RequirementsController {
     }
 
     /**
-     * Get direct children of a requirement
+     * 获取需求的直接子需求
+     * @param id 需求ID
+     * @return 直接子需求列表
      */
     @GetMapping("/{id}/children")
     public Result<List<Task>> getRequirementChildren(@PathVariable Long id) {
@@ -37,7 +51,9 @@ public class RequirementsController {
     }
 
     /**
-     * Get full subtree of a requirement
+     * 获取需求的完整子树（递归获取所有后代）
+     * @param id 需求ID
+     * @return 完整的需求子树
      */
     @GetMapping("/{id}/subtree")
     public Result<List<Task>> getRequirementSubtree(@PathVariable Long id) {
@@ -45,7 +61,9 @@ public class RequirementsController {
     }
 
     /**
-     * Move/ reorder a requirement - requires PROJECT_OWNER or PROJECT_MANAGER
+     * 移动或重排序需求
+     * @param request 包含taskId、newParentId、sortOrder的请求体
+     * @return 成功返回空结果
      */
     @PutMapping("/move")
     @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER"}, operation = "move_requirement")
@@ -54,6 +72,9 @@ public class RequirementsController {
         return Result.success();
     }
 
+    /**
+     * 移动需求请求体
+     */
     public static class MoveRequirementRequest {
         private Long taskId;
         private Long newParentId;

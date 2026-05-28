@@ -11,6 +11,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 用户控制器
+ * 提供用户管理相关API，包括用户CRUD、角色分配、部门管理等
+ *
+ * 用法：
+ * - GET /api/users/me - 获取当前登录用户信息
+ * - GET /api/users - 获取所有用户列表
+ * - POST /api/users - 创建新用户
+ * - PUT /api/users/{id} - 更新用户信息
+ * - DELETE /api/users/{id} - 删除用户
+ */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -25,6 +36,11 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * 获取当前登录用户信息
+     * @param userId 当前登录用户ID（从Token中提取）
+     * @return 用户信息（密码字段已清除）
+     */
     @GetMapping("/me")
     public Result<User> getCurrentUser(@CurrentUser Long userId) {
         User user = userMapper.selectById(userId);
@@ -34,16 +50,30 @@ public class UserController {
         return Result.success(user);
     }
 
+    /**
+     * 获取所有用户列表
+     * @return 所有用户信息列表
+     */
     @GetMapping
     public Result<List<User>> getAllUsers() {
         return Result.success(userMapper.selectList(null));
     }
 
+    /**
+     * 根据ID获取用户信息
+     * @param id 用户ID
+     * @return 用户信息
+     */
     @GetMapping("/{id}")
     public Result<User> getUser(@PathVariable Long id) {
         return Result.success(userMapper.selectById(id));
     }
 
+    /**
+     * 获取用户的角色列表
+     * @param id 用户ID
+     * @return 角色ID列表
+     */
     @GetMapping("/{id}/roles")
     public Result<List<Long>> getUserRoles(@PathVariable Long id) {
         List<Long> roleIds = userMapper.findRolesByUserId(id).stream()
@@ -52,11 +82,22 @@ public class UserController {
         return Result.success(roleIds);
     }
 
+    /**
+     * 创建新用户
+     * @param user 用户信息
+     * @return 创建的用户信息
+     */
     @PostMapping
     public Result<User> create(@RequestBody User user) {
         return Result.success(userService.register(user));
     }
 
+    /**
+     * 更新用户信息
+     * @param id 用户ID
+     * @param user 更新后的用户信息
+     * @return 成功返回空结果
+     */
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody User user) {
         user.setId(id);
@@ -67,6 +108,12 @@ public class UserController {
         return Result.success();
     }
 
+    /**
+     * 为用户分配角色
+     * @param id 用户ID
+     * @param body 包含角色ID列表的请求体
+     * @return 成功返回空结果
+     */
     @PutMapping("/{id}/roles")
     public Result<Void> assignRoles(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         Object roleIdsObj = body.get("roleIds");
@@ -80,6 +127,12 @@ public class UserController {
         return Result.success();
     }
 
+    /**
+     * 为用户分配部门
+     * @param id 用户ID
+     * @param body 包含部门ID的请求体
+     * @return 成功返回空结果
+     */
     @PutMapping("/{id}/department")
     public Result<Void> assignDepartment(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         Object deptIdObj = body.get("departmentId");
@@ -88,12 +141,22 @@ public class UserController {
         return Result.success();
     }
 
+    /**
+     * 移除用户的部门
+     * @param id 用户ID
+     * @return 成功返回空结果
+     */
     @DeleteMapping("/{id}/department")
     public Result<Void> removeDepartment(@PathVariable Long id) {
         userService.assignDepartment(id, null);
         return Result.success();
     }
 
+    /**
+     * 删除用户（物理删除）
+     * @param id 用户ID
+     * @return 成功返回空结果
+     */
     @DeleteMapping("/{id}")
     public Result<Void> deleteUser(@PathVariable Long id) {
         userMapper.deleteUserRolesByUserId(id);

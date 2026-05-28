@@ -3,6 +3,7 @@ package com.sme.pm.service.impl;
 import com.sme.pm.entity.Project;
 import com.sme.pm.entity.Sprint;
 import com.sme.pm.entity.Task;
+import com.sme.pm.mapper.MilestoneMapper;
 import com.sme.pm.mapper.ProjectMapper;
 import com.sme.pm.mapper.SprintMapper;
 import com.sme.pm.mapper.TaskMapper;
@@ -32,6 +33,9 @@ class ProjectStatsServiceImplTest {
 
     @Mock
     private TaskMapper taskMapper;
+
+    @Mock
+    private MilestoneMapper milestoneMapper;
 
     @InjectMocks
     private ProjectStatsServiceImpl projectStatsService;

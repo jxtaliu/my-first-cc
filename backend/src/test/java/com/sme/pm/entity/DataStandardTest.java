@@ -48,7 +48,7 @@ class DataStandardTest {
         assertNull(standard.getOwnerName());
         assertNull(standard.getCreatedAt());
         assertNull(standard.getUpdatedAt());
-        assertEquals(0, standard.getDeleted());
+        assertNull(standard.getDeleted());
         assertNull(standard.getEnumItems());
         assertNull(standard.getCodeItem());
         assertNull(standard.getStringItem());

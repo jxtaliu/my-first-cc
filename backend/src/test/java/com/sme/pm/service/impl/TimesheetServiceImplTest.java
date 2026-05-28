@@ -1,6 +1,7 @@
 package com.sme.pm.service.impl;
 
 import com.sme.pm.entity.Project;
+import com.sme.pm.entity.ProjectRole;
 import com.sme.pm.entity.Timesheet;
 import com.sme.pm.event.TimesheetApprovalEvent;
 import com.sme.pm.mapper.ProjectMapper;
@@ -41,13 +42,31 @@ class TimesheetServiceImplTest {
     private TimesheetService timesheetService;
 
     @BeforeEach
-    void setUp() {
-        timesheetService = new TimesheetServiceImpl(timesheetMapper, projectMapper, eventPublisher, projectRoleService);
+    void setUp() throws Exception {
+        timesheetService = new TimesheetServiceImpl();
+
+        // Use reflection to set the injected fields
+        java.lang.reflect.Field timesheetMapperField = TimesheetServiceImpl.class.getDeclaredField("timesheetMapper");
+        timesheetMapperField.setAccessible(true);
+        timesheetMapperField.set(timesheetService, timesheetMapper);
+
+        java.lang.reflect.Field projectMapperField = TimesheetServiceImpl.class.getDeclaredField("projectMapper");
+        projectMapperField.setAccessible(true);
+        projectMapperField.set(timesheetService, projectMapper);
+
+        java.lang.reflect.Field eventPublisherField = TimesheetServiceImpl.class.getDeclaredField("eventPublisher");
+        eventPublisherField.setAccessible(true);
+        eventPublisherField.set(timesheetService, eventPublisher);
+
+        java.lang.reflect.Field projectRoleServiceField = TimesheetServiceImpl.class.getDeclaredField("projectRoleService");
+        projectRoleServiceField.setAccessible(true);
+        projectRoleServiceField.set(timesheetService, projectRoleService);
     }
 
     @Test
     void create_shouldSetPendingStatus_forExternalProject() {
         Timesheet timesheet = new Timesheet();
+        timesheet.setUserId(1L);
         timesheet.setProjectId("PRJ_001");
         timesheet.setHours(8);
         timesheet.setWorkDate(LocalDateTime.now());
@@ -156,8 +175,14 @@ class TimesheetServiceImplTest {
         timesheet.setProjectId(projectId);
         timesheet.setApprovalStatus(1);
 
+        ProjectRole pmRole = new ProjectRole();
+        pmRole.setUserId(approverId);
+        pmRole.setProjectId(projectId);
+        pmRole.setRole("PROJECT_MANAGER");
+
         when(timesheetMapper.selectById(timesheetId)).thenReturn(timesheet);
         when(timesheetMapper.updateById(any(Timesheet.class))).thenReturn(1);
+        when(projectRoleService.findByProjectAndRole(projectId, "PROJECT_MANAGER")).thenReturn(List.of(pmRole));
 
         timesheetService.approve(timesheetId, approverId);
 
@@ -193,8 +218,14 @@ class TimesheetServiceImplTest {
         timesheet.setProjectId(projectId);
         timesheet.setApprovalStatus(1);
 
+        ProjectRole pmRole = new ProjectRole();
+        pmRole.setUserId(approverId);
+        pmRole.setProjectId(projectId);
+        pmRole.setRole("PROJECT_MANAGER");
+
         when(timesheetMapper.selectById(timesheetId)).thenReturn(timesheet);
         when(timesheetMapper.updateById(any(Timesheet.class))).thenReturn(1);
+        when(projectRoleService.findByProjectAndRole(projectId, "PROJECT_MANAGER")).thenReturn(List.of(pmRole));
 
         timesheetService.reject(timesheetId, approverId, reason);
 

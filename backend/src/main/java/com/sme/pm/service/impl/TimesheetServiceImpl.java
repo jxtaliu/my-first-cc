@@ -1,4 +1,5 @@
 package com.sme.pm.service.impl;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.sme.pm.entity.Timesheet;
 import com.sme.pm.entity.Project;
@@ -9,6 +10,7 @@ import com.sme.pm.mapper.TimesheetMapper;
 import com.sme.pm.mapper.ProjectMapper;
 import com.sme.pm.service.IProjectRoleService;
 import com.sme.pm.service.TimesheetService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,21 +21,16 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class TimesheetServiceImpl implements TimesheetService {
+public class TimesheetServiceImpl extends ServiceImpl<TimesheetMapper, Timesheet> implements TimesheetService {
 
-    private final TimesheetMapper timesheetMapper;
-    private final ProjectMapper projectMapper;
-    private final ApplicationEventPublisher eventPublisher;
-    private final IProjectRoleService projectRoleService;
-
-    public TimesheetServiceImpl(TimesheetMapper timesheetMapper, ProjectMapper projectMapper,
-                                ApplicationEventPublisher eventPublisher,
-                                IProjectRoleService projectRoleService) {
-        this.timesheetMapper = timesheetMapper;
-        this.projectMapper = projectMapper;
-        this.eventPublisher = eventPublisher;
-        this.projectRoleService = projectRoleService;
-    }
+    @Autowired
+    private TimesheetMapper timesheetMapper;
+    @Autowired
+    private ProjectMapper projectMapper;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private IProjectRoleService projectRoleService;
 
     @Override
     @Transactional

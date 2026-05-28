@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,6 +45,9 @@ class MilestoneServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        // Inject the mock mapper into the service's baseMapper field
+        ReflectionTestUtils.setField(milestoneService, "baseMapper", milestoneMapper);
+
         testMilestone1 = new Milestone();
         testMilestone1.setId(1L);
         testMilestone1.setName("Milestone 1");

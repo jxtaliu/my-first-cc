@@ -11,6 +11,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Bug控制器
+ * 提供Bug管理相关API，包括Bug列表、创建、状态管理等
+ *
+ * 用法：
+ * - GET /api/v1/tasks/bugs - 获取项目的Bug列表
+ * - POST /api/v1/tasks/bugs - 创建Bug
+ * - GET /api/v1/tasks/bugs/statuses/{projectId} - 获取Bug状态列表
+ * - GET /api/v1/tasks/bugs/transitions/{projectId}/{fromStatus} - 获取允许的状态转换
+ * - PUT /api/v1/tasks/bugs/{id}/status - 更新Bug状态
+ */
 @RestController
 @RequestMapping("/api/v1/tasks/bugs")
 public class BugController {
@@ -24,7 +35,9 @@ public class BugController {
     }
 
     /**
-     * Get bugs for a project - requires project membership
+     * 获取项目的Bug列表
+     * @param projectId 项目ID
+     * @return Bug任务列表
      */
     @GetMapping
     @RequireProjectRole(memberOnly = true)
@@ -33,7 +46,10 @@ public class BugController {
     }
 
     /**
-     * Create a bug - requires PROJECT_OWNER, PROJECT_MANAGER or DEVELOPER role
+     * 创建Bug
+     * @param bug Bug信息
+     * @param userId 当前登录用户ID（作为Bug负责人）
+     * @return 创建的Bug信息
      */
     @PostMapping
     @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER", "DEVELOPER"}, operation = "create_bug")
@@ -44,7 +60,9 @@ public class BugController {
     }
 
     /**
-     * Get bug status options for a project - public endpoint, no auth needed
+     * 获取项目的Bug状态列表
+     * @param projectId 项目ID
+     * @return Bug状态列表
      */
     @GetMapping("/statuses/{projectId}")
     public Result<List<BugStatus>> getBugStatuses(@PathVariable String projectId) {
@@ -52,7 +70,10 @@ public class BugController {
     }
 
     /**
-     * Get allowed status transitions for a bug - public endpoint, no auth needed
+     * 获取Bug允许的状态转换列表
+     * @param projectId 项目ID
+     * @param fromStatus 当前状态
+     * @return 可以转换到的状态列表
      */
     @GetMapping("/transitions/{projectId}/{fromStatus}")
     public Result<List<String>> getAllowedTransitions(
@@ -62,7 +83,10 @@ public class BugController {
     }
 
     /**
-     * Update bug status - requires PROJECT_OWNER or PROJECT_MANAGER role
+     * 更新Bug状态
+     * @param id Bug任务ID
+     * @param bugStatusId 目标Bug状态ID
+     * @return 成功返回空结果
      */
     @PutMapping("/{id}/status")
     @RequireProjectRole(value = {"PROJECT_OWNER", "PROJECT_MANAGER"}, operation = "update_bug_status")

@@ -1,6 +1,5 @@
 package com.sme.pm.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sme.pm.entity.Milestone;
 import com.sme.pm.mapper.MilestoneMapper;
@@ -15,49 +14,33 @@ public class MilestoneServiceImpl extends ServiceImpl<MilestoneMapper, Milestone
 
     @Override
     public List<Milestone> findAll() {
-        LambdaQueryWrapper<Milestone> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Milestone::getDeleted, 0)
-               .orderByAsc(Milestone::getTargetDate);
-        return list(wrapper);
+        return baseMapper.findAll();
     }
 
     @Override
     public List<Milestone> findCrossProject() {
-        LambdaQueryWrapper<Milestone> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Milestone::getIsCrossProject, true)
-               .eq(Milestone::getDeleted, 0)
-               .orderByAsc(Milestone::getTargetDate);
-        return list(wrapper);
+        return baseMapper.findCrossProject();
     }
 
     @Override
     public List<Milestone> findByProjectId(String projectId) {
-        LambdaQueryWrapper<Milestone> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Milestone::getProjectId, projectId)
-               .eq(Milestone::getDeleted, 0)
-               .orderByAsc(Milestone::getTargetDate);
-        return list(wrapper);
+        return baseMapper.findByProjectId(projectId);
     }
 
     @Override
     public List<Milestone> findDueSoon(int days) {
         LocalDate today = LocalDate.now();
         LocalDate deadline = today.plusDays(days);
-        LambdaQueryWrapper<Milestone> wrapper = new LambdaQueryWrapper<>();
-        wrapper.ge(Milestone::getTargetDate, today)
-               .le(Milestone::getTargetDate, deadline)
-               .eq(Milestone::getDeleted, 0)
-               .orderByAsc(Milestone::getTargetDate);
-        return list(wrapper);
+        return baseMapper.findDueSoon(deadline);
     }
 
     @Override
     public void completeMilestone(Long id) {
-        Milestone milestone = getById(id);
+        Milestone milestone = baseMapper.findById(id);
         if (milestone == null) {
             throw new IllegalArgumentException("Milestone not found");
         }
         milestone.setStatus("COMPLETED");
-        updateById(milestone);
+        baseMapper.updateById(milestone);
     }
 }

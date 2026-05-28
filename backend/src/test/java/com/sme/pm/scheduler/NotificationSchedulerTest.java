@@ -103,7 +103,7 @@ class NotificationSchedulerTest {
         for (SprintEvent event : capturedEvents) {
             assertEquals(1L, event.getSprintId());
             assertEquals(NotificationType.SPRINT_START, event.getEventType());
-            assertEquals(10L, event.getRelatedProjectId());
+            assertEquals("PRJ_001", event.getRelatedProjectId());
         }
     }
 
@@ -138,7 +138,7 @@ class NotificationSchedulerTest {
         for (SprintEvent event : capturedEvents) {
             assertEquals(2L, event.getSprintId());
             assertEquals(NotificationType.SPRINT_END, event.getEventType());
-            assertEquals(10L, event.getRelatedProjectId());
+            assertEquals("PRJ_001", event.getRelatedProjectId());
         }
     }
 
@@ -172,7 +172,7 @@ class NotificationSchedulerTest {
         for (MilestoneDueEvent event : capturedEvents) {
             assertEquals(1L, event.getMilestoneId());
             assertEquals(LocalDate.now().plusDays(2), event.getTargetDate());
-            assertEquals(10L, event.getRelatedProjectId());
+            assertEquals("PRJ_001", event.getRelatedProjectId());
         }
     }
 }

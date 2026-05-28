@@ -6,7 +6,6 @@ import com.sme.pm.mapper.TaskStatusMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,6 +17,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import java.lang.reflect.Field;
 
 /**
  * TaskDependencyServiceImpl 单元测试
@@ -37,7 +38,6 @@ class TaskDependencyServiceImplTest {
     @Mock
     private TaskStatusMapper taskStatusMapper;
 
-    @InjectMocks
     private TaskDependencyServiceImpl taskDependencyService;
 
     private TaskDependency testDependency1;
@@ -45,6 +45,17 @@ class TaskDependencyServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        // Manually create the service and set baseMapper via reflection since
+        // ServiceImpl doesn't have a constructor that accepts the mapper
+        taskDependencyService = new TaskDependencyServiceImpl(taskStatusMapper);
+        try {
+            Field baseMapperField = TaskDependencyServiceImpl.class.getSuperclass().getDeclaredField("baseMapper");
+            baseMapperField.setAccessible(true);
+            baseMapperField.set(taskDependencyService, taskDependencyMapper);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set baseMapper via reflection", e);
+        }
+
         testDependency1 = new TaskDependency();
         testDependency1.setId(1L);
         testDependency1.setTaskId(100L);
@@ -69,7 +80,6 @@ class TaskDependencyServiceImplTest {
     @Test
     void constructor_shouldInjectTaskStatusMapper() {
         // This test verifies that the constructor injection works correctly
-        // The @InjectMocks annotation handles the injection
         TaskDependencyServiceImpl service = new TaskDependencyServiceImpl(taskStatusMapper);
         assertNotNull(service);
     }

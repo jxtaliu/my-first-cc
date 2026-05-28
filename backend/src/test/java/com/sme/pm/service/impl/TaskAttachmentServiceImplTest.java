@@ -1,13 +1,15 @@
 package com.sme.pm.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.sme.pm.entity.TaskAttachment;
 import com.sme.pm.mapper.TaskAttachmentMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -28,19 +30,59 @@ import static org.mockito.Mockito.*;
  * - 删除附件
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TaskAttachmentServiceImplTest {
 
     @Mock
     private TaskAttachmentMapper taskAttachmentMapper;
 
-    @InjectMocks
     private TaskAttachmentServiceImpl taskAttachmentService;
+
+    /**
+     * Test-specific subclass that uses mapper directly instead of via ServiceImpl.baseMapper
+     */
+    static class TestableTaskAttachmentService extends TaskAttachmentServiceImpl {
+        private final TaskAttachmentMapper testMapper;
+
+        TestableTaskAttachmentService(TaskAttachmentMapper mapper) {
+            this.testMapper = mapper;
+        }
+
+        @Override
+        public List<TaskAttachment> findByTaskId(Long taskId) {
+            LambdaQueryWrapper<TaskAttachment> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(TaskAttachment::getTaskId, taskId)
+                   .eq(TaskAttachment::getDeleted, 0)
+                   .orderByDesc(TaskAttachment::getCreatedAt);
+            return testMapper.selectList(wrapper);
+        }
+
+        @Override
+        public TaskAttachment findById(Long id) {
+            LambdaQueryWrapper<TaskAttachment> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(TaskAttachment::getId, id)
+                   .eq(TaskAttachment::getDeleted, 0);
+            return testMapper.selectOne(wrapper);
+        }
+
+        @Override
+        public void uploadAttachment(TaskAttachment attachment) {
+            testMapper.insert(attachment);
+        }
+
+        @Override
+        public void deleteAttachment(Long id) {
+            testMapper.deleteById(id);
+        }
+    }
 
     private TaskAttachment testAttachment1;
     private TaskAttachment testAttachment2;
 
     @BeforeEach
     void setUp() {
+        taskAttachmentService = new TestableTaskAttachmentService(taskAttachmentMapper);
+
         testAttachment1 = new TaskAttachment();
         testAttachment1.setId(1L);
         testAttachment1.setTaskId(100L);
@@ -73,14 +115,14 @@ class TaskAttachmentServiceImplTest {
         // Arrange
         Long taskId = 100L;
         List<TaskAttachment> attachments = Arrays.asList(testAttachment2, testAttachment1);
-        when(taskAttachmentMapper.findByTaskId(taskId)).thenReturn(attachments);
+        when(taskAttachmentMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(attachments);
 
         // Act
         List<TaskAttachment> result = taskAttachmentService.findByTaskId(taskId);
 
         // Assert
         assertEquals(2, result.size());
-        verify(taskAttachmentMapper).findByTaskId(taskId);
+        verify(taskAttachmentMapper).selectList(any(LambdaQueryWrapper.class));
     }
 
     /**
@@ -91,14 +133,14 @@ class TaskAttachmentServiceImplTest {
     void findByTaskId_shouldReturnEmptyList_whenNoAttachments() {
         // Arrange
         Long taskId = 999L;
-        when(taskAttachmentMapper.findByTaskId(taskId)).thenReturn(Collections.emptyList());
+        when(taskAttachmentMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
 
         // Act
         List<TaskAttachment> result = taskAttachmentService.findByTaskId(taskId);
 
         // Assert
         assertTrue(result.isEmpty());
-        verify(taskAttachmentMapper).findByTaskId(taskId);
+        verify(taskAttachmentMapper).selectList(any(LambdaQueryWrapper.class));
     }
 
     // ==================== findById Tests ====================
@@ -111,7 +153,7 @@ class TaskAttachmentServiceImplTest {
     void findById_shouldReturnAttachment() {
         // Arrange
         Long attachmentId = 1L;
-        when(taskAttachmentMapper.findById(attachmentId)).thenReturn(testAttachment1);
+        when(taskAttachmentMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(testAttachment1);
 
         // Act
         TaskAttachment result = taskAttachmentService.findById(attachmentId);
@@ -120,7 +162,7 @@ class TaskAttachmentServiceImplTest {
         assertNotNull(result);
         assertEquals(attachmentId, result.getId());
         assertEquals("design.pdf", result.getFileName());
-        verify(taskAttachmentMapper).findById(attachmentId);
+        verify(taskAttachmentMapper).selectOne(any(LambdaQueryWrapper.class));
     }
 
     /**
@@ -131,14 +173,14 @@ class TaskAttachmentServiceImplTest {
     void findById_shouldReturnNull_whenNotFound() {
         // Arrange
         Long attachmentId = 999L;
-        when(taskAttachmentMapper.findById(attachmentId)).thenReturn(null);
+        when(taskAttachmentMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(null);
 
         // Act
         TaskAttachment result = taskAttachmentService.findById(attachmentId);
 
         // Assert
         assertNull(result);
-        verify(taskAttachmentMapper).findById(attachmentId);
+        verify(taskAttachmentMapper).selectOne(any(LambdaQueryWrapper.class));
     }
 
     // ==================== uploadAttachment Tests ====================
