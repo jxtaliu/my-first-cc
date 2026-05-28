@@ -680,6 +680,82 @@ class DataStandardServiceImplTest {
         assertEquals("Data standard not found", exception.getMessage());
     }
 
+    @Test
+    void share_shouldThrowException_whenFeishuWebhookUrlIsNull() {
+        // Arrange
+        Long id = 1L;
+        DataStandard standard = createDataStandard(id, "PRIORITY", "优先级枚举", "ENUM");
+
+        when(dataStandardMapper.findById(id)).thenReturn(standard);
+
+        Map<String, Object> shareParams = new HashMap<>();
+        shareParams.put("method", "feishu");
+        shareParams.put("webhookUrl", null);
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            dataStandardService.share(id, shareParams);
+        });
+        assertEquals("Feishu webhook URL is required", exception.getMessage());
+    }
+
+    @Test
+    void share_shouldThrowException_whenFeishuWebhookUrlIsEmpty() {
+        // Arrange
+        Long id = 1L;
+        DataStandard standard = createDataStandard(id, "PRIORITY", "优先级枚举", "ENUM");
+
+        when(dataStandardMapper.findById(id)).thenReturn(standard);
+
+        Map<String, Object> shareParams = new HashMap<>();
+        shareParams.put("method", "feishu");
+        shareParams.put("webhookUrl", "");
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            dataStandardService.share(id, shareParams);
+        });
+        assertEquals("Feishu webhook URL is required", exception.getMessage());
+    }
+
+    @Test
+    void share_shouldThrowException_whenEmailRecipientIsNull() {
+        // Arrange
+        Long id = 1L;
+        DataStandard standard = createDataStandard(id, "PRIORITY", "优先级枚举", "ENUM");
+
+        when(dataStandardMapper.findById(id)).thenReturn(standard);
+
+        Map<String, Object> shareParams = new HashMap<>();
+        shareParams.put("method", "email");
+        shareParams.put("recipient", null);
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            dataStandardService.share(id, shareParams);
+        });
+        assertEquals("Email recipient is required", exception.getMessage());
+    }
+
+    @Test
+    void share_shouldThrowException_whenEmailRecipientIsEmpty() {
+        // Arrange
+        Long id = 1L;
+        DataStandard standard = createDataStandard(id, "PRIORITY", "优先级枚举", "ENUM");
+
+        when(dataStandardMapper.findById(id)).thenReturn(standard);
+
+        Map<String, Object> shareParams = new HashMap<>();
+        shareParams.put("method", "email");
+        shareParams.put("recipient", "");
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            dataStandardService.share(id, shareParams);
+        });
+        assertEquals("Email recipient is required", exception.getMessage());
+    }
+
     // ==================== Helper Methods ====================
 
     /**

@@ -42,59 +42,17 @@ class TaskDependencyServiceImplTest {
 
     private TaskDependencyServiceImpl taskDependencyService;
 
-    /**
-     * Test-specific subclass that uses mapper directly
-     */
-    static class TestableTaskDependencyService extends TaskDependencyServiceImpl {
-        private final TaskDependencyMapper testMapper;
-
-        TestableTaskDependencyService(TaskDependencyMapper mapper, TaskStatusMapper statusMapper) {
-            super(statusMapper);
-            this.testMapper = mapper;
-        }
-
-        @Override
-        public List<TaskDependency> findByTaskId(Long taskId) {
-            LambdaQueryWrapper<TaskDependency> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(TaskDependency::getTaskId, taskId)
-                   .eq(TaskDependency::getDeleted, 0);
-            return testMapper.selectList(wrapper);
-        }
-
-        @Override
-        public List<TaskDependency> findByDependsOnTaskId(Long dependsOnTaskId) {
-            LambdaQueryWrapper<TaskDependency> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(TaskDependency::getDependsOnTaskId, dependsOnTaskId)
-                   .eq(TaskDependency::getDeleted, 0);
-            return testMapper.selectList(wrapper);
-        }
-
-        @Override
-        public int countBlockingDependencies(Long taskId) {
-            return testMapper.countBlockingDependencies(taskId);
-        }
-
-        @Override
-        public boolean canTransitionTo(Long taskId, String targetStatusCode) {
-            // If not marking as DONE, always allowed
-            if (!"DONE".equals(targetStatusCode)) {
-                return true;
-            }
-            // For DONE status with null taskId, the simplified implementation returns true
-            // because the for loop won't execute any checks
-            if (taskId == null) {
-                return true;
-            }
-            return true;
-        }
-    }
-
     private TaskDependency testDependency1;
     private TaskDependency testDependency2;
 
     @BeforeEach
-    void setUp() {
-        taskDependencyService = new TestableTaskDependencyService(taskDependencyMapper, taskStatusMapper);
+    void setUp() throws Exception {
+        taskDependencyService = new TaskDependencyServiceImpl(taskStatusMapper);
+
+        // Inject mock baseMapper using reflection
+        java.lang.reflect.Field baseMapperField = com.baomidou.mybatisplus.extension.service.impl.ServiceImpl.class.getDeclaredField("baseMapper");
+        baseMapperField.setAccessible(true);
+        baseMapperField.set(taskDependencyService, taskDependencyMapper);
 
         testDependency1 = new TaskDependency();
         testDependency1.setId(1L);
@@ -348,7 +306,45 @@ class TaskDependencyServiceImplTest {
         depWithNullTarget.setTaskId(taskId);
         depWithNullTarget.setDependsOnTaskId(null); // null dependency target
 
-        when(taskDependencyMapper.findByTaskId(taskId)).thenReturn(Collections.singletonList(depWithNullTarget));
+        when(taskDependencyMapper.selectList(any(LambdaQueryWrapper.class)))
+            .thenReturn(Collections.singletonList(depWithNullTarget));
+
+        // Act
+        boolean result = taskDependencyService.canTransitionTo(taskId, targetStatusCode);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void canTransitionTo_shouldReturnTrue_whenHasDependencyWithNonNullDependsOnTaskId() {
+        // Arrange
+        Long taskId = 100L;
+        String targetStatusCode = "DONE";
+
+        TaskDependency depWithNonNullTarget = new TaskDependency();
+        depWithNonNullTarget.setId(1L);
+        depWithNonNullTarget.setTaskId(taskId);
+        depWithNonNullTarget.setDependsOnTaskId(200L); // non-null dependency target
+
+        when(taskDependencyMapper.selectList(any(LambdaQueryWrapper.class)))
+            .thenReturn(Collections.singletonList(depWithNonNullTarget));
+
+        // Act
+        boolean result = taskDependencyService.canTransitionTo(taskId, targetStatusCode);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void canTransitionTo_shouldReturnTrue_whenDoneWithEmptyDependencies() {
+        // Arrange
+        Long taskId = 100L;
+        String targetStatusCode = "DONE";
+
+        when(taskDependencyMapper.selectList(any(LambdaQueryWrapper.class)))
+            .thenReturn(Collections.emptyList());
 
         // Act
         boolean result = taskDependencyService.canTransitionTo(taskId, targetStatusCode);

@@ -267,4 +267,48 @@ class TimesheetServiceImplTest {
             return true;
         }));
     }
+
+    @Test
+    void approve_shouldThrowException_whenNotProjectManager() {
+        Long timesheetId = 1L;
+        Long approverId = 999L; // Not a project manager
+        String projectId = "PRJ_002";
+
+        Timesheet timesheet = new Timesheet();
+        timesheet.setId(timesheetId);
+        timesheet.setUserId(3L);
+        timesheet.setProjectId(projectId);
+        timesheet.setApprovalStatus(1);
+
+        when(timesheetMapper.selectById(timesheetId)).thenReturn(timesheet);
+        when(projectRoleService.findByProjectAndRole(projectId, "PROJECT_MANAGER")).thenReturn(List.of()); // No PM role
+
+        assertThrows(IllegalStateException.class, () -> {
+            timesheetService.approve(timesheetId, approverId);
+        });
+
+        verify(timesheetMapper, never()).updateById(any(Timesheet.class));
+    }
+
+    @Test
+    void reject_shouldThrowException_whenNotProjectManager() {
+        Long timesheetId = 1L;
+        Long approverId = 999L; // Not a project manager
+        String projectId = "PRJ_002";
+
+        Timesheet timesheet = new Timesheet();
+        timesheet.setId(timesheetId);
+        timesheet.setUserId(3L);
+        timesheet.setProjectId(projectId);
+        timesheet.setApprovalStatus(1);
+
+        when(timesheetMapper.selectById(timesheetId)).thenReturn(timesheet);
+        when(projectRoleService.findByProjectAndRole(projectId, "PROJECT_MANAGER")).thenReturn(List.of()); // No PM role
+
+        assertThrows(IllegalStateException.class, () -> {
+            timesheetService.reject(timesheetId, approverId, "Some reason");
+        });
+
+        verify(timesheetMapper, never()).updateById(any(Timesheet.class));
+    }
 }

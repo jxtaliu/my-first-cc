@@ -125,6 +125,66 @@ class UserServiceImplTest {
     }
 
     @Test
+    void register_shouldThrowException_whenUsernameIsEmpty() {
+        User user = new User();
+        user.setUsername("");
+        user.setPassword("password123");
+        user.setEmail("test@example.com");
+
+        assertThrows(IllegalArgumentException.class, () -> userService.register(user));
+    }
+
+    @Test
+    void register_shouldThrowException_whenUsernameIsNull() {
+        User user = new User();
+        user.setUsername(null);
+        user.setPassword("password123");
+        user.setEmail("test@example.com");
+
+        assertThrows(IllegalArgumentException.class, () -> userService.register(user));
+    }
+
+    @Test
+    void register_shouldThrowException_whenPasswordIsEmpty() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("");
+        user.setEmail("test@example.com");
+
+        assertThrows(IllegalArgumentException.class, () -> userService.register(user));
+    }
+
+    @Test
+    void register_shouldThrowException_whenPasswordIsNull() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword(null);
+        user.setEmail("test@example.com");
+
+        assertThrows(IllegalArgumentException.class, () -> userService.register(user));
+    }
+
+    @Test
+    void register_shouldThrowException_whenEmailIsEmpty() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password123");
+        user.setEmail("");
+
+        assertThrows(IllegalArgumentException.class, () -> userService.register(user));
+    }
+
+    @Test
+    void register_shouldThrowException_whenEmailIsNull() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password123");
+        user.setEmail(null);
+
+        assertThrows(IllegalArgumentException.class, () -> userService.register(user));
+    }
+
+    @Test
     void getUserById_shouldReturnUserWithoutPassword() {
         Long userId = 1L;
         User user = new User();
