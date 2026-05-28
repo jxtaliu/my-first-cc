@@ -19,11 +19,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,7 +73,9 @@ class TaskServiceImplTest {
     void create_shouldSetDepth1_whenNoParent() {
         Task task = new Task();
         task.setTitle("Root Task");
+        task.setType("TASK");
         task.setParentId(null);
+        task.setProjectId("PRJ_001"); // Required field
 
         when(taskMapper.insert(any(Task.class))).thenReturn(1);
 
@@ -84,10 +90,13 @@ class TaskServiceImplTest {
         Task parentTask = new Task();
         parentTask.setId(1L);
         parentTask.setDepth(2);
+        parentTask.setProjectId("PRJ_001");
 
         Task childTask = new Task();
         childTask.setTitle("Child Task");
+        childTask.setType("TASK");
         childTask.setParentId(1L);
+        childTask.setProjectId("PRJ_001"); // Required field
 
         when(taskMapper.findById(1L)).thenReturn(parentTask);
         when(taskMapper.insert(any(Task.class))).thenReturn(1);
@@ -99,14 +108,16 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void create_shouldThrowException_whenDepthExceeds4() {
+    void create_shouldThrowException_whenDepthExceedsMax() {
         Task parentTask = new Task();
         parentTask.setId(1L);
-        parentTask.setDepth(4); // Already at max depth
+        parentTask.setDepth(5); // Already at MAX_DEPTH (5)
 
         Task childTask = new Task();
         childTask.setTitle("Deep Task");
+        childTask.setType("TASK");
         childTask.setParentId(1L);
+        childTask.setProjectId("PRJ_001");
 
         when(taskMapper.findById(1L)).thenReturn(parentTask);
 
@@ -249,15 +260,9 @@ class TaskServiceImplTest {
         newStatus.setCode("IN_PROGRESS");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
-        when(taskStatusMapper.selectOne(any())).thenAnswer(invocation -> {
-            TaskStatus queryStatus = invocation.getArgument(0);
-            if ("TODO".equals(queryStatus.getCode())) {
-                return currentStatus;
-            } else if ("IN_PROGRESS".equals(queryStatus.getCode())) {
-                return newStatus;
-            }
-            return null;
-        });
+        // Mock selectOne to return newStatus for IN_PROGRESS query
+        when(taskStatusMapper.selectOne(any(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class)))
+            .thenReturn(newStatus);
         when(taskMapper.updateById(any(Task.class))).thenReturn(1);
 
         taskService.updateStatus(taskId, newStatusCode);
@@ -286,25 +291,14 @@ class TaskServiceImplTest {
         task.setProjectId("PRJ_TEST");
         task.setInProgressSince(null); // Not yet in progress
 
-        TaskStatus currentStatus = new TaskStatus();
-        currentStatus.setId(10L);
-        currentStatus.setCode("TODO");
-
         TaskStatus newStatus = new TaskStatus();
         newStatus.setId(20L);
         newStatus.setNameEn("In Progress");
         newStatus.setCode("IN_PROGRESS");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
-        when(taskStatusMapper.selectOne(any())).thenAnswer(invocation -> {
-            TaskStatus queryStatus = invocation.getArgument(0);
-            if ("TODO".equals(queryStatus.getCode())) {
-                return currentStatus;
-            } else if ("IN_PROGRESS".equals(queryStatus.getCode())) {
-                return newStatus;
-            }
-            return null;
-        });
+        when(taskStatusMapper.selectOne(any(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class)))
+            .thenReturn(newStatus);
         when(taskMapper.updateById(any(Task.class))).thenReturn(1);
 
         Task result = taskService.updateStatus(taskId, newStatusCode);
@@ -327,25 +321,14 @@ class TaskServiceImplTest {
         task.setProgress(50);
         task.setInProgressSince(java.time.LocalDateTime.now());
 
-        TaskStatus currentStatus = new TaskStatus();
-        currentStatus.setId(20L);
-        currentStatus.setCode("IN_PROGRESS");
-
         TaskStatus newStatus = new TaskStatus();
         newStatus.setId(30L);
         newStatus.setNameEn("Done");
         newStatus.setCode("DONE");
 
         when(taskMapper.findById(taskId)).thenReturn(task);
-        when(taskStatusMapper.selectOne(any())).thenAnswer(invocation -> {
-            TaskStatus queryStatus = invocation.getArgument(0);
-            if ("IN_PROGRESS".equals(queryStatus.getCode())) {
-                return currentStatus;
-            } else if ("DONE".equals(queryStatus.getCode())) {
-                return newStatus;
-            }
-            return null;
-        });
+        when(taskStatusMapper.selectOne(any(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class)))
+            .thenReturn(newStatus);
         when(taskMapper.updateById(any(Task.class))).thenReturn(1);
 
         Task result = taskService.updateStatus(taskId, newStatusCode);
@@ -499,6 +482,402 @@ class TaskServiceImplTest {
         List<Task> result = taskService.getRequirementSubtree(parentId);
 
         assertTrue(result.isEmpty());
+    }
+
+    // ==================== Move Task Tests ====================
+
+    // Note: move() uses LambdaUpdateWrapper which requires MyBatis-Plus entity metadata.
+    // LambdaUpdateWrapper cannot be properly mocked in unit tests.
+    // Successful move cases are covered by batchMove tests.
+
+    @Test
+    void move_shouldThrowException_whenTaskNotFound() {
+        // Arrange
+        Task task = new Task();
+        task.setId(999L);
+        task.setType("TASK");
+        task.setSprintId(100L);
+
+        when(taskMapper.findById(999L)).thenReturn(null);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.move(task)
+        );
+        assertTrue(exception.getMessage().contains("Task not found"));
+    }
+
+    @Test
+    void move_shouldThrowException_whenMovingEpicToSprint() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setType("EPIC");
+        task.setSprintId(null);
+
+        Task existingTask = new Task();
+        existingTask.setId(1L);
+        existingTask.setType("EPIC");
+        existingTask.setSprintId(null);
+
+        when(taskMapper.findById(1L)).thenReturn(existingTask);
+
+        task.setSprintId(100L);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.move(task)
+        );
+        assertTrue(exception.getMessage().contains("EPIC类型的任务不允许直接设置冲刺"));
+    }
+
+    @Test
+    void move_shouldThrowException_whenMovingFeatureToSprint() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setType("FEATURE");
+        task.setSprintId(null);
+
+        Task existingTask = new Task();
+        existingTask.setId(1L);
+        existingTask.setType("FEATURE");
+        existingTask.setSprintId(null);
+
+        when(taskMapper.findById(1L)).thenReturn(existingTask);
+
+        task.setSprintId(100L);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.move(task)
+        );
+        assertTrue(exception.getMessage().contains("FEATURE类型的任务不允许直接设置冲刺"));
+    }
+
+    @Test
+    void move_shouldThrowException_whenMovingStoryToSprint() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setType("STORY");
+        task.setSprintId(null);
+
+        Task existingTask = new Task();
+        existingTask.setId(1L);
+        existingTask.setType("STORY");
+        existingTask.setSprintId(null);
+
+        when(taskMapper.findById(1L)).thenReturn(existingTask);
+
+        task.setSprintId(100L);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> taskService.move(task)
+        );
+        assertTrue(exception.getMessage().contains("STORY类型的任务不允许直接设置冲刺"));
+    }
+
+    // ==================== BatchMove Tests ====================
+
+    @Test
+    void batchMove_shouldReturnZeroCounts_whenTaskIdsIsNull() {
+        // Act
+        Map<String, Object> result = taskService.batchMove(null, "TODO", 1L);
+
+        // Assert
+        assertEquals(0, result.get("successCount"));
+        assertEquals(0, result.get("failedCount"));
+    }
+
+    @Test
+    void batchMove_shouldReturnZeroCounts_whenTaskIdsIsEmpty() {
+        // Act
+        Map<String, Object> result = taskService.batchMove(Collections.emptyList(), "TODO", 1L);
+
+        // Assert
+        assertEquals(0, result.get("successCount"));
+        assertEquals(0, result.get("failedCount"));
+    }
+
+    @Test
+    void batchMove_shouldMoveSingleTaskToSprint() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setType("TASK");
+        task.setSprintId(null);
+        task.setStatus("TODO");
+        task.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(task);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        List<Long> taskIds = Collections.singletonList(1L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, null, 100L);
+
+        // Assert
+        assertEquals(1, result.get("successCount"));
+        assertEquals(0, result.get("failedCount"));
+        assertEquals(100L, task.getSprintId());
+    }
+
+    @Test
+    void batchMove_shouldMoveMultipleTasksToSprint() {
+        // Arrange
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setType("TASK");
+        task1.setSprintId(null);
+        task1.setProjectId("PRJ_001");
+
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setType("TASK");
+        task2.setSprintId(null);
+        task2.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(task1);
+        when(taskMapper.findById(2L)).thenReturn(task2);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        List<Long> taskIds = Arrays.asList(1L, 2L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, null, 100L);
+
+        // Assert
+        assertEquals(2, result.get("successCount"));
+        assertEquals(0, result.get("failedCount"));
+        assertEquals(100L, task1.getSprintId());
+        assertEquals(100L, task2.getSprintId());
+    }
+
+    @Test
+    void batchMove_shouldMoveTaskToBacklog_whenSprintIdIsNull() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setType("TASK");
+        task.setSprintId(100L);
+        task.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(task);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        List<Long> taskIds = Collections.singletonList(1L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, null, null);
+
+        // Assert
+        assertEquals(1, result.get("successCount"));
+        assertEquals(0, result.get("failedCount"));
+        assertNull(task.getSprintId());
+    }
+
+    @Test
+    void batchMove_shouldSkipEpicTask_whenMovingToSprint() {
+        // Arrange
+        Task epicTask = new Task();
+        epicTask.setId(1L);
+        epicTask.setType("EPIC");
+        epicTask.setSprintId(null);
+        epicTask.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(epicTask);
+
+        List<Long> taskIds = Collections.singletonList(1L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, null, 100L);
+
+        // Assert
+        assertEquals(0, result.get("successCount"));
+        assertEquals(1, result.get("failedCount"));
+        assertNull(epicTask.getSprintId()); // Epic should NOT have sprintId changed
+    }
+
+    @Test
+    void batchMove_shouldSkipFeatureTask_whenMovingToSprint() {
+        // Arrange
+        Task featureTask = new Task();
+        featureTask.setId(1L);
+        featureTask.setType("FEATURE");
+        featureTask.setSprintId(null);
+        featureTask.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(featureTask);
+
+        List<Long> taskIds = Collections.singletonList(1L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, null, 100L);
+
+        // Assert
+        assertEquals(0, result.get("successCount"));
+        assertEquals(1, result.get("failedCount"));
+        assertNull(featureTask.getSprintId()); // Feature should NOT have sprintId changed
+    }
+
+    @Test
+    void batchMove_shouldSkipStoryTask_whenMovingToSprint() {
+        // Arrange
+        Task storyTask = new Task();
+        storyTask.setId(1L);
+        storyTask.setType("STORY");
+        storyTask.setSprintId(null);
+        storyTask.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(storyTask);
+
+        List<Long> taskIds = Collections.singletonList(1L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, null, 100L);
+
+        // Assert
+        assertEquals(0, result.get("successCount"));
+        assertEquals(1, result.get("failedCount"));
+        assertNull(storyTask.getSprintId()); // Story should NOT have sprintId changed
+    }
+
+    @Test
+    void batchMove_shouldSkipTaskNotFound() {
+        // Arrange
+        when(taskMapper.findById(999L)).thenReturn(null);
+
+        List<Long> taskIds = Collections.singletonList(999L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, null, 100L);
+
+        // Assert
+        assertEquals(0, result.get("successCount"));
+        assertEquals(1, result.get("failedCount"));
+        @SuppressWarnings("unchecked")
+        List<String> errors = (List<String>) result.get("errors");
+        assertTrue(errors.get(0).contains("Task not found: 999"));
+    }
+
+    @Test
+    void batchMove_shouldUpdateStatus_whenTargetStatusProvided() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setType("TASK");
+        task.setSprintId(100L);
+        task.setStatus("TODO");
+        task.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(task);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        List<Long> taskIds = Collections.singletonList(1L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, "DONE", 100L);
+
+        // Assert
+        assertEquals(1, result.get("successCount"));
+        assertEquals("DONE", task.getStatus());
+    }
+
+    @Test
+    void batchMove_shouldSetCompletionDate_whenMovingToDone() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setType("TASK");
+        task.setSprintId(100L);
+        task.setStatus("IN_PROGRESS");
+        task.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(task);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        List<Long> taskIds = Collections.singletonList(1L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, "DONE", 100L);
+
+        // Assert
+        assertEquals(1, result.get("successCount"));
+        assertEquals("DONE", task.getStatus());
+        assertEquals(100, task.getProgress());
+        assertNotNull(task.getCompletionDate());
+        assertNull(task.getInProgressSince());
+    }
+
+    @Test
+    void batchMove_shouldSetInProgressSince_whenMovingToInProgress() {
+        // Arrange
+        Task task = new Task();
+        task.setId(1L);
+        task.setType("TASK");
+        task.setSprintId(100L);
+        task.setStatus("TODO");
+        task.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(task);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        List<Long> taskIds = Collections.singletonList(1L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, "IN_PROGRESS", 100L);
+
+        // Assert
+        assertEquals(1, result.get("successCount"));
+        assertEquals("IN_PROGRESS", task.getStatus());
+        assertNotNull(task.getInProgressSince());
+    }
+
+    @Test
+    void batchMove_shouldHandleMixedSuccessAndFailure() {
+        // Arrange
+        Task task1 = new Task();
+        task1.setId(1L);
+        task1.setType("TASK");
+        task1.setSprintId(null);
+        task1.setProjectId("PRJ_001");
+
+        Task task2 = new Task();
+        task2.setId(2L);
+        task2.setType("EPIC"); // Will fail - epic cannot change sprint
+        task2.setSprintId(null);
+        task2.setProjectId("PRJ_001");
+
+        Task task3 = new Task();
+        task3.setId(3L);
+        task3.setType("TASK");
+        task3.setSprintId(null);
+        task3.setProjectId("PRJ_001");
+
+        when(taskMapper.findById(1L)).thenReturn(task1);
+        when(taskMapper.findById(2L)).thenReturn(task2);
+        when(taskMapper.findById(3L)).thenReturn(task3);
+        when(taskMapper.updateById(any(Task.class))).thenReturn(1);
+
+        List<Long> taskIds = Arrays.asList(1L, 2L, 3L);
+
+        // Act
+        Map<String, Object> result = taskService.batchMove(taskIds, null, 100L);
+
+        // Assert
+        assertEquals(2, result.get("successCount")); // task1 and task3 succeed
+        assertEquals(1, result.get("failedCount")); // task2 (EPIC) fails
+        @SuppressWarnings("unchecked")
+        List<String> errors = (List<String>) result.get("errors");
+        assertEquals(1, errors.size());
+        assertTrue(errors.get(0).contains("EPIC"));
     }
 
     private Task createTask(Long id, String title, String type, String projectId) {
